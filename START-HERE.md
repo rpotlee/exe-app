@@ -6,7 +6,9 @@ This package contains **the current working prototype**, a **locked V1 functiona
 - `index.html`, `styles.css`, `app.js`: latest existing implementation baseline.
 - `README.md`: project notes and run instructions.
 - `V1-LOCKED-SPEC.md`: canonical requirements and acceptance tests, including unresolved functionality.
-- **Design mockup images are not yet in the repository.** Use the approved image references from the Exe handoff package or ask for them before claiming screenshot/pixel-level parity. The written styling rules are in `V1-LOCKED-SPEC.md`.
+- `assets/design-reference/approved-floating-capture-and-inbox.webp`: approved raw Inbox, mobile layout, and floating Quick Capture.
+- `assets/design-reference/approved-light-glass-navigation.webp`: approved light translucent mobile bottom navigation.
+- `assets/design-reference/README.md`: mockup interpretation and precedence. These assets are present in the repository; compare actual screenshots against them.
 
 ## Instructions for Codex or an engineering agent
 1. Read `V1-LOCKED-SPEC.md` **before** editing any file; treat it as authoritative. Preserve the specified product architecture, underlying entities, AI-approval boundaries and flows. No silent redesign.

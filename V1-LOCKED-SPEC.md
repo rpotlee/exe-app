@@ -2,7 +2,7 @@
 
 **Status:** Implementation handoff / specification. **Not evidence that the work is implemented.**
 **Baseline source in this repository:** root `index.html`, `styles.css`, `app.js` (extracted from Exe Mission Status V2). The prior standalone `Exe-Mission-Status-Interactive.html` is a historical artifact, not a separate codebase.
-**Visual references:** approved Exe light-theme desktop and mobile mockup, plus the latest mockup showing Mission Status, raw Inbox, separate floating Quick Capture, and five mobile navigation destinations.
+**Visual references stored in this repository:** `assets/design-reference/approved-floating-capture-and-inbox.webp` and `assets/design-reference/approved-light-glass-navigation.webp`; see `assets/design-reference/README.md` for precedence. These establish Mission Status, the raw Inbox, the global floating Quick Capture, five functional destinations, and subtle glass navigation. Any inaccurate mockup counts or missing drawn controls are illustrative only; locked features and real application state take precedence.
 
 ## 0. Non-negotiable change control
 - The previously approved business logic, entities, project structure, and flows are locked. Do not replace or reimagine the application, or silently add a new product methodology.

@@ -18,4 +18,4 @@ Open `index.html` in a browser, or use a small static development server for loc
 
 Read `AGENTS.md` and `V1-LOCKED-SPEC.md`. Inspect the baseline, produce a gap analysis, then work in a branch and open a pull request for **Phase 1 only** (mobile/desktop navigation, the raw checkable Inbox, Quick Capture, and layout parity). Do not replace existing models or workflows. Show before/after real browser screenshots and tests.
 
-**Design references:** the user approved a light, cobalt-accented visual direction with subtle translucent mobile dock and an elevated global capture button. Exact visual-reference images are preserved in the original Exe V1 handoff ZIP; request them for pixel-level comparisons rather than inventing a new look.
+**Approved design references:** see [`assets/design-reference/`](assets/design-reference/README.md), which now contains the actual full-resolution mockups. Use both images during desktop/mobile visual comparison, with [`V1-LOCKED-SPEC.md`](V1-LOCKED-SPEC.md) authoritative for functionality and architecture.
