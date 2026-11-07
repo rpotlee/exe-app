@@ -1,7 +1,7 @@
 # Exe V1 — Locked Product Architecture, Design Spec, Implementation Plan and Acceptance Criteria
 
 **Status:** Implementation handoff / specification. **Not evidence that the work is implemented.**
-**Baseline source:** `/mnt/data/exe-mission-status-v2/` (index.html, styles.css, app.js); standalone artifact `Exe-Mission-Status-Interactive.html`.
+**Baseline source in this repository:** root `index.html`, `styles.css`, `app.js` (extracted from Exe Mission Status V2). The prior standalone `Exe-Mission-Status-Interactive.html` is a historical artifact, not a separate codebase.
 **Visual references:** approved Exe light-theme desktop and mobile mockup, plus the latest mockup showing Mission Status, raw Inbox, separate floating Quick Capture, and five mobile navigation destinations.
 
 ## 0. Non-negotiable change control
