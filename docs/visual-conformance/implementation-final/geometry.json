@@ -1,0 +1,134 @@
+[
+  {
+    "width": 320,
+    "card": {
+      "x": 14,
+      "y": 142.59375,
+      "width": 292,
+      "height": 293.390625
+    },
+    "ring": {
+      "x": 219,
+      "y": 181.28125,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 249,
+      "y": 536.734375,
+      "width": 44,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  },
+  {
+    "width": 375,
+    "card": {
+      "x": 14,
+      "y": 149.3125,
+      "width": 347,
+      "height": 270.59375
+    },
+    "ring": {
+      "x": 274,
+      "y": 176.609375,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 292,
+      "y": 511.40625,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  },
+  {
+    "width": 390,
+    "card": {
+      "x": 14,
+      "y": 149.3125,
+      "width": 362,
+      "height": 270.59375
+    },
+    "ring": {
+      "x": 289,
+      "y": 176.609375,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 307,
+      "y": 511.40625,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  },
+  {
+    "width": 430,
+    "card": {
+      "x": 14,
+      "y": 149.3125,
+      "width": 402,
+      "height": 270.59375
+    },
+    "ring": {
+      "x": 329,
+      "y": 176.609375,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 347,
+      "y": 511.40625,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  },
+  {
+    "width": 1280,
+    "card": {
+      "x": 240,
+      "y": 148.3125,
+      "width": 500,
+      "height": 408.375
+    },
+    "ring": {
+      "x": 631,
+      "y": 190,
+      "width": 84,
+      "height": 84
+    },
+    "track": {
+      "x": 611,
+      "y": 656.1875,
+      "width": 84,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  },
+  {
+    "width": 1440,
+    "card": {
+      "x": 240,
+      "y": 148.3125,
+      "width": 500,
+      "height": 408.375
+    },
+    "ring": {
+      "x": 631,
+      "y": 190,
+      "width": 84,
+      "height": 84
+    },
+    "track": {
+      "x": 611,
+      "y": 656.1875,
+      "width": 84,
+      "height": 5
+    },
+    "ringFont": "\"Exe Inter\", Arial, sans-serif"
+  }
+]

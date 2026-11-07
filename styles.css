@@ -1,9 +1,10 @@
-/* Exe V1 component styles. Values live in design-tokens.css. */
+/* Shared Exe component rules; semantic values in design-tokens.css. */
 * {
   box-sizing: border-box;
 }
 html {
   scroll-behavior: smooth;
+  background: var(--canvas);
 }
 body {
   margin: 0px;
@@ -12,7 +13,8 @@ body {
   -webkit-font-smoothing: antialiased;
   font-family: var(--font-ui);
   color: var(--ink);
-  background: var(--canvas);
+  isolation: isolate;
+  background: transparent;
 }
 button, input, textarea, select {
   font: inherit;
@@ -53,9 +55,8 @@ a {
   border-right: 1px solid var(--edge);
   display: flex;
   flex-direction: column;
-  padding-top: 37px;
   padding: var(--space-8) var(--space-3) var(--space-5);
-  background: var(--surface-soft);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(246, 244, 255, 0.78));
 }
 .brand {
   display: inline-flex;
@@ -89,8 +90,8 @@ a {
   background: var(--blue);
 }
 .brand-symbol i:first-child {
-  height: 18px;
-  transform: translateY(3px);
+  height: 22px;
+  transform: none;
 }
 .brand-period {
   color: var(--blue);
@@ -381,9 +382,6 @@ kbd {
   cursor: pointer;
 }
 .check-row:last-child {
-  border-bottom-width: medium;
-  border-bottom-style: none;
-  border-bottom-color: currentcolor;
   border-bottom: 0px;
 }
 .check-row input {
@@ -1000,7 +998,6 @@ kbd {
   padding: 26px 28px 25px;
   overflow: auto;
   animation: scaleIn .18s var(--ease);
-  overflow-y: auto;
   max-height: 100%;
 }
 .modal-sheet header {
@@ -1073,7 +1070,6 @@ kbd {
   z-index: 95;
   overflow: auto;
   animation: 0.18s ease 0s 1 normal none running fadeIn;
-  overflow-y: auto;
   background: var(--canvas);
 }
 .focus-top {
@@ -1506,6 +1502,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .hero-bottom .primary-button {
   min-width: 260px;
   min-height: 48px;
+  width: 316px;
+  font-size: 20px;
+  font-weight: 550;
 }
 .desktop-checks {
   display: block;
@@ -1768,7 +1767,36 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   font-size: var(--text-sm);
   color: var(--secondary);
 }
-@media(max-width:1150px) {
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0px;
+  pointer-events: none;
+  z-index: -1;
+  background: url("assets/illumination.svg") center bottom / 100% 100% no-repeat, radial-gradient(at 8% 32%, rgba(211, 201, 255, 0.22), transparent 42%), radial-gradient(at 88% 82%, rgba(209, 225, 255, 0.24), transparent 42%);
+}
+.icon-tone-primary {
+  color: var(--blue);
+  background: var(--surface-blue);
+}
+.icon-tone-violet {
+  color: var(--icon-violet);
+  background: var(--icon-violet-tile);
+}
+.icon-tone-blue {
+  color: var(--icon-blue);
+  background: var(--icon-blue-tile);
+}
+.stream-row[data-stream="market"] > svg {
+  color: var(--icon-violet);
+}
+.stream-row[data-stream="technology"] > svg {
+  color: var(--icon-blue);
+}
+.dock-item {
+  color: var(--ink);
+}
+@media (max-width: 1150px) {
 .desktop-topbar {
   padding: 0px 30px;
 }
@@ -1786,7 +1814,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   display: none;
 }
 }
-@media(max-width:980px) {
+@media (max-width: 980px) {
 .app-shell {
   grid-template-columns: 208px 1fr;
 }
@@ -1816,7 +1844,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   grid-template-columns: minmax(0px, 1fr);
 }
 }
-@media(max-width:760px) {
+@media (max-width: 760px) {
 body {
   background: var(--canvas);
 }
@@ -1827,7 +1855,6 @@ body {
   display: none;
 }
 .mobile-topbar {
-  padding-top: env(safe-area-inset-top);
   padding-inline: 18px;
   display: flex;
   flex-shrink: 0;
@@ -1873,7 +1900,6 @@ body {
   width: 13px;
 }
 .view {
-  padding-bottom: calc(180px + env(safe-area-inset-bottom));
   min-width: 0px;
   flex: 1 1 0%;
   min-height: 0px;
@@ -1940,10 +1966,7 @@ body {
 .modal-sheet {
   animation: sheetUp .2s var(--ease);
   background: var(--surface);
-  padding-left: var(--space-4);
-  padding-right: var(--space-4);
   max-height: 100%;
-  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom));
   width: 100%;
   border-radius: var(--radius-dock) var(--radius-dock) 0 0;
   padding: var(--space-3) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
@@ -1961,7 +1984,6 @@ body {
   font-size: 20px;
 }
 .modal-sheet .helper {
-  margin-bottom: var(--space-4);
   margin: 9px 0px var(--space-3);
   font-size: var(--text-xs);
   color: var(--secondary);
@@ -2129,6 +2151,7 @@ html, body {
 }
 .priority-hero {
   padding: var(--space-4);
+  background: linear-gradient(130deg, rgb(255, 255, 255) 20%, rgb(248, 247, 255));
 }
 .hero-head {
   gap: var(--space-2);
@@ -2210,7 +2233,7 @@ html, body {
   width: 100%;
   min-width: 0px;
   min-height: 48px;
-  font-size: var(--text-base);
+  font-size: 18px;
 }
 .desktop-cta-arrow {
   display: none;
@@ -2343,15 +2366,18 @@ html, body {
 .mobile-capture:hover {
   background: var(--blue-dark);
 }
+body::before {
+  opacity: 0.48;
 }
-@media(prefers-reduced-motion:reduce) {
+}
+@media (prefers-reduced-motion: reduce) {
 *, ::before, ::after {
   scroll-behavior: auto !important;
   animation-duration: 0.01ms !important;
   transition-duration: 0.01ms !important;
 }
 }
-@media(max-width:360px) {
+@media (max-width: 360px) {
 .view {
   padding-inline: 14px;
 }
@@ -2377,7 +2403,7 @@ html, body {
   background: rgba(255, 255, 255, var(--glass-fallback-alpha));
 }
 }
-@media(min-width:1151px) {
+@media (min-width: 1151px) {
 .page-is-focus .desktop-topbar {
   position: absolute;
   top: 0px;
@@ -2387,6 +2413,17 @@ html, body {
   padding-top: var(--space-8);
 }
 }
-@keyframes fadeIn {0% { opacity: 0; } 100% { opacity: 1; }}
-@keyframes scaleIn {0% { transform: translateY(8px) scale(0.985); opacity: 0.6; } 100% { transform: translateY(0px) scale(1); opacity: 1; }}
-@keyframes sheetUp {0% { transform: translateY(30px); opacity: 0.7; } 100% { transform: translateY(0px); opacity: 1; }}
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes scaleIn {
+  0% { transform: translateY(8px) scale(0.985); opacity: 0.6; }
+  100% { transform: translateY(0px) scale(1); opacity: 1; }
+}
+@keyframes sheetUp {
+  0% { transform: translateY(30px); opacity: 0.7; }
+  100% { transform: translateY(0px); opacity: 1; }
+}
+
+.hero-bottom .primary-button svg { width: 22px; height: 22px; }

@@ -1,6 +1,7 @@
+@font-face { font-family: "Exe Inter"; src: url("assets/fonts/InterVariable.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
 /* Exe V1: calibrated to the two approved UI references. */
 :root {
-  --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-ui: "Exe Inter", Arial, sans-serif;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;
@@ -14,14 +15,19 @@
   --weight-medium: 550;
   --weight-strong: 650;
   --weight-heading: 750;
-  --canvas: #f8f8fd;
+  --canvas: #ffffff;
   --surface: #ffffff;
-  --surface-soft: #f7f7fd;
+  --surface-soft: #fafaff;
   --surface-blue: #eeefff;
   --ink: #101426;
   --text: #263047;
   --secondary: #455169;
   --muted: #53617a;
+  --icon-violet: #5542bc;
+  --icon-violet-tile: #eeebff;
+  --icon-blue: #2858dd;
+  --icon-blue-tile: #eaf0ff;
+  --illumination-opacity: 1;
   --blue: #2449ec;
   --blue-dark: #1734c7;
   --blue-light: #e9ebff;
@@ -50,7 +56,7 @@
   --space-8: 32px;
   --space-12: 48px;
   --shadow-1: 0 2px 5px rgba(30, 38, 85, .05), 0 1px 2px rgba(30, 38, 85, .025);
-  --shadow-2: 0 6px 18px rgba(30, 38, 85, .09), 0 2px 4px rgba(30, 38, 85, .045);
+  --shadow-2: 0 6px 18px rgba(48, 39, 105, .10), 0 2px 4px rgba(48, 39, 105, .055), inset 0 1px 0 rgba(255,255,255,.9);
   --shadow-3: 0 16px 40px rgba(30, 38, 85, .15), 0 2px 6px rgba(30, 38, 85, .06);
   --overlay-surface: rgba(16, 20, 38, .36);
   --shadow-pressed: inset 0 2px 4px rgba(16, 20, 38, .12);
