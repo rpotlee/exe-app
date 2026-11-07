@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f8f9fc" />
+  <meta name="color-scheme" content="light" />
+  <meta name="description" content="Exe — turn scattered thoughts into clear priorities." />
+  <title>Exe — Mission Status</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <button class="brand" data-nav="focus" aria-label="Exe home"><span class="brand-symbol" aria-hidden="true"><i></i><i></i></span><span>Exe</span></button>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="sidebar-menu">
+        <button class="nav-link active" data-nav="focus"><span data-icon="target"></span><span>Focus</span></button>
+        <button class="nav-link" data-nav="inbox"><span data-icon="inbox"></span><span>Inbox</span><span class="nav-count" data-inbox-count hidden></span></button>
+        <button class="nav-link" data-nav="review"><span data-icon="sparkles"></span><span>AI Review</span></button>
+        <button class="nav-link" data-nav="map"><span data-icon="network"></span><span>Project Map</span></button>
+        <button class="nav-link" data-nav="decisions"><span data-icon="git-branch"></span><span>Decisions</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-quiet"><span data-icon="shield-check"></span><span>Focus is protected.<small>Capture freely. Decide deliberately.</small></span></div>
+        <button class="workspace-switch"><span class="avatar">A</span><span><strong>Altr Workspace</strong><small>Personal execution</small></span><span data-icon="chevrons-up-down"></span></button>
+      </div>
+    </aside>
+    <main class="main" id="main">
+      <header class="desktop-topbar">
+        <div class="breadcrumb">Workspace <span>/</span> Altr <span>/</span> <b id="crumb">Focus</b></div>
+        <div class="top-actions">
+          <span class="saved-indicator" id="saved-indicator"><span data-icon="cloud"></span> Saved on this device</span>
+          <button class="icon-button" id="search-button" title="Search your workspace" aria-label="Search workspace"><span data-icon="search"></span></button>
+          <button class="top-capture" data-capture><span data-icon="plus"></span> Quick capture <kbd>⌘ K</kbd></button>
+          <span class="desktop-avatar">A</span>
+        </div>
+      </header>
+      <header class="mobile-topbar">
+        <button class="brand brand-mobile" data-nav="focus" aria-label="Exe home"><span class="brand-symbol" aria-hidden="true"><i></i><i></i></span><span>Exe</span></button>
+        <button class="mobile-review-button" data-nav="review" aria-label="Open AI Review"><span data-icon="bell"></span><span class="notification-dot" data-inbox-count hidden></span></button>
+      </header>
+      <section id="view" class="view" aria-live="polite"></section>
+    </main>
+  </div>
+  <nav class="mobile-dock" aria-label="Mobile primary navigation">
+    <button class="dock-item active" data-nav="focus"><span data-icon="target"></span><small>Focus</small></button>
+    <button class="dock-item" data-nav="inbox"><span data-icon="inbox"></span><small>Inbox</small><span class="dock-bubble" data-dock-count hidden></span></button>
+    <button class="dock-capture" data-capture aria-label="Capture a thought"><span data-icon="plus"></span></button>
+    <button class="dock-item" data-nav="map"><span data-icon="network"></span><small>Map</small></button>
+    <button class="dock-item" data-nav="decisions"><span data-icon="git-branch"></span><small>Decisions</small></button>
+  </nav>
+  <div id="modal-root"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
