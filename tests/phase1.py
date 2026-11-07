@@ -45,6 +45,7 @@ with sync_playwright() as p:
         page.locator('[data-inbox-filter=done]').click();page.locator(f'[data-capture-check="{cid}"]').click()
         assert state(page)['captures'][-1]['completedAt'] is None
         page.locator('[data-inbox-filter=all]').click()
+        page.locator(f'[data-row-more="{cid}"]').click()
         page.locator(f'[data-edit-capture="{cid}"]').click()
         page.locator('#capture-edit textarea').fill('Edited raw item')
         page.get_by_role('button',name='Save changes',exact=True).click()

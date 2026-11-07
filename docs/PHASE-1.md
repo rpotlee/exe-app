@@ -1,5 +1,7 @@
 # Phase 1 review
 
+For the final refinement and approved-image comparison, see [Phase 1 acceptance review](PHASE-1-ACCEPTANCE.md). The audit below records the initial implementation.
+
 The pre-change audit found: review-first Inbox without raw completion or editing; four mobile destinations with capture occupying the middle slot; missing mobile Search/Settings; nearly opaque dock; incorrect “Next priorities” label for active Now items; duplicated capture guidance and excess mobile spacing. Baseline checks passed before production edits. `baseline-example.json` is a backup of the initial example state, not user progress.
 
 Implemented only the raw Inbox checklist and navigation/composition parity in the existing vanilla app. The eight entity types, IDs, seed text, structured task state, decision flows, Now limit, and approval logic remain intact. Capture `completedAt` is independent of review status; missing metadata on existing local data is treated as active. Editing uses `checklistText` while `text` remains the original reviewed capture. `archivedAt` hides a row reversibly; archived sources remain retained, searchable and reviewable. The list uses stable capture order. Empty filtered views are explicit.
@@ -17,11 +19,12 @@ python3 tests/phase1.py
 python3 tests/capture_context.py
 npm install --cache /tmp/exe-npm-cache --prefix /tmp/exe-a11y --no-package-lock --no-audit --no-fund axe-core@4.14.0
 AXE_PATH=/tmp/exe-a11y/node_modules/axe-core/axe.min.js python3 tests/accessibility.py
+AXE_PATH=/tmp/exe-a11y/node_modules/axe-core/axe.min.js python3 tests/refinement.py
 ```
 
 The functional suite covers 320, 375, 390, 430, 768, 1024, 1280 and 1440 CSS pixels: route and Focus Mode capture return, multiline capture, add/edit/complete/reopen, All/Active/Done, archive/restore, reload persistence, all original captures, independent structured task and review state, Search/Settings access, project navigation, decision actions, focus checklist access, the three-priority cap, horizontal overflow and dock/capture separation.
 
-Accessibility checks cover 320/390/430/1280, twenty route audits with axe WCAG A/AA tags, keyboard trapping/shortcuts, reduced motion, 420px-high resized capture sheets, and Chromium-emulated 20px top/34px bottom safe areas. Resizing is an approximation of keyboard layout, not proof of an actual iOS keyboard. Chromium tests do not establish real iPhone Safari behavior, screen-reader usability or exact visual parity with the unavailable approved reference images. These remain manual review checks. No backend, AI integration, sync, deployment or other phase was started.
+Accessibility checks cover 320/390/430/1280, twenty route audits with axe WCAG A/AA tags, keyboard trapping/shortcuts, reduced motion, 420px-high resized capture sheets, and Chromium-emulated 20px top/34px bottom safe areas. Resizing is an approximation of keyboard layout, not proof of an actual iOS keyboard. Chromium tests do not establish real iPhone Safari behavior, screen-reader usability or exact visual parity with the approved reference images. Both approved images were inspected during the refinement and compared in PHASE-1-ACCEPTANCE.md. These remain manual review checks. No backend, AI integration, sync, deployment or other phase was started.
 
 ## Real browser screenshots
 
