@@ -43,7 +43,8 @@ with sync_playwright() as p:
                 page.locator('#view').evaluate('(e,f)=>e.scrollTop=(e.scrollHeight-e.clientHeight)*f',fraction)
                 view=page.locator('#view').bounding_box();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
                 assert view['y']+view['height']<=plus['y']-4
-                assert plus['y']+plus['height']<=dock['y']-8
+                assert plus['y']<dock['y']<plus['y']+plus['height']
+                assert plus['y']+plus['height']<=page.locator('.dock-item').first.bounding_box()['y']
             # Last checkbox, disclosure and actions can all be scrolled into the clear region.
             for selector in ['[data-capture-check]','[data-row-more]','[data-edit-capture]','[data-archive-capture]']:
                 control=row.locator(selector);control.scroll_into_view_if_needed();box=control.bounding_box()

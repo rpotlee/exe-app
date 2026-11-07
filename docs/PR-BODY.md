@@ -1,26 +1,35 @@
-Phase 1 makes the Inbox a raw, editable checklist and brings desktop/mobile navigation and capability into parity. This final refinement uses both approved design references now merged from `main`, preserving the existing vanilla app, all eight entities, original captures, independent completion, priority logic and approval boundaries.
+Phase 1 gives Inbox raw editable/checkable captures and desktop/mobile capability parity. This final visual-conformance pass aligns the existing app with both approved mockups, preserving architecture, all eight entities, original data, independent completion, approval boundaries and the three-active-priority rule.
 
 Changes:
-- Compact, divider-based Inbox rows with 16px task text; accessible ellipsis disclosures contain Edit, Archive/Restore, provenance and review status. All/Active/Done and inline Add remain visible.
-- Five labeled destinations in a subtle glass dock, with a distinct centered cobalt + above it. A reserved mobile scroll region prevents either floating control from covering content or row actions.
-- Dominant current Focus card, two subordinate active priorities, quieter Next/Later entry into the existing management dialog. Removed repeated Next items and redundant capture prompts.
-- Refined geometry, typography, borders and depth; readable secondary text, consistent utility icons, visible keyboard focus and reduced-motion support.
-- Capture preserves route, unfinished Inbox input, expanded rows/checklists and scroll, including Focus Mode after save/cancel. Modal geometry follows VisualViewport height/offset for keyboard layout handling.
+- Consolidated visual values into `design-tokens.css` and readable component styles; retired the appended `phase1-refinement.css` overrides. Shared palette/type/spacing/radius/elevation/interaction/responsive tokens now cover all existing screens.
+- Integrated the cobalt capture circle with the frosted dock: 64px circle emerges 26px through a 90px capsule; five labeled 56px-high navigation targets remain clear below it. Scroll content ends above the complete assembly.
+- Calibrated Focus header/card/ring/secondary-priority geometry and depth. Restored actual thin progress tracks and sans percentage text. Desktop uses a 208px sidebar and 500px Focus column; mobile has readable titles, workstreams and actionable steps.
+- Preserved the compact raw checklist, quiet overflow actions and visible filters. Inline Add is visually subordinate to global Capture. Original capture text, completion independence and archive/restore remain.
+- Moved existing desktop Search to the sidebar; shortened status copy without changing its values or link. No event handler or workflow changes.
 
-Validation:
-- Existing baseline and eight-width functional regressions passed: 320/375/390/430/768/1024/1280/1440.
-- New long-list, wrapping, overflow/disclosure, hit-target and floating-control clearance tests passed at 320/375/390/430/1280/1440.
-- 26 axe WCAG A/AA route/state audits passed, including expanded metadata/actions. Keyboard, reduced motion, emulated safe areas, reduced/offset visual viewport and capture-context checks passed.
-- JavaScript syntax and diff checks passed. Screenshots use real Chromium rendering of clean example data with zero completed tasks.
+**[Full visual-conformance report: pre-code audit, target/result/discrepancy table, two visual passes, measurements, comparisons, all screenshots, tests and limitations](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/REPORT.md)**
 
-[Visual comparison against both approved images, acceptance notes and reproduction links](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/PHASE-1-ACCEPTANCE.md) · [Test results](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/TEST-RESULTS.md)
+| Evidence | Link |
+| --- | --- |
+| Latest glass Focus: cropped reference vs actual | [Comparison](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/comparisons/glass-focus-comparison.png) |
+| Latest glass Inbox: cropped reference vs actual | [Comparison](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/comparisons/glass-inbox-comparison.png) |
+| Floating-capture Focus reference vs actual | [Comparison](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/comparisons/floating-focus-comparison.png) |
+| Desktop reference UI vs actual | [Comparison](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/comparisons/floating-desktop-comparison.png) |
+| Desktop Focus,1280 | [Actual screenshot](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/pass-2/1280-focus.png) |
+| Mobile Focus,390 | [Actual screenshot](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/pass-2/390-focus.png) |
+| Mobile Inbox,390 | [Actual screenshot](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/pass-2/390-inbox.png) |
+| Mobile Quick Capture,390 | [Actual screenshot](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/pass-2/390-capture.png) |
+| Complete floating dock/circle detail,390 | [Actual screenshot](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/visual-conformance/pass-2/390-dock.png) |
 
-| Screen | Before final refinement | After |
-| --- | --- | --- |
-| Desktop Focus, 1280px | [Before](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/before-1280-focus-full.png) | [After](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/after-1280-focus-full.png) |
-| Mobile Focus, 390px | [Before](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/before-390-focus.png) | [After](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/after-390-focus.png) |
-| Mobile Inbox, 390px | [Before](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/before-390-inbox.png) | [After](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/screenshots/refinement/after-390-inbox.png) |
+Verification, separately:
+- Functional/responsive: baseline and all 320/375/390/430/768/1024/1280/1440 regression runs passed.
+- Accessibility: 26 axe WCAG A/AA audits passed, plus direct non-text checkbox contrast, keyboard, safe-area and smaller/offset-viewport checks.
+- Interactions/design contracts: context return, raw actions, state independence, minimum targets, shared tokens/unique CSS rules, selected navigation, progress geometry, focus/hover/pressed/disabled and native validation passed.
+- Visual: two rendered inspection passes; Focus/Inbox at 320/375/390/430/1280/1440; four mobile capture/dock sizes; other screens; four comparisons against UI-only reference crops and measured differences.
+- Syntax and whitespace checks passed. All screenshot progress is calculated from clean initial data, not copied from the mockups.
 
-Real iPhone Safari, the actual virtual keyboard/browser chrome, VoiceOver and device zoom/orientation/background retention still need manual acceptance. Emulation and axe do not establish full device or WCAG conformance. Approved mockup progress is illustrative and was not copied into user data.
+Necessary differences are documented: five functional labels instead of omitted mockup destinations, true 0% progress instead of fictional percentages, retained filters/settings, long original text and 320px wrapping, native font/icon rasterization, and approximate desktop calibration because devices occlude part of the reference.
 
-**Phase 1 only. Stop for review: do not merge, deploy or start Phase 2.**
+Chromium emulation is **not real iPhone Safari**. Device keyboard/browser chrome, VoiceOver, zoom/orientation/background retention remain manual acceptance checks. No perfect-fidelity or full WCAG/device-compatibility claim.
+
+**Stop for review. Do not merge, deploy, or begin Phase 2.**

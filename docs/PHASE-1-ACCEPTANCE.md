@@ -1,5 +1,7 @@
 # Phase 1 refinement — acceptance review
 
+Superseded by [the final measured visual-conformance report](visual-conformance/REPORT.md), including UI-only comparisons, consolidated tokens and the integrated dock. This document preserves the preceding review.
+
 The latest `main` was merged into `feat/phase-1-inbox-mobile-parity` without conflicts, preserving the initial Phase 1 implementation. Before editing the UI, both approved WebP images, their precedence README, AGENTS.md, and V1-LOCKED-SPEC.md were inspected. This review updates PR #1 only. No merge to main, deployment, backend, AI integration or Phase 2 work.
 
 ## Visual comparison with the approved references

@@ -1,6 +1,6 @@
 # Phase 1 review
 
-For the final refinement and approved-image comparison, see [Phase 1 acceptance review](PHASE-1-ACCEPTANCE.md). The audit below records the initial implementation.
+For the final visual-conformance pass, see [the measured report and UI-only comparisons](visual-conformance/REPORT.md). For the earlier refinement and approved-image comparison, see [Phase 1 acceptance review](PHASE-1-ACCEPTANCE.md). The audit below records the initial implementation.
 
 The pre-change audit found: review-first Inbox without raw completion or editing; four mobile destinations with capture occupying the middle slot; missing mobile Search/Settings; nearly opaque dock; incorrect “Next priorities” label for active Now items; duplicated capture guidance and excess mobile spacing. Baseline checks passed before production edits. `baseline-example.json` is a backup of the initial example state, not user progress.
 
@@ -17,10 +17,15 @@ node --check app.js
 python3 tests/baseline.py
 python3 tests/phase1.py
 python3 tests/capture_context.py
+python3 tests/design_system.py
 npm install --cache /tmp/exe-npm-cache --prefix /tmp/exe-a11y --no-package-lock --no-audit --no-fund axe-core@4.14.0
 AXE_PATH=/tmp/exe-a11y/node_modules/axe-core/axe.min.js python3 tests/accessibility.py
 AXE_PATH=/tmp/exe-a11y/node_modules/axe-core/axe.min.js python3 tests/refinement.py
+python3 tests/visual_conformance.py --pass-name pass-2
+python3 tests/visual_compare.py
 ```
+
+The comparison generator additionally uses Python Pillow, available in this environment; it crops reference UI regions solely for documentation. Runtime screens do not use reference artwork.
 
 The functional suite covers 320, 375, 390, 430, 768, 1024, 1280 and 1440 CSS pixels: route and Focus Mode capture return, multiline capture, add/edit/complete/reopen, All/Active/Done, archive/restore, reload persistence, all original captures, independent structured task and review state, Search/Settings access, project navigation, decision actions, focus checklist access, the three-priority cap, horizontal overflow and dock/capture separation.
 

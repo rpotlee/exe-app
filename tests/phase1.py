@@ -97,7 +97,7 @@ with sync_playwright() as p:
         if width<761:
             assert page.locator('.mobile-dock [data-nav]').count()==5
             dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
-            assert plus['y']+plus['height']<dock['y']
+            assert plus['y']+plus['height']<=page.locator('.mobile-dock .dock-item').first.bounding_box()['y']
             assert page.locator('.mobile-dock [aria-current=page]').count()==1
         assert not errors,errors
         if width in [390,1280]:

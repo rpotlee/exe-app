@@ -23,3 +23,13 @@ All required documents and both approved WebP images were inspected before UI ed
 - Final before/after screenshots and visual comparison against both approved references: [acceptance review](PHASE-1-ACCEPTANCE.md). No original capture text, structured task completion, approval logic, three-Now priorities or entity definitions were changed.
 
 Remaining limitations: real iPhone Safari/keyboard/browser chrome, VoiceOver and real-device zoom/orientation/background retention are unverified. Automated viewport/safe-area tests do not replace those checks. No merge, deployment or Phase 2 work.
+
+
+## Final visual-conformance pass
+
+- **Responsive/functional:** baseline390/1280 and existing eight-width regression suite passed after CSS consolidation; all original18 captures, independent status, task/decision/project controls and three-active cap preserved.
+- **Accessibility:** 26 axe-core 4.14.0 WCAG A/AA route/state audits passed; safe areas, reduced/offset viewport, keyboard and reduced motion passed. Direct checkbox-boundary contrast assertion >=3:1 passed independently of axe.
+- **Interactions/design contracts:** capture-context suite passed at 320/390/430/1280. Shared-token/unique-rule, sans ring, visible-track, target geometry, selected-nav, native validation, hover/pressed/focus/disabled assertions passed at 320/375/390/430/1280/1440.
+- **Visual acceptance:** two rendered implementation passes, six requested Focus/Inbox widths, four mobile capture/complete-dock sizes, other existing screens, four labeled UI-only comparisons and measured geometry. [Full report](visual-conformance/REPORT.md). This is independently inspected visual evidence, not inferred from automated test success.
+- **Integrity:** node syntax/diff checks passed; no reference artwork used by the app, no data/progress/priority/model or approval changes. The only JavaScript change is shorter status copy displaying the same values.
+- Real iPhone Safari, software keyboard/browser chrome and VoiceOver remain unverified; no pixel-perfect or production/device-readiness claim. PR remains open.
