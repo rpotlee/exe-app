@@ -1,0 +1,639 @@
+[
+  {
+    "screen": "mobile-focus",
+    "viewport": {
+      "width": 390,
+      "height": 760
+    },
+    "components": {
+      "brand": {
+        "bounds": {
+          "x": 16,
+          "y": 11,
+          "width": 81.140625,
+          "height": 26
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "26px",
+          "lineHeight": "26px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "heading": {
+        "bounds": {
+          "x": 14,
+          "y": 62,
+          "width": 362,
+          "height": 44
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "37px",
+          "lineHeight": "44px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "status": {
+        "bounds": {
+          "x": 14,
+          "y": 110,
+          "width": 362,
+          "height": 20
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "20px",
+          "weight": "400",
+          "color": "rgb(66, 72, 93)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(66, 72, 93)",
+          "shadow": "none"
+        }
+      },
+      "currentPriority": {
+        "bounds": {
+          "x": 14,
+          "y": 150,
+          "width": 362,
+          "height": 267
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "16px",
+          "border": "1px solid rgb(220, 222, 237)",
+          "shadow": "rgba(34, 32, 88, 0.09) 0px 5px 14px 0px, rgba(34, 32, 88, 0.05) 0px 2px 3px 0px, rgb(255, 255, 255) 0px 1px 0px 0px inset"
+        }
+      },
+      "priorityTitle": {
+        "bounds": {
+          "x": 83,
+          "y": 191,
+          "width": 196,
+          "height": 46
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "19px",
+          "lineHeight": "23px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "progressRing": {
+        "bounds": {
+          "x": 289,
+          "y": 181,
+          "width": 70,
+          "height": 70
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "actionableStep": {
+        "bounds": {
+          "x": 31,
+          "y": 276,
+          "width": 328,
+          "height": 64
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "15px",
+          "lineHeight": "20px",
+          "weight": "450",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "focusButton": {
+        "bounds": {
+          "x": 31,
+          "y": 352,
+          "width": 328,
+          "height": 48
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "550",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "10px",
+          "border": "0px none rgb(255, 255, 255)",
+          "shadow": "rgba(31, 40, 192, 0.19) 0px 4px 9px 0px, rgba(255, 255, 255, 0.22) 0px 1px 0px 0px inset"
+        }
+      },
+      "otherPriorities": {
+        "bounds": {
+          "x": 14,
+          "y": 439,
+          "width": 362,
+          "height": 168
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "secondaryCard": {
+        "bounds": {
+          "x": 14,
+          "y": 471,
+          "width": 362,
+          "height": 64
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(0, 0, 0)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "13px",
+          "border": "1px solid rgb(220, 222, 237)",
+          "shadow": "rgba(34, 32, 88, 0.07) 0px 2px 6px 0px, rgb(255, 255, 255) 0px 1px 0px 0px inset"
+        }
+      },
+      "dock": {
+        "bounds": {
+          "x": 10,
+          "y": 660,
+          "width": 370,
+          "height": 88
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(255, 255, 255, 0.82)",
+          "radius": "22px",
+          "border": "1px solid rgba(208, 211, 232, 0.85)",
+          "shadow": "rgba(28, 42, 89, 0.11) 0px 8px 24px 0px, rgba(255, 255, 255, 0.85) 0px 1px 0px 0px inset"
+        }
+      },
+      "quickCapture": {
+        "bounds": {
+          "x": 163,
+          "y": 616,
+          "width": 64,
+          "height": 64
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "50%",
+          "border": "3px solid rgba(255, 255, 255, 0.94)",
+          "shadow": "rgba(31, 40, 192, 0.24) 0px 5px 12px 0px, rgba(255, 255, 255, 0.35) 0px 0px 0px 4px"
+        }
+      }
+    },
+    "runtimeRequests": [
+      "http://127.0.0.1:8000/design-master/mobile-focus.html",
+      "http://127.0.0.1:8000/design-master/tokens.css",
+      "http://127.0.0.1:8000/design-master/master.css",
+      "http://127.0.0.1:8000/design-master/icons.svg",
+      "http://127.0.0.1:8000/design-master/fonts/InterVariable.ttf"
+    ]
+  },
+  {
+    "screen": "mobile-inbox",
+    "viewport": {
+      "width": 390,
+      "height": 760
+    },
+    "components": {
+      "brand": {
+        "bounds": {
+          "x": 16,
+          "y": 11,
+          "width": 81.140625,
+          "height": 26
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "26px",
+          "lineHeight": "26px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "heading": {
+        "bounds": {
+          "x": 14,
+          "y": 62,
+          "width": 362,
+          "height": 44
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "37px",
+          "lineHeight": "44px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "status": {
+        "bounds": {
+          "x": 14,
+          "y": 110,
+          "width": 362,
+          "height": 20
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "20px",
+          "weight": "400",
+          "color": "rgb(66, 72, 93)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(66, 72, 93)",
+          "shadow": "none"
+        }
+      },
+      "dock": {
+        "bounds": {
+          "x": 10,
+          "y": 660,
+          "width": 370,
+          "height": 88
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(255, 255, 255, 0.82)",
+          "radius": "22px",
+          "border": "1px solid rgba(208, 211, 232, 0.85)",
+          "shadow": "rgba(28, 42, 89, 0.11) 0px 8px 24px 0px, rgba(255, 255, 255, 0.85) 0px 1px 0px 0px inset"
+        }
+      },
+      "quickCapture": {
+        "bounds": {
+          "x": 163,
+          "y": 616,
+          "width": 64,
+          "height": 64
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "50%",
+          "border": "3px solid rgba(255, 255, 255, 0.94)",
+          "shadow": "rgba(31, 40, 192, 0.24) 0px 5px 12px 0px, rgba(255, 255, 255, 0.35) 0px 0px 0px 4px"
+        }
+      },
+      "filters": {
+        "bounds": {
+          "x": 14,
+          "y": 148,
+          "width": 362,
+          "height": 36
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "inlineAdd": {
+        "bounds": {
+          "x": 14,
+          "y": 200,
+          "width": 362,
+          "height": 46
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "10px",
+          "border": "1px solid rgb(217, 219, 234)",
+          "shadow": "rgba(34, 32, 88, 0.07) 0px 2px 6px 0px, rgb(255, 255, 255) 0px 1px 0px 0px inset"
+        }
+      },
+      "firstInboxRow": {
+        "bounds": {
+          "x": 14,
+          "y": 260,
+          "width": 362,
+          "height": 91
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "",
+          "shadow": "none"
+        }
+      }
+    },
+    "runtimeRequests": [
+      "http://127.0.0.1:8000/design-master/mobile-inbox.html",
+      "http://127.0.0.1:8000/design-master/tokens.css",
+      "http://127.0.0.1:8000/design-master/master.css",
+      "http://127.0.0.1:8000/design-master/icons.svg",
+      "http://127.0.0.1:8000/design-master/fonts/InterVariable.ttf"
+    ]
+  },
+  {
+    "screen": "desktop-focus",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "components": {
+      "brand": {
+        "bounds": {
+          "x": 12,
+          "y": 28,
+          "width": 183,
+          "height": 28
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "28px",
+          "lineHeight": "28px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "heading": {
+        "bounds": {
+          "x": 236,
+          "y": 54,
+          "width": 472,
+          "height": 42
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "36px",
+          "lineHeight": "42px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "status": {
+        "bounds": {
+          "x": 236,
+          "y": 102,
+          "width": 472,
+          "height": 20
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "14px",
+          "lineHeight": "20px",
+          "weight": "400",
+          "color": "rgb(66, 72, 93)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(66, 72, 93)",
+          "shadow": "none"
+        }
+      },
+      "currentPriority": {
+        "bounds": {
+          "x": 236,
+          "y": 146,
+          "width": 472,
+          "height": 380
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "15px",
+          "border": "1px solid rgb(220, 222, 237)",
+          "shadow": "rgba(34, 32, 88, 0.09) 0px 5px 14px 0px, rgba(34, 32, 88, 0.05) 0px 2px 3px 0px, rgb(255, 255, 255) 0px 1px 0px 0px inset"
+        }
+      },
+      "priorityTitle": {
+        "bounds": {
+          "x": 319,
+          "y": 189,
+          "width": 274,
+          "height": 56
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "25px",
+          "lineHeight": "28px",
+          "weight": "750",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "progressRing": {
+        "bounds": {
+          "x": 603,
+          "y": 175,
+          "width": 84,
+          "height": 84
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "actionableStep": {
+        "bounds": {
+          "x": 257,
+          "y": 290,
+          "width": 430,
+          "height": 48
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "13px",
+          "lineHeight": "18px",
+          "weight": "450",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "",
+          "shadow": "none"
+        }
+      },
+      "focusButton": {
+        "bounds": {
+          "x": 257,
+          "y": 457,
+          "width": 278,
+          "height": 48
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "550",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "10px",
+          "border": "0px none rgb(255, 255, 255)",
+          "shadow": "rgba(31, 40, 192, 0.19) 0px 4px 9px 0px, rgba(255, 255, 255, 0.22) 0px 1px 0px 0px inset"
+        }
+      },
+      "otherPriorities": {
+        "bounds": {
+          "x": 236,
+          "y": 550,
+          "width": 472,
+          "height": 180
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px none rgb(14, 16, 32)",
+          "shadow": "none"
+        }
+      },
+      "secondaryCard": {
+        "bounds": {
+          "x": 236,
+          "y": 578,
+          "width": 472,
+          "height": 72
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(0, 0, 0)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "13px",
+          "border": "1px solid rgb(220, 222, 237)",
+          "shadow": "rgba(34, 32, 88, 0.07) 0px 2px 6px 0px, rgb(255, 255, 255) 0px 1px 0px 0px inset"
+        }
+      },
+      "sidebar": {
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 208,
+          "height": 900
+        },
+        "computed": {
+          "font": "\"Exe Inter\", Arial, sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "normal",
+          "weight": "400",
+          "color": "rgb(14, 16, 32)",
+          "background": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "",
+          "shadow": "none"
+        }
+      }
+    },
+    "runtimeRequests": [
+      "http://127.0.0.1:8000/design-master/desktop-focus.html",
+      "http://127.0.0.1:8000/design-master/tokens.css",
+      "http://127.0.0.1:8000/design-master/master.css",
+      "http://127.0.0.1:8000/design-master/icons.svg",
+      "http://127.0.0.1:8000/design-master/fonts/InterVariable.ttf"
+    ]
+  }
+]
