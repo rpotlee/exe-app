@@ -1,0 +1,554 @@
+{
+  "version": 1,
+  "workstreams": [
+    {
+      "id": "foundation",
+      "name": "Business foundation",
+      "icon": "building",
+      "description": "Formation, registration, compliance and coverage"
+    },
+    {
+      "id": "market",
+      "name": "Market & pricing",
+      "icon": "chart",
+      "description": "Service-area research, competitor pricing and economics"
+    },
+    {
+      "id": "partners",
+      "name": "Partner operations",
+      "icon": "users",
+      "description": "Recruitment, screening, onboarding and retention"
+    },
+    {
+      "id": "technology",
+      "name": "Technology",
+      "icon": "code",
+      "description": "Backend, communications and code quality"
+    },
+    {
+      "id": "growth",
+      "name": "Customer acquisition",
+      "icon": "megaphone",
+      "description": "Website SEO, reviews, locations and lead generation"
+    }
+  ],
+  "outcomes": [
+    {
+      "id": "registration",
+      "stream": "foundation",
+      "name": "Confirm New York business registration",
+      "description": "Verify filing status, applicable registration requirements and publication obligations."
+    },
+    {
+      "id": "insurance",
+      "stream": "foundation",
+      "name": "Establish suitable insurance coverage",
+      "description": "Select coverage appropriate to actual services and operating footprint."
+    },
+    {
+      "id": "market-select",
+      "stream": "market",
+      "name": "Determine first service area",
+      "description": "Choose a launch area using demand, provider supply, competition and economics."
+    },
+    {
+      "id": "pricing",
+      "stream": "market",
+      "name": "Validate and finalize local pricing",
+      "description": "Use competitive intelligence and provider costs to set a defensible price."
+    },
+    {
+      "id": "backend",
+      "stream": "technology",
+      "name": "Define Backend V1",
+      "description": "Specify the minimum end-to-end booking, matching, dispatch and completion process."
+    },
+    {
+      "id": "security",
+      "stream": "technology",
+      "name": "Complete code and security review",
+      "description": "Assess the app before production deployment."
+    },
+    {
+      "id": "communications",
+      "stream": "technology",
+      "name": "Design customer and contractor communications",
+      "description": "Determine phone, SMS and communication process requirements."
+    },
+    {
+      "id": "hiring",
+      "stream": "partners",
+      "name": "Establish a partner hiring and onboarding process",
+      "description": "Recruit and validate service providers using a defined process and supporting backend."
+    },
+    {
+      "id": "seo",
+      "stream": "growth",
+      "name": "Optimize Altr website SEO",
+      "description": "Foundational SEO with descriptive images and useful location content."
+    },
+    {
+      "id": "locations",
+      "stream": "growth",
+      "name": "Publish service-area website content",
+      "description": "Add only confirmed operating areas."
+    },
+    {
+      "id": "reviews",
+      "stream": "growth",
+      "name": "Create a reviews section",
+      "description": "Use authentic, permissioned customer testimonials when available."
+    },
+    {
+      "id": "thumbtack",
+      "stream": "growth",
+      "name": "Evaluate Thumbtack Pro",
+      "description": "Consider lead costs when the business is able to fulfill bookings."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "reg-route",
+      "outcome": "registration",
+      "name": "Verify registration path and filing status",
+      "done": false
+    },
+    {
+      "id": "reg-deadline",
+      "outcome": "registration",
+      "name": "Record the applicable publication deadline after verifying effective date",
+      "done": false
+    },
+    {
+      "id": "reg-requirements",
+      "outcome": "registration",
+      "name": "Review filing and publication requirements",
+      "done": false
+    },
+    {
+      "id": "market-criteria",
+      "outcome": "market-select",
+      "name": "Define service-area selection criteria",
+      "done": false
+    },
+    {
+      "id": "market-shortlist",
+      "outcome": "market-select",
+      "name": "Shortlist candidate New York markets",
+      "done": false
+    },
+    {
+      "id": "market-compare",
+      "outcome": "market-select",
+      "name": "Compare provider supply, demand and potential profitability",
+      "done": false
+    },
+    {
+      "id": "backend-map",
+      "outcome": "backend",
+      "name": "Map booking intake through fulfillment",
+      "done": false
+    },
+    {
+      "id": "backend-match",
+      "outcome": "backend",
+      "name": "Define provider matching and dispatch requirements",
+      "done": false
+    },
+    {
+      "id": "backend-exceptions",
+      "outcome": "backend",
+      "name": "Define cancellation and exception handling",
+      "done": false
+    },
+    {
+      "id": "backend-manual",
+      "outcome": "backend",
+      "name": "Decide which steps are manual vs. automated",
+      "done": false
+    },
+    {
+      "id": "insurance-research",
+      "outcome": "insurance",
+      "name": "Research coverage relevant to Altr\u2019s operating model",
+      "done": false
+    },
+    {
+      "id": "insurance-quotes",
+      "outcome": "insurance",
+      "name": "Compare insurance quotes and coverage terms",
+      "done": false
+    },
+    {
+      "id": "competitors",
+      "outcome": "pricing",
+      "name": "Create a competitor pricing list for candidate markets",
+      "done": false
+    },
+    {
+      "id": "pricing-final",
+      "outcome": "pricing",
+      "name": "Finalize prices and contribution-margin assumptions",
+      "done": false
+    },
+    {
+      "id": "hiring-process",
+      "outcome": "hiring",
+      "name": "Design partner screening and onboarding process",
+      "done": false
+    },
+    {
+      "id": "hiring-backend",
+      "outcome": "hiring",
+      "name": "Build backend support for the approved hiring process",
+      "done": false,
+      "blockedBy": [
+        "hiring-process"
+      ]
+    },
+    {
+      "id": "communication-system",
+      "outcome": "communications",
+      "name": "Figure out the phone system and whether Twilio is necessary",
+      "done": false
+    },
+    {
+      "id": "code-scan",
+      "outcome": "security",
+      "name": "Run full app code and security scan",
+      "done": false
+    },
+    {
+      "id": "seo-base",
+      "outcome": "seo",
+      "name": "Audit and improve foundational on-page SEO",
+      "done": false
+    },
+    {
+      "id": "seo-images",
+      "outcome": "seo",
+      "name": "Rename images and add accurate descriptive alt text",
+      "done": false
+    },
+    {
+      "id": "locations-site",
+      "outcome": "locations",
+      "name": "Add confirmed service areas to the website",
+      "done": false,
+      "blockedBy": [
+        "market-shortlist"
+      ]
+    },
+    {
+      "id": "reviews-site",
+      "outcome": "reviews",
+      "name": "Create a customer reviews section for genuine reviews",
+      "done": false
+    },
+    {
+      "id": "thumbtack-eval",
+      "outcome": "thumbtack",
+      "name": "Evaluate Thumbtack Pro costs and lead quality before signup",
+      "done": false
+    }
+  ],
+  "decisions": [
+    {
+      "id": "decision-market",
+      "stream": "market",
+      "name": "Which New York service area should Altr launch in first?",
+      "status": "open",
+      "description": "Compare demand, provider availability, competition and potential net profit.",
+      "options": [
+        "Candidate market A",
+        "Candidate market B",
+        "Candidate market C"
+      ],
+      "notes": "",
+      "selected": ""
+    },
+    {
+      "id": "decision-backend",
+      "stream": "technology",
+      "name": "What is the minimum viable backend for launch?",
+      "status": "open",
+      "description": "Choose essential booking, partner matching, dispatch and support workflows.",
+      "options": [
+        "Manual-first with limited automation",
+        "More automated dispatch at launch"
+      ],
+      "notes": "",
+      "selected": ""
+    },
+    {
+      "id": "decision-pricing",
+      "stream": "market",
+      "name": "What pricing structure produces healthy margins?",
+      "status": "open",
+      "description": "Use contractor costs and local competitor prices to evaluate options.",
+      "options": [
+        "Flat-rate tiers",
+        "Size-based pricing",
+        "Hybrid pricing"
+      ],
+      "notes": "",
+      "selected": ""
+    },
+    {
+      "id": "decision-phone",
+      "stream": "technology",
+      "name": "Does Altr need Twilio or a simpler phone system?",
+      "status": "open",
+      "description": "Define calls, SMS dispatch, notifications, tracking and support needs before choosing technology.",
+      "options": [
+        "Business phone provider",
+        "Twilio-based messaging",
+        "Combination of both"
+      ],
+      "notes": "",
+      "selected": ""
+    },
+    {
+      "id": "decision-partners",
+      "stream": "partners",
+      "name": "What incentives will attract and retain partners?",
+      "status": "open",
+      "description": "Assess partner earnings, payout reliability, schedule fit and recruitment needs.",
+      "options": [
+        "Predictable payouts",
+        "Volume-based incentives",
+        "Preferred-partner benefits"
+      ],
+      "notes": "",
+      "selected": ""
+    }
+  ],
+  "ideas": [
+    {
+      "id": "spanish",
+      "stream": "partners",
+      "name": "Offer Spanish-language recruitment and onboarding materials",
+      "notes": "Preserve an accessible English option as well."
+    },
+    {
+      "id": "incentives",
+      "stream": "partners",
+      "name": "Explore additional creative partner incentives",
+      "notes": "Evaluate cost and appeal before committing."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "market-select",
+      "to": "pricing",
+      "kind": "informs",
+      "description": "Local economics inform pricing"
+    },
+    {
+      "from": "market-select",
+      "to": "locations",
+      "kind": "blocks",
+      "description": "Confirm locations before publishing coverage"
+    },
+    {
+      "from": "hiring-process",
+      "to": "hiring-backend",
+      "kind": "blocks",
+      "description": "Approve the process before implementing it"
+    },
+    {
+      "from": "backend",
+      "to": "communications",
+      "kind": "informs",
+      "description": "Communication workflows inform provider selection"
+    },
+    {
+      "from": "decision-pricing",
+      "to": "pricing",
+      "kind": "related",
+      "description": "Pricing decision guides pricing work"
+    }
+  ],
+  "captures": [
+    {
+      "id": "original-1",
+      "text": "Have Claude optimize Altr\u2019s site for SEO. Example: Rename images and alt captions",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-2",
+      "text": "Register the business in NYC",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-3",
+      "text": "Understand nyc publication requirements and how long I have to do get this done. Is it immediate?",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-4",
+      "text": "SEO optimization",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-5",
+      "text": "Look into insurance coverage for business",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-6",
+      "text": "Figure out the phone system. Do I need twilio",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-7",
+      "text": "Perform a full code scan on the entire app",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-8",
+      "text": "Create a reviews section.",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-9",
+      "text": "Figure out the area in ny that will be our first service area.",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-10",
+      "text": "Create a list of competitor pricing",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-11",
+      "text": "Finalize pricing / pricing strategy",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-12",
+      "text": "Design hiring process",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-13",
+      "text": "Design and create backend component that will support hiring process",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-14",
+      "text": "Sign up for thumbtack pro",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-15",
+      "text": "What should the most basic version of our backend do right now?",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-16",
+      "text": "Add service locations to website",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-17",
+      "text": "Think of creative ways to incentivize partners.",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    },
+    {
+      "id": "original-18",
+      "text": "It may be worthwhile to provide Spanish-language recruitment materials and onboarding support, alongside English-language options.",
+      "status": "organized",
+      "createdAt": "Imported example",
+      "source": "Altr brain dump"
+    }
+  ],
+  "focusAssignments": [
+    {
+      "outcome": "registration",
+      "lane": "now"
+    },
+    {
+      "outcome": "market-select",
+      "lane": "now"
+    },
+    {
+      "outcome": "backend",
+      "lane": "now"
+    },
+    {
+      "outcome": "insurance",
+      "lane": "next"
+    },
+    {
+      "outcome": "pricing",
+      "lane": "next"
+    },
+    {
+      "outcome": "hiring",
+      "lane": "next"
+    },
+    {
+      "outcome": "communications",
+      "lane": "next"
+    },
+    {
+      "outcome": "security",
+      "lane": "next"
+    },
+    {
+      "outcome": "seo",
+      "lane": "next"
+    },
+    {
+      "outcome": "locations",
+      "lane": "next"
+    },
+    {
+      "outcome": "reviews",
+      "lane": "later"
+    },
+    {
+      "outcome": "thumbtack",
+      "lane": "later"
+    }
+  ],
+  "currentPriority": "registration",
+  "selectedStream": "foundation",
+  "selectedDecision": "decision-market",
+  "page": "focus"
+}
