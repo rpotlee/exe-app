@@ -53,7 +53,7 @@ for screen in results:
  for name,c in screen['components'].items():
   box=c['bounds'];lines.append('| '+name+' | '+' | '.join(str(round(box[k],2)) for k in ['x','y','width','height'])+' |')
  lines.append('')
-(ROOT/'MEASUREMENTS.md').write_text('\n'.join(lines)+'\n')
+(ROOT/'MEASUREMENTS.md').write_text('\n'.join(lines).rstrip()+'\n')
 font=ROOT/'fonts/InterVariable.ttf'
 (ROOT/'evidence/font-sha256.txt').write_text(hashlib.sha256(font.read_bytes()).hexdigest()+'  fonts/InterVariable.ttf\n')
 changed=subprocess.check_output(['git','-C',str(ROOT.parent),'diff','--name-only','399359e','--','.',':!design-master'],text=True).strip()

@@ -53,4 +53,3 @@ Viewport: 1280 × 840
 | otherPriorities | 236 | 566 | 472 | 180 |
 | secondaryCard | 236 | 594 | 472 | 72 |
 | sidebar | 0 | 0 | 208 | 840 |
-
