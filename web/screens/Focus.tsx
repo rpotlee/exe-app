@@ -67,7 +67,7 @@ export function Focus() {
         <p className="mission-sub" id="status-line">
           {empty ? 'Nothing here yet.' : <>
             {currentId && <span>1 current focus of up to 3 active.</span>}
-            {awaitingReview > 0 && <button className="mission-review" onClick={() => go('review')}>{awaitingReview} awaiting AI Review <Icon name="arrow-right" /></button>}
+            {awaitingReview > 0 && <button className="mission-review" onClick={() => go('review')}>{awaitingReview} for the AI Assistant <Icon name="arrow-right" /></button>}
             {blocked > 0 && <span>{blocked} blocked.</span>}
             {!currentId && awaitingReview === 0 && blocked === 0 && <span>Nothing active right now.</span>}</>}
         </p>
@@ -95,12 +95,12 @@ export function Focus() {
         ) : (
           <div className="empty-state"><span className="empty-icon"><Icon name="target" /></span><h2>No active priorities</h2><p>Choose an outcome from Next &amp; Later when you're ready.</p></div>
         )}
-        <section className="mission-other" aria-label="Other active priorities"><div className="mission-other-head"><div className="mission-other-heading">Other active priorities</div></div>
+        {(current || others.length > 0) && (<section className="mission-other" aria-label="Other active priorities"><div className="mission-other-head"><div className="mission-other-heading">Other active priorities</div></div>
           <div className="side-priorities">{others.map(o => { const p = progressOf(ws, o.id); return (
             <button key={o.id} type="button" className="priority-mini" aria-pressed={false} onClick={() => api.run((w, c) => selectCurrentFocus(w, c, o.id))}>
               <span className="mini-icon"><Icon name="layers" /></span><span className="mini-copy"><strong className="mini-title">{o.name}</strong><span className="mini-kicker">{folderOf(ws, o)}</span></span>
               <span className="mini-progress">{p.percent ? <><strong>{p.percent}%</strong><span className="mini-progress-track"><span style={{ width: `${p.percent}%` }} /></span></> : <span className="mini-idle">{p.total ? 'Not started' : 'Not measured'}</span>}</span>
-              <Icon name="chevron-right" className="mini-arrow" /></button>); })}{!others.length && <p className="small-note">No other active priorities.</p>}</div></section>
+              <Icon name="chevron-right" className="mini-arrow" /></button>); })}{!others.length && <p className="small-note">No other active priorities.</p>}</div></section>)}
         {ws.outcomes.length > 0 && (
           <section className="mission-suggest" aria-label="Priority suggestions">
             {showSg && sg ? (

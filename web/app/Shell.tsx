@@ -1,14 +1,15 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { currentFocusId } from '../../src/domain/model';
+import { currentFocusId, emptyWorkspace } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
 import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
 import type { AiApi } from './ai';
-import type { AssistClient } from './useAssist';
+import { useAssist, type AssistClient } from './useAssist';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
 import { ALL, validScope, type Scope } from '../../src/domain/scope';
+import type { PriorityMode } from '../../src/domain/mission';
 const Dialogs = lazy(() => import('./Dialogs').then(m => ({ default: m.Dialogs })));   // opened on demand, not part of the first load
 import { useWorkspace } from './useWorkspace';
 import { Focus } from '../screens/Focus';
@@ -29,13 +30,17 @@ const PAGE_NAME: Record<Page, string> = { focus: 'Mission Status', lanes: 'Next 
 const TABS: { page: Page; label: string; icon: string }[] = [
   { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
 ];
-const SCOPE_KEY = 'exe-scope';
+const SCOPE_KEY = 'exe-scope', PRIO_KEY = 'exe-priority-mode';
+const loadPrio = (): PriorityMode => { try { const v = localStorage.getItem(PRIO_KEY); if (v === 'mine' || v === 'off') return v; } catch { /* default */ } return 'ai'; };
 const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem(SCOPE_KEY) ?? ''); if (j?.kind === 'folder' && typeof j.id === 'string') return j; } catch { /* All */ } return ALL; };
 
 export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null }) {
   const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
+  const assistState = useAssist(assist, api.ws ?? emptyWorkspace());   // one AI helper for the whole app, so two screens never ask twice
   const [page, setPage] = useState<Page>(fromHash);
+  const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
+  const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);
   const [rawScope, setRawScope] = useState<Scope>(loadScope);
   const setScope = useCallback((sc: Scope) => { setRawScope(sc); try { localStorage.setItem(SCOPE_KEY, JSON.stringify(sc)); } catch { /* convenience only */ } }, []);
   const [decisionSel, setDecisionSel] = useState('');
@@ -65,7 +70,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
   useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, scope, setScope, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, scope, setScope, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, assistState, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, assistState, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;

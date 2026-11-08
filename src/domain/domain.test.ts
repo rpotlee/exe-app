@@ -118,6 +118,6 @@ describe('state line', () => {
     expect(statusText(statusParts(ws(), 0, 0))).toBe('Nothing here yet.');
     const w = ws({ outcomes: [outcome('o')], currentFocusOutcomeId: 'o' });
     expect(statusText(statusParts(w, 0, 0))).toBe('1 current focus of up to 3 active.');
-    expect(statusText(statusParts(w, 2, 0))).toBe('1 current focus of up to 3 active. 2 awaiting AI Review');
+    expect(statusText(statusParts(w, 2, 0))).toBe('1 current focus of up to 3 active. 2 for the AI Assistant');
   });
 });

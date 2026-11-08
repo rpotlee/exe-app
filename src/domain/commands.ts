@@ -460,7 +460,7 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
     edges.push([a, b]);
     writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
   }
-  return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in the Inbox.`);
+  return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in your List.`);
 }
 
 // ------------------------------------------------------------------ kind, priority and moves (revamp phase 1)

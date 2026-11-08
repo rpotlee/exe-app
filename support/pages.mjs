@@ -220,7 +220,7 @@ ${tip('To say a decision is holding something up, add a <em>blocks</em> relation
 { slug: 'focus', title: 'Focus, priorities and Focus Mode', nav: 'Focus', summary: 'The home screen, up to three active priorities, and how Exe suggests what to do next.', body: `
 <p class="lead">Focus is your home screen, called <strong>Mission Status</strong>. It shows what you are working on now, and quietly offers help choosing what to do next. Nothing on it changes unless you press a button.</p>
 <h2>The status line</h2>
-<p>Under the heading you see something like <em>1 current focus of up to 3 active. 2 awaiting AI Review. 3 blocked.</em> Parts that are zero are left out. <em>Awaiting AI Review</em> is a link. <em>Blocked</em> counts only blocks you confirmed.</p>
+<p>Under the heading you see something like <em>1 current focus of up to 3 active. 2 for the AI Assistant. 3 blocked.</em> Parts that are zero are left out. <em>Awaiting AI Review</em> is a link. <em>Blocked</em> counts only blocks you confirmed.</p>
 <h2>Current Priority</h2>
 <ul>
   <li>The large card is your <strong>current</strong> outcome: its folder, progress (real steps done, never invented), a checklist, and <strong>Enter Focus Mode</strong>.</li>

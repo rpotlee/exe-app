@@ -67,7 +67,7 @@ with sync_playwright() as p:
         page.get_by_role('heading', name='All steps are done').wait_for()
         page.get_by_role('button', name='Not yet').click(); assert next(o for o in S(page)['outcomes'] if o['name'] == 'Plan reunion')['done_at'] is None
         # Focus: the current priority, progress from real steps, the state line
-        nav(page, 'focus'); assert status(page).startswith('1 current focus of up to 3 active.') and '3 awaiting AI Review' in status(page)
+        nav(page, 'focus'); assert status(page).startswith('1 current focus of up to 3 active.') and '3 for the AI Assistant' in status(page)
         assert page.locator('.priority-hero').count() == 1 and page.locator('.priority-mini').filter(has_text='Fix garage').count() + page.locator('.priority-mini').filter(has_text='Book venue').count() >= 1
         # Priority Engine: pin a non-Now outcome -> suggestion, nothing changes until applied
         nav(page, 'map'); outcome_block(page, w, 'Sort photos').get_by_role('button', name='Pin as priority').click()

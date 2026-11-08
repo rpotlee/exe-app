@@ -53,7 +53,7 @@ with sync_playwright() as p:
         assert page.locator('[data-inbox-count]').filter(visible=True).count() == 0
         page.locator('[data-capture]').filter(visible=True).last.click()
         page.get_by_label('Capture text').fill('New thought one\nNew thought two'); page.locator('#capture-form button[type=submit]').click()
-        assert status(page) == '1 current focus of up to 3 active. 2 awaiting AI Review 3 blocked.', status(page)
+        assert status(page) == '1 current focus of up to 3 active. 2 for the AI Assistant 3 blocked.', status(page)
         scope = '.mobile-dock' if mobile else '.sidebar'
         assert page.locator(f'{scope} [data-nav=inbox] [data-inbox-count]').inner_text() == '2'
         assert page.locator(f'{scope} [data-nav=review] [data-dock-count]').inner_text() == '2'
