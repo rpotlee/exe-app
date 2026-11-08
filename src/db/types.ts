@@ -74,6 +74,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       audit_events: {
         Row: {
@@ -115,6 +116,7 @@ export interface Database {
           after?: Json | null;
           undo_of?: string | null;
         };
+        Relationships: [];
       };
       captures: {
         Row: {
@@ -183,6 +185,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       decision_log: {
         Row: {
@@ -209,6 +212,7 @@ export interface Database {
           text?: string;
           at?: string;
         };
+        Relationships: [];
       };
       decision_options: {
         Row: {
@@ -241,6 +245,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       decisions: {
         Row: {
@@ -297,6 +302,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       focus_assignments: {
         Row: {
@@ -329,6 +335,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       folders: {
         Row: {
@@ -364,6 +371,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       ideas: {
         Row: {
@@ -402,6 +410,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       idempotency_keys: {
         Row: {
@@ -425,6 +434,7 @@ export interface Database {
           response?: Json | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       outcomes: {
         Row: {
@@ -472,6 +482,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       relationships: {
         Row: {
@@ -519,6 +530,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       tasks: {
         Row: {
@@ -569,6 +581,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       user_ai_settings: {
         Row: {
@@ -607,6 +620,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
       user_settings: {
         Row: {
@@ -639,6 +653,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
         };
+        Relationships: [];
       };
     };
     Views: {
@@ -651,6 +666,7 @@ export interface Database {
           to_type: string | null;
           to_id: string | null;
         };
+        Relationships: [];
       };
       v_blocked_items: {
         Row: {
@@ -658,8 +674,14 @@ export interface Database {
           item_type: string | null;
           item_id: string | null;
         };
+        Relationships: [];
       };
     };
+    Functions: {
+      exe_apply_writes: { Args: { p_writes: Json }; Returns: undefined };
+    };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
 

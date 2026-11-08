@@ -25,11 +25,11 @@ export async function generate() {
     const row = t.cols.map(c => `          ${c.column_name}: ${tsType(c.udt_name)}${c.is_nullable === 'YES' ? ' | null' : ''};`).join('\n');
     const ins = t.cols.map(c => `          ${c.column_name}${c.is_nullable === 'YES' || c.column_default !== null ? '?' : ''}: ${tsType(c.udt_name)}${c.is_nullable === 'YES' ? ' | null' : ''};`).join('\n');
     const upd = t.cols.map(c => `          ${c.column_name}?: ${tsType(c.udt_name)}${c.is_nullable === 'YES' ? ' | null' : ''};`).join('\n');
-    out += `      ${name}: {\n        Row: {\n${row}\n        };\n        Insert: {\n${ins}\n        };\n        Update: {\n${upd}\n        };\n      };\n`;
+    out += `      ${name}: {\n        Row: {\n${row}\n        };\n        Insert: {\n${ins}\n        };\n        Update: {\n${upd}\n        };\n        Relationships: [];\n      };\n`;
   }
   out += `    };\n    Views: {\n`;
-  for (const [name, t] of views) out += `      ${name}: {\n        Row: {\n${t.cols.map(c => `          ${c.column_name}: ${tsType(c.udt_name)} | null;`).join('\n')}\n        };\n      };\n`;
-  out += `    };\n  };\n}\n\nexport type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];\nexport type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];\nexport type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];\n`;
+  for (const [name, t] of views) out += `      ${name}: {\n        Row: {\n${t.cols.map(c => `          ${c.column_name}: ${tsType(c.udt_name)} | null;`).join('\n')}\n        };\n        Relationships: [];\n      };\n`;
+  out += `    };\n    Functions: {\n      exe_apply_writes: { Args: { p_writes: Json }; Returns: undefined };\n    };\n    Enums: { [_ in never]: never };\n    CompositeTypes: { [_ in never]: never };\n  };\n}\n\nexport type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];\nexport type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];\nexport type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];\n`;
   return out;
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
