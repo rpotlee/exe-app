@@ -45,7 +45,7 @@ with sync_playwright() as p:
                 r = it.bounding_box(); assert r['width'] >= 44 and r['height'] >= 44
                 assert r['x'] >= dock['x'] - 1 and r['x'] + r['width'] <= dock['x'] + dock['width'] + 1
                 assert not (plus['x'] < r['x'] + r['width'] and plus['x'] + plus['width'] > r['x'] and plus['y'] + plus['height'] > r['y'] and plus['y'] < r['y'] + r['height']), 'plus covers a tab'
-            assert 'rgba(255, 255, 255' in page.locator('.mobile-dock').evaluate('e=>getComputedStyle(e).backgroundColor')
+            assert 'rgb(55, 62, 73)' in page.locator('.mobile-dock').evaluate('e=>getComputedStyle(e).backgroundImage'), 'dock is graphite (owner, DEC-007)'
         else:
             assert page.get_by_role('button', name='Quick capture').filter(visible=True).count() == 1
         # ---- status line and badges (seed has nothing awaiting review, 3 confirmed blocks)

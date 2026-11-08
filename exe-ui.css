@@ -188,15 +188,15 @@
   --glow-a: rgba(99, 102, 241, 0);
   --glow-b: rgba(168, 85, 247, 0);
 
-  --dock-bg: rgba(255, 255, 255, .82);
-  --dock-bg-fallback: rgba(255, 255, 255, .97);
-  --dock-edge: 1px solid rgba(15, 23, 42, .09);
+  --dock-bg: linear-gradient(135deg, #373e49 0%, #2f3640 100%);
+  --dock-bg-fallback: #2f3640;
+  --dock-edge: 1px solid transparent;
   --dock-hair: 0 0 0 0 transparent;
-  --dock-spec: inset 0 1px 0 rgba(255, 255, 255, .9);
-  --dock-shadow: 0 1px 2px rgba(30, 44, 86, .08), 0 12px 24px -8px rgba(30, 44, 86, .22), 0 26px 40px -20px rgba(30, 44, 86, .22);
-  --dock-ink: #4b5568;
-  --dock-active: var(--exe-accent-ink);
-  --dock-ring: #ffffff;
+  --dock-spec: inset 0 0 0 0 transparent;
+  --dock-shadow: 0 2px 4px rgba(15, 20, 30, .16), 0 14px 22px -6px rgba(15, 20, 30, .34), 0 30px 44px -18px rgba(20, 28, 45, .38);
+  --dock-ink: rgba(255, 255, 255, .72);
+  --dock-active: #9fb3ff;
+  --dock-ring: #2b313b;
   --sidebar-edge: rgba(15, 23, 42, .08);
 
   --checkbox-bg: #ffffff;

@@ -157,3 +157,10 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Review route.** Phase 1b goes to the owner as a draft pull request with real screenshots; it is not merged without the owner. *Why:* AGENTS.md requires a PR per phase and owner review of visual changes, and a draft PR is that review.
 - **Real iPhone Safari.** Claude cannot run a physical device. The check stays on the release list and is done by a person with the PR branch served over the local network; nothing is deployed for it without the owner's approval.
 
+## DEC-007 — Mobile dock is dark graphite again (2026-11-08)
+**Source:** owner statement in chat ("go back to black"). This is an owner decision, not a Claude recommendation. **Amends:** DEC-004 item 3 (frosted white dock) for the dock colour only.
+
+- The mobile dock is dark graphite again. It keeps the DEC-004 structure: five **labeled** tabs and a **separate** cobalt "+" above the dock's right end. The icon-only dock and the "+" inside the dock stay retired.
+- Active tab = lighter cobalt (`#9fb3ff`) so it reads on the dark bar; inactive labels are white at about 72% for contrast.
+- Everything else in DEC-004 (canvas, borders, accent, no dark theme) is unchanged.
+
