@@ -167,11 +167,11 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       expect(ws.captures.find(c => c.id === g[0]!.id)!.status).toBe('organized'); expect(desk.status).toBe('pending');
       // revamp phase 1: kinds, scope on save, conversion, priority label, moving loose steps and outcomes
       const fOne = ws.folders[0]!;
-      await ok(C.addCaptures(ws, ctx, 'First line\nSecond line kept as a note', 'Executables', { kind: 'note', folderId: fOne.id }));
+      await ok(C.addCaptures(ws, ctx, 'First line\nSecond line kept as a note', 'List', { kind: 'note', folderId: fOne.id }));
       const noteRow = ws.captures.find(c => c.kind === 'note')!; expect(noteRow).toMatchObject({ text: 'First line\nSecond line kept as a note', folder_id: fOne.id });   // one note, not split
       expect(ws.captures.filter(c => c.kind === 'note')).toHaveLength(1);
-      await ok(C.addCaptures(ws, ctx, 'Call dentist', 'Executables', { kind: 'reminder' })); expect(ws.captures.find(c => c.text === 'Call dentist')!.kind).toBe('reminder');
-      expect(C.addCaptures(ws, ctx, 'x', 'Executables', { folderId: 'nope' }).ok).toBe(false);
+      await ok(C.addCaptures(ws, ctx, 'Call dentist', 'List', { kind: 'reminder' })); expect(ws.captures.find(c => c.text === 'Call dentist')!.kind).toBe('reminder');
+      expect(C.addCaptures(ws, ctx, 'x', 'List', { folderId: 'nope' }).ok).toBe(false);
       await ok(C.convertKind(ws, noteRow.id, 'todo')); expect(ws.captures.find(c => c.id === noteRow.id)).toMatchObject({ kind: 'todo', text: noteRow.text, completed_at: null });
       expect(C.convertKind(ws, noteRow.id, 'todo').ok).toBe(false);
       await ok(C.setCapturePriority(ws, noteRow.id, 'high')); expect(ws.captures.find(c => c.id === noteRow.id)!.user_priority).toBe('high'); await ok(C.setCapturePriority(ws, noteRow.id, null));

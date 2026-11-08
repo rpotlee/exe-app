@@ -70,7 +70,7 @@ function CaptureSheet() {
   const n = kind === 'todo' ? segmentCapture(text).length : 1;
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (api.run((w, c) => C.addCaptures(w, c, text, 'Executables', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
+    if (api.run((w, c) => C.addCaptures(w, c, text, 'List', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
   };
   return (
     <Modal title="Capture" onClose={() => modal(null)}>

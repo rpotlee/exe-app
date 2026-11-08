@@ -21,13 +21,13 @@ const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Re
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 // New names for the three primary screens; the old hashes still work and land on the same screens (revamp spec §2.3).
-const HASH_TO_PAGE: Record<string, Page> = { executables: 'inbox', mission: 'focus', assistant: 'review' };
-const PAGE_TO_HASH: Record<Page, string> = { inbox: 'executables', focus: 'mission', review: 'assistant', lanes: 'lanes', map: 'map', decisions: 'decisions' };
+const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', mission: 'focus', assistant: 'review' };
+const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'mission', review: 'assistant', lanes: 'lanes', map: 'map', decisions: 'decisions' };
 const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, ''); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
-const PAGE_NAME: Record<Page, string> = { focus: 'Mission Status', lanes: 'Next & Later', inbox: 'Executables', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
+const PAGE_NAME: Record<Page, string> = { focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
 // The primary destinations. Map, Decisions and Next & Later are reached from Mission Status ("Explore work"), so Mission stays highlighted for them.
 const TABS: { page: Page; label: string; icon: string }[] = [
-  { page: 'inbox', label: 'Executables', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
+  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
 ];
 const SCOPE_KEY = 'exe-scope';
 const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem(SCOPE_KEY) ?? ''); if (j?.kind === 'folder' && typeof j.id === 'string') return j; } catch { /* All */ } return ALL; };

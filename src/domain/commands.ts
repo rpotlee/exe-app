@@ -31,7 +31,7 @@ export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Qui
   const lines = kind === 'todo' && !opts.keepAsOne ? segmentCapture(text) : trimmed(text) ? [text.replace(/\r\n/g, '\n').trim()] : [];
   if (!lines.length) return fail('Write something first.');
   const batch = lines.length > 1 ? ctx.id() : null;
-  const where = kind === 'todo' ? 'Executables' : kind === 'note' ? 'Executables as a note' : 'Executables as a reminder';
+  const where = kind === 'todo' ? 'List' : kind === 'note' ? 'List as a note' : 'List as a reminder';
   return done(lines.map(line => ins('captures', {
     ...baseRow(ctx), text: line, edited_text: null, source, folder_id: folderId, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
     status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null })),
@@ -471,7 +471,7 @@ export function convertKind(ws: Workspace, id: string, kind: 'todo' | 'note' | '
   return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a to-do' : kind === 'note' ? 'a note' : 'a reminder'}.`);
 }
 /** The person's own priority label. It never touches Now/Next/Later or the current focus. null clears it. */
-export function setCapturePriority(ws: Workspace, id: string, label: 'high' | 'normal' | 'low' | null): Result {
+export function setCapturePriority(ws: Workspace, id: string, label: 'high' | 'medium' | 'low' | null): Result {
   const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
   return done([upd('captures', c, { user_priority: label })]);
 }

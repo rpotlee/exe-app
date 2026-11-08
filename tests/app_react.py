@@ -40,14 +40,14 @@ with sync_playwright() as p:
         # empty first run
         assert status(page) == 'Nothing here yet.' and page.get_by_role('heading', name='Nothing here yet').count() == 1
         labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span:not(.nav-scope):not(.nav-count)')).all_inner_texts() if t.strip()]
-        assert labels == (['Executables', 'Mission', 'AI', 'Folders'] if mobile else ['Executables', 'Mission Status', 'AI Assistant', 'Folders']), labels   # revamp: five positions, the + in the middle
+        assert labels == (['List', 'Mission', 'AI', 'Folders'] if mobile else ['List', 'Mission Status', 'AI Assistant', 'Folders']), labels   # revamp: five positions, the + in the middle
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
         first = page.locator('.raw-row input[type=checkbox]').first; first.check()
         d = S(page); assert sum(1 for c in d['captures'] if c['completed_at']) == 1 and d['tasks'] == []
-        page.locator('.kind-strip button', has_text='To-dos').click(); page.locator('.status-strip button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
-        page.locator('.status-strip button', has_text='All').click(); page.locator('.kind-strip button', has_text='Everything').click()
+        page.locator('.seg:not(.sub) button', has_text='To-dos').click(); page.locator('.seg.sub button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
+        page.locator('.seg.sub button', has_text='All').click(); page.locator('.seg:not(.sub) button', has_text='Everything').click()
         # folders and outcomes
         nav(page, 'map'); page.get_by_role('button', name='New folder').click(); page.locator('#modal-root input[name=name]').fill('Home'); page.get_by_role('button', name='Create folder').click()
         for name in ['Plan reunion', 'Fix garage', 'Book venue', 'Clean attic', 'Sort photos']:
