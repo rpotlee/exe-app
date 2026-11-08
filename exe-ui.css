@@ -393,7 +393,10 @@ body::before {
      bottom edge and fades out before the dock */
   .mobile-topbar { display: none; }
   .mobile-topline { display: flex; align-items: center; justify-content: space-between; height: 44px; margin: 0 0 12px; }
-  .mobile-topline .bell-button { width: 44px; height: 44px; margin-right: -10px; padding: 9px; border: 0; background: none; box-shadow: none; color: var(--secondary); }
+  .topline-actions { display: flex; align-items: center; margin-right: -5px; }
+  .mobile-topline .bell-button { width: 44px; height: 44px; margin: 0; padding: 9px; border: 0; background: none; box-shadow: none; color: var(--secondary); }
+  .mobile-workspace { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; }
+  .mobile-workspace .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); font-size: 14px; font-weight: 600; }
   .view {
     margin-bottom: 0;
     padding-top: calc(env(safe-area-inset-top) + 8px);
@@ -596,20 +599,20 @@ body::before {
 .hero-ring { display: none; }
 .priority-hero { padding: 20px 20px 18px; }
 .hero-head, .hero-heading { display: block; }
-.hero-head { padding-right: 66px; }
+.hero-head { padding-right: 72px; }
 .hero-icon { display: none; }
 .priority-hero .overline { margin: 0 0 6px; font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--exe-muted); }
 #current-priority-title, .hero-heading h2 { font-size: 22px; line-height: 26px; font-weight: 600; letter-spacing: -.5px; text-wrap: balance; }
 .type-label { margin-top: 6px; font-size: 15px; line-height: 20px; letter-spacing: -.15px; }
-.hero-stat { position: absolute; top: 18px; right: 20px; width: 54px; height: 54px; margin: 0; }
+.hero-stat { position: absolute; top: 18px; right: 20px; width: 60px; height: 60px; margin: 0; }
 .hero-track, .hero-cap, .step-eyebrow { display: none; }
-.hero-ring { display: block; position: relative; width: 54px; height: 54px; }
+.hero-ring { display: block; position: relative; width: 60px; height: 60px; }
 .hero-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .hero-ring circle { fill: none; stroke-width: 4.5; }
 .ring-track { stroke: rgba(60, 72, 130, .13); }
 .ring-fill { stroke: var(--exe-accent); stroke-linecap: round; }
 .ring-fill[style*="stroke-dasharray:0.00 "] { stroke-opacity: 0; }
-.hero-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; font-weight: 600; letter-spacing: -.1px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hero-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 600; letter-spacing: -.1px; color: var(--ink); font-variant-numeric: tabular-nums; text-align: center; }
 .hero-checks.mobile-checks { border: 0; background: none; margin-top: 16px; padding-top: 0; }
 .hero-checks .check-row.is-next {
   min-height: 56px;
