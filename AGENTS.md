@@ -13,8 +13,8 @@
 
 ## Navigation
 
-- Five destinations: **Focus, Inbox, AI Review, Map, Decisions**. On mobile the dock is icon-only by owner direction (2026-11-08): a dark graphite capsule with thin light icons; the names stay as `aria-label`s and visually hidden text. The desktop sidebar keeps visible labels.
-- **Mobile:** one floating glass island at the bottom holding the five tabs **and Quick Capture** (a cobalt round button at its right end). Capture is part of the island; do not reintroduce a separate floating button or a floating pill over content.
+- Five destinations: **Focus, Inbox, AI Review, Map, Decisions**. Both the mobile dock and the desktop sidebar show visible labels (DEC-004 in `DECISIONS.md` retired the icon-only dock). The "Project Map" destination is labeled **Map** everywhere.
+- **Mobile:** a frosted dock holding the five labeled tabs (`rgba(255,255,255,.82)` + `blur(18px)`, opaque fallback). Quick Capture is a **separate** cobalt round `+`, elevated just above the dock's right end, never a sixth tab and never covering the centre tab (DEC-004). Do not put it back inside the dock.
 - **Desktop:** glass sidebar plus a global Quick Capture control (`Cmd/Ctrl+K`) in the top bar.
 - **Active state is only an icon and label color change to cobalt.** No capsule, glow, or filled background on the active tab or sidebar item.
 - On mobile the logo and the AI Review bell are part of each page header (they scroll with the page); there is no separate fixed top bar.
@@ -22,12 +22,12 @@
 
 ## Visual direction (current)
 
-- **Default theme (owner direction, 2026-11-08): a clean white canvas with cards that float through shadow alone.** The steel-blue canvas was tried and rejected. Ordinary cards are white with a faint gradient, no outline, and large soft blue-tinted layered shadows (a tight contact shadow plus a long soft one) so they look lifted off the page; very round corners. The current-priority card is clear glass with a thick lit bezel (see `exe-ui.css`). The mobile dock is a small flat graphite capsule, icon-only, floating on a layered shadow. Action buttons are flat cobalt. The deep dark theme remains as an alternate (`?theme=dark`). Text on the canvas must keep at least 4.5:1 contrast.
+- **Default theme (owner direction, 2026-11-08): a clean white canvas with cards that float through shadow alone.** The steel-blue canvas was tried and rejected. Ordinary cards are white with a faint gradient, no outline, and large soft blue-tinted layered shadows (a tight contact shadow plus a long soft one) so they look lifted off the page; very round corners. The current-priority card is clear glass with a thick lit bezel (see `exe-ui.css`). The mobile dock is a frosted white bar with labels, floating on a layered shadow. Action buttons are flat cobalt. The deep dark theme remains as an alternate (`?theme=dark`). Text on the canvas must keep at least 4.5:1 contrast.
 - Cobalt is the single accent, used for actions and the active state. Red is for verified blockers only.
 - **Glass recipe:** backdrop blur with saturation, a translucent fill, one 1px bright edge, a faint top specular highlight, and a soft ambient shadow. Keep it restrained: no stacked bevels, no colored glows, no glossy gradients, and no loud or "goofy" saturated backdrops.
-- **True glass refraction is a Chromium-only progressive enhancement** (`REFRACT` in `app.js`): an SVG displacement map, generated to each element's exact rounded shape, is applied as `backdrop-filter: url(#...)` on the current-priority card and the mobile dock. Safari (including every iPhone browser) and Firefox cannot do this and keep the blur-only glass, which must always look right on its own. Never apply `filter: url()` to a card; it would distort its content. Content intentionally slides dimmed under the dock (scroll mask) and the dark backdrop has crisp rings and discs so there is something to bend.
+- **True glass refraction is a Chromium-only progressive enhancement** (`REFRACT` in `app.js`): an SVG displacement map, generated to each element's exact rounded shape, is applied as `backdrop-filter: url(#...)` on the current-priority card only (the dock uses plain frosted blur per DEC-004). Safari (including every iPhone browser) and Firefox cannot do this and keep the blur-only glass, which must always look right on its own. Never apply `filter: url()` to a card; it would distort its content. Content slides dimmed under the dock (scroll mask) and the dark backdrop has crisp rings and discs so there is something to bend.
 - **All theme colors are tokens at the top of `exe-ui.css`** (one set for dark, one for light). Components must use tokens, never hard-coded theme colors.
-- Concentric radii: 28 (cards), 20 (rows and fields), 16 (buttons and inner panels), pill (dock, chips).
+- Concentric radii: 28 (cards), 20 (rows and fields), 16 (buttons and inner panels), 24 (dock), pill (chips).
 - Typeface is Inter (bundled in `design-master/fonts/`, loaded in `design-tokens.css`).
 - **Focus Mode** keeps its own deeper, warmer smoky-glass backdrop in both themes, so entering it still reads as a change of state.
 - Readable darker secondary text, accessible contrast, 44px touch targets, honor `prefers-reduced-motion` and `prefers-reduced-transparency`.
