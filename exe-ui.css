@@ -800,6 +800,20 @@ body::before {
 .merge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
 @media (max-width: 520px) { .merge-grid { grid-template-columns: 1fr; } }
 
+.mission-extras { display: grid; gap: 12px; margin-top: 18px; }
+.prompt-card, .quick-win { padding: 16px 18px; }
+.prompt-text { margin: 0 0 10px; font-size: 15px; line-height: 21px; }
+.quick-win-head { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
+.quick-win-head .select { width: auto; min-width: 84px; }
+.quick-win-result { margin-top: 12px; }
+.weekly-list { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 15px; line-height: 21px; }
+.idea-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: start; padding: 10px 0; background: var(--hairline) top / 100% 1px no-repeat; }
+.idea-row.is-archived { opacity: .75; }
+.idea-copy { display: grid; gap: 2px; min-width: 0; font-size: 15px; line-height: 20px; overflow-wrap: anywhere; }
+.idea-copy small { color: var(--secondary); font-size: 13.5px; }
+.idea-row .rel-actions { grid-column: 2; }
+@media (min-width: 1100px) { .mission-extras { grid-column: 2; grid-row: 3; margin-top: 0; } }
+
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }
 .inbox-filters button[aria-pressed="true"] { background: var(--accent-fill); border-color: transparent; box-shadow: none; color: #fff; font-weight: 600; }

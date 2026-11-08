@@ -30,5 +30,6 @@ export function makeAi(db: Db, uid: string) {
     async turnOff(): Promise<void> { const { error } = await db.from('user_ai_settings').update({ enabled: false }).eq('owner_id', uid); if (error) throw new Error(error.message); },
     test: () => call<{ ok: boolean }>('ai-review', { test: true }),
     suggest: (captureIds: string[]) => call<Suggestions>('ai-review', { captureIds }),
+    suggestSteps: (outcomeId: string) => call<{ steps: string[]; provider: Provider; model: string }>('ai-review', { mode: 'steps', outcomeId }),
   };
 }

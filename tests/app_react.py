@@ -133,6 +133,41 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Reopen decision').click()
         expect(page.locator('.decision-log li')).to_have_count(3)
         assert [l['type'] for l in sorted(S(page)['decisionLog'], key=lambda x: x['at'])] == ['created', 'resolved', 'reopened']
+        # break it down: typed/pasted steps, list markers stripped, duplicates ignored; nothing created until Add
+        nav(page, 'map'); pick(page, w, 'All notes')
+        blk = outcome_block(page, w, 'Fix garage'); n0 = len(S(page)['tasks'])
+        blk.get_by_role('button', name='Break it down').click(); expect(page.locator('#modal-root')).to_contain_text('Nothing is created until you press Add')
+        page.get_by_label('Steps, one per line').fill('- Sweep the floor\n2) Sort the tools\n\nSweep the floor\nBuy shelf brackets')
+        assert len(S(page)['tasks']) == n0, 'typing creates nothing'
+        page.get_by_role('button', name='Add steps').click(); d = S(page); gar = next(o for o in d['outcomes'] if o['name'] == 'Fix garage')
+        assert sorted(t['name'] for t in d['tasks'] if t['outcome_id'] == gar['id']) == ['Buy shelf brackets', 'Sort the tools', 'Sweep the floor']
+        # a step's own estimate, then "I have 20 minutes"
+        blk = outcome_block(page, w, 'Fix garage'); blk.get_by_label('Edit step: Sweep the floor').click(); page.locator('#modal-root input[name=effort]').fill('15 min'); page.get_by_role('button', name='Save step').click()
+        assert next(t for t in S(page)['tasks'] if t['name'] == 'Sweep the floor')['effort'] == '15 min'
+        nav(page, 'focus'); page.locator('#minutes').select_option('20'); expect(page.locator('.quick-win-result')).to_contain_text('Sweep the floor'); expect(page.locator('.quick-win-result')).to_contain_text('fits in 20')
+        lanes_before = json.dumps(S(page)['focus']); page.locator('#minutes').select_option('10'); page.wait_for_timeout(100); assert json.dumps(S(page)['focus']) == lanes_before, 'a suggestion changes no lane'
+        page.locator('#minutes').select_option('0')
+        # ideas: create, edit, archive, restore, promote (explicit) -> an outcome in Later, idea kept archived
+        nav(page, 'map'); pick(page, w, 'All notes'); page.get_by_role('button', name='Add idea').click(); page.locator('#modal-root input[name=name]').fill('Offer Spanish materials'); page.get_by_role('button', name='Save idea').click()
+        mine = [i for i in S(page)['ideas'] if i['name'] == 'Offer Spanish materials']; assert len(mine) == 1 and mine[0]['folder_id'] is None and not mine[0]['archived_at']
+        page.get_by_label('Edit idea: Offer Spanish materials').click(); page.locator('#modal-root input[name=name]').fill('Offer Spanish-language materials'); page.locator('#modal-root textarea[name=notes]').fill('after launch'); page.get_by_role('button', name='Save idea').click()
+        page.get_by_label('Archive idea: Offer Spanish-language materials').click(); expect(page.get_by_label('Restore idea: Offer Spanish-language materials')).to_have_count(0); expect(page.get_by_label('Promote idea: Offer Spanish-language materials')).to_have_count(0)
+        page.get_by_role('button', name='Show archived ideas').click(); page.get_by_label('Restore idea: Offer Spanish-language materials').click()
+        n_out = len(S(page)['outcomes']); page.get_by_label('Promote idea: Offer Spanish-language materials').click(); expect(page.locator('#modal-root')).to_contain_text('never in Now'); page.get_by_role('button', name='Create the outcome').click()
+        d = S(page); promoted = next(o for o in d['outcomes'] if o['name'] == 'Offer Spanish-language materials'); idea = next(i for i in d['ideas'] if i['name'] == 'Offer Spanish-language materials')
+        assert len(d['outcomes']) == n_out + 1 and next(f for f in d['focus'] if f['outcome_id'] == promoted['id'])['lane'] == 'later' and idea['archived_at'] and promoted['sources'] == [idea['id']]
+        # prompt after a change: resolving a decision that was holding a step up says so; "Later" is remembered
+        nav(page, 'map'); pick(page, w, 'All notes'); page.get_by_role('button', name='Add relationship').click(); f = page.locator('#relationship-form') if False else page.locator('#modal-root')
+        f.locator('select[name=from]').select_option(label='Which CRM?'); f.locator('select[name=to]').select_option(label='Buy shelf brackets'); f.locator('select[name=kind]').select_option('blocks'); f.get_by_role('button', name='Add relationship').click()
+        nav(page, 'decisions'); page.get_by_role('button', name='Mark resolved').click(); page.locator('#modal-root input[placeholder="What did you decide?"]').fill('Use HubSpot'); page.get_by_role('button', name='Confirm decision').click()
+        nav(page, 'focus'); expect(page.locator('.prompt-card', has_text='Which CRM?')).to_contain_text('Nothing was changed')
+        tasks_before = json.dumps(S(page)['tasks']); page.locator('.prompt-card', has_text='Which CRM?').get_by_role('button', name='Later').click()
+        expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0); assert json.dumps(S(page)['tasks']) == tasks_before; page.reload()
+        page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0)
+        # weekly review: optional, real numbers, skipping/finishing hides it for the week
+        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(1); page.get_by_role('button', name='Open').click()
+        expect(page.locator('#modal-root')).to_contain_text('Still open'); expect(page.locator('#modal-root')).to_contain_text('captured'); page.get_by_role('button', name='Done').click()
+        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0); page.reload(); page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0)
         # persistence: a reload keeps everything
         before = S(page); page.reload(); nav(page, 'inbox'); expect(page.locator('.raw-row')).to_have_count(6); assert S(page)['outcomes'] == before['outcomes']
         # search: plain matching across kinds; picking a result goes there
@@ -145,10 +180,10 @@ with sync_playwright() as p:
         (page.get_by_role('button', name='Settings') if not mobile else page.get_by_role('button', name='Account and settings')).filter(visible=True).first.click()
         page.get_by_label('Backup file').set_input_files(os.path.join(os.path.dirname(__file__), '..', 'docs', 'baseline-example.json'))
         expect(page.locator('#modal-root')).to_contain_text('from the old prototype'); expect(page.locator('#modal-root')).to_contain_text('18 captures')
-        n_before = len(S(page)['captures']); page.get_by_role('button', name='Cancel').click(); assert len(S(page)['captures']) == n_before, 'a preview changes nothing'
+        n_before = len(S(page)['captures']); o_before = len(S(page)['outcomes']); page.get_by_role('button', name='Cancel').click(); assert len(S(page)['captures']) == n_before, 'a preview changes nothing'
         page.get_by_label('Backup file').set_input_files(os.path.join(os.path.dirname(__file__), '..', 'docs', 'baseline-example.json'))
         page.get_by_role('button', name='Add to my workspace').click(); page.wait_for_timeout(200)
-        d = S(page); assert len(d['captures']) == n_before + 18 and len(d['outcomes']) == 5 + 12 and len([f for f in d['focus'] if f['lane'] == 'now']) <= 3
+        d = S(page); assert len(d['captures']) == n_before + 18 and len(d['outcomes']) == o_before + 12 and len([f for f in d['focus'] if f['lane'] == 'now']) <= 3
         assert any(c['text'] == 'Register the business in NYC' for c in d['captures']) and all(c['owner_id'] == 'local' for c in d['captures'])
         page.keyboard.press('Escape')
         # accessibility and layout

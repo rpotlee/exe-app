@@ -45,3 +45,12 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 - Phase 4 research is planned through each AI provider's own web search tool, with a separate search service only as a fallback; verify what each provider offers first (DEC-005). AI providers are decided: Anthropic, OpenAI and Google Gemini. AI is bring-your-own-key and needs the Phase 2 backend; nothing AI-related can ship on the prototype.
 - Whether the "blocked" count in the state line should count tasks and outcomes separately (currently one number).
 - `tests/visual_conformance.py` and `tests/visual_compare.py` were not re-run; they compare against the old icon-only dock.
+
+## Added 2026-11-08 (DEC-013)
+| Spec § | Status | Where | Test |
+|---|---|---|---|
+| §12.3 make a vague step actionable | Built (typed/pasted steps); AI suggestions built but not live until the updated function is published | `StepsDialog`, `parseSteps` | `tests/app_react.py`, `ai.test.ts` |
+| §10.5 "I have 20 minutes" | Built | `src/domain/next.ts` `quickWin` | `next.test.ts`, `tests/app_react.py` |
+| §14.1–14.2 prompts after changes | Built (3 kinds) | `prompts()` | `next.test.ts`, `tests/app_react.py` |
+| §14.3 weekly review | Built (optional, real data only) | `src/domain/weekly.ts` | `next.test.ts`, `tests/app_react.py` |
+| §2.1 Ideas (create, edit, archive, promote) | Built | `createIdea` … `promoteIdea` | `commands.test.ts` (real schema), `tests/app_react.py` |

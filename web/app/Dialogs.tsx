@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import * as C from '../../src/domain/commands';
 import { computeSuggestion, activeIds } from '../../src/domain/engine';
 import { entityName } from '../../src/domain/blocking';
@@ -12,6 +12,7 @@ import { importWrites, parseBackup, type Parsed } from '../../src/domain/backup'
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
 import { PROVIDER_NAMES, type AiSettings, type Provider } from './ai';
+import { weeklyId, weeklySummary } from '../../src/domain/weekly';
 import { Modal, useDialog } from '../ui/Modal';
 import { useApp, type ModalState } from './context';
 
@@ -22,6 +23,10 @@ const DRAFT = 'exe-capture-draft';
 export function Dialogs({ m }: { m: ModalState }) {
   switch (m.kind) {
     case 'capture': return <CaptureSheet />;
+    case 'steps': return <StepsDialog outcomeId={m.outcomeId} />;
+    case 'idea': return <IdeaForm id={m.id} folderId={m.folderId} />;
+    case 'promote': return <PromoteIdea id={m.id} />;
+    case 'weekly': return <WeeklyDialog />;
     case 'search': return <SearchDialog />;
     case 'restore': return <RestoreDialog parsed={m.parsed} />;
     case 'placement': return <Placement id={m.id} folderId={m.folderId} mergeWith={m.mergeWith} />;
@@ -231,9 +236,12 @@ function TaskEdit({ id }: { id: string }) {
   if (!t) return null;
   return (
     <Modal title="Edit step" onClose={() => modal(null)}>
-      <form onSubmit={e => { e.preventDefault(); const d = new FormData(e.currentTarget); const before = api.get(); const r = C.editTask(before, id, { name: val(d, 'name'), outcomeId: orNull(val(d, 'outcome')) }); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
+      <form onSubmit={e => { e.preventDefault(); const d = new FormData(e.currentTarget); const before = api.get(); const r = C.editTask(before, id, { name: val(d, 'name'), outcomeId: orNull(val(d, 'outcome')), effort: orNull(val(d, 'effort')), notes: val(d, 'notes'), deadline: orNull(val(d, 'deadline')) }); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
         <label className="form-field"><span className="small-note">Step</span><input className="text-input" name="name" required maxLength={200} defaultValue={t.name} /></label>
         <label className="form-field"><span className="small-note">Outcome</span><select className="select" name="outcome" defaultValue={t.outcome_id ?? ''}><option value="">No outcome (loose step)</option>{ws.outcomes.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+        <label className="form-field"><span className="small-note">Effort (your estimate, e.g. 20 min)</span><input className="text-input" name="effort" maxLength={60} defaultValue={t.effort ?? ''} placeholder="Helps “I have 20 minutes”" /></label>
+        <label className="form-field"><span className="small-note">Deadline (optional)</span><input className="text-input" type="date" name="deadline" defaultValue={t.deadline ?? ''} /></label>
+        <label className="form-field"><span className="small-note">Notes</span><textarea className="text-input" name="notes" defaultValue={t.notes} /></label>
         <div className="button-row">
           <button type="button" className="mini-button" onClick={() => api.run(w => C.moveTask(w, id, 'up'))}>Move up</button>
           <button type="button" className="mini-button" onClick={() => api.run(w => C.moveTask(w, id, 'down'))}>Move down</button>
@@ -299,7 +307,7 @@ function FocusMode({ id }: { id: string }) {
       <div className="focus-body"><div className="focus-label">FOCUS MODE / {folder.toUpperCase()}</div><h1>{o.name}</h1><p className="lead">One priority. The next clear action. Everything else can wait.</p>
         <div className="focus-panel"><div className="row-between"><h3 className="section-heading">Your checklist</h3><span className="pill blue">{p.done} of {p.total} done</span></div>
           {steps.map(t => <CheckRow key={t.id} task={t} />)}{!steps.length && <p className="small-note">No steps yet.</p>}</div>
-        <div className="focus-actions"><span className="small-note">New thoughts go to Inbox, not your active work.</span><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
+        <div className="focus-actions"><span className="small-note">New thoughts go to Inbox, not your active work.</span><button className="quiet-button" onClick={() => modal({ kind: 'steps', outcomeId: id })}><Icon name="list-checks" /> Break it down</button><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
     </div>, document.getElementById('modal-root') as HTMLElement);
 }
 
@@ -474,7 +482,7 @@ function AiSection() {
         <p>Exe has no AI bill. You connect your own provider and pay them directly. The app works fully without AI.</p>
         {cfg ? (<>
           <p className="small-note"><strong>{PROVIDER_NAMES[cfg.provider]}</strong> · model <strong>{cfg.model}</strong> · key ending <strong>{cfg.key_last4}</strong> · {cfg.enabled ? 'turned on' : 'turned off'}</p>
-          {!cfg.enabled && <div className="followup"><strong>Before you turn AI on</strong><p className="small-note">When you ask for suggestions, the <strong>text of the captures you choose</strong>, plus the names of your folders and outcomes, is sent to <strong>{PROVIDER_NAMES[cfg.provider]}</strong> using your key. Exe never sends anything on its own. Your provider's terms apply to what they receive.</p>
+          {!cfg.enabled && <div className="followup"><strong>Before you turn AI on</strong><p className="small-note">When you ask for suggestions, the <strong>text of the captures you choose</strong> (or the outcome and step names you ask about), plus the names of your folders and outcomes, is sent to <strong>{PROVIDER_NAMES[cfg.provider]}</strong> using your key. Exe never sends anything on its own. Your provider's terms apply to what they receive.</p>
             <div className="button-row"><button className="primary-button" disabled={busy} onClick={() => act(() => ai.accept(), 'AI is on. Nothing is sent until you press "Get AI suggestions" in AI Review.')}>I understand, turn on AI</button></div></div>}
           <div className="button-row"><button className="mini-button" disabled={busy} onClick={() => act(async () => { const r = await ai.test(); if (!r.ok) throw new Error('The provider answered, but not as expected. Check the model name.'); }, 'Connection works.')}>Test connection</button>
             {cfg.enabled && <button className="mini-button" disabled={busy} onClick={() => act(() => ai.turnOff(), 'AI is off.')}>Turn off</button>}
@@ -489,5 +497,80 @@ function AiSection() {
         {msg && <p className="small-note" role="status">{msg}</p>}
       </div>
     </>
+  );
+}
+
+/** Break a goal into steps: type or paste one per line. With AI turned on, "Suggest steps" fills the box with editable suggestions. Nothing is added until you press Add. */
+function StepsDialog({ outcomeId }: { outcomeId: string }) {
+  const { api, modal, ai } = useApp();
+  const o = api.ws.outcomes.find(x => x.id === outcomeId);
+  const [text, setText] = useState(''), [cfg, setCfg] = useState<AiSettings | null>(null), [busy, setBusy] = useState(false), [msg, setMsg] = useState('');
+  useEffect(() => { ai?.settings().then(setCfg).catch(() => setCfg(null)); }, [ai]);
+  if (!o) return null;
+  const suggest = async () => {
+    if (!ai) return; setBusy(true); setMsg('');
+    try { const r = await ai.suggestSteps(outcomeId); setText(t => (t.trim() ? t.trim() + '\n' : '') + r.steps.join('\n')); setMsg(r.steps.length ? `${r.steps.length} suggestions from ${PROVIDER_NAMES[r.provider]} (${r.model}). Edit them, delete any you do not want, then add.` : 'The AI gave no usable suggestions. Type your own steps instead.'); }
+    catch (e) { setMsg((e as Error).message + ' You can type steps yourself.'); } finally { setBusy(false); }
+  };
+  const add = (e: FormEvent) => { e.preventDefault(); const names = text.split(/\r?\n/).map(l => l.replace(/^\s*([-*•]|\d+[.)])\s+/, '')); if (api.run((w, c) => C.addTasks(w, c, outcomeId, names))) modal(null); };
+  return (
+    <Modal title="Break it down" onClose={() => modal(null)}>
+      <p className="helper"><strong>{o.name}</strong><br />Type or paste one small step per line. Nothing is created until you press Add.</p>
+      <form onSubmit={add}>
+        <textarea className="capture-textarea" aria-label="Steps, one per line" value={text} onChange={e => setText(e.target.value)} placeholder={'Read the official guidance\nList what is still unknown\nAsk one person who has done it'} />
+        {cfg?.enabled ? <div className="button-row"><button type="button" className="mini-button" disabled={busy} onClick={suggest}><Icon name="sparkles" /> {busy ? 'Asking…' : 'Suggest steps with AI'}</button><span className="small-note">Sends this outcome's name, definition and step names to {PROVIDER_NAMES[cfg.provider]}.</span></div>
+          : <p className="small-note">{ai ? 'Want suggestions? Turn on AI with your own key in Settings. Typing your own steps always works.' : 'AI suggestions need an account. Typing your own steps always works.'}</p>}
+        {msg && <p className="small-note" role="status">{msg}</p>}
+        <div className="capture-foot"><span></span><button className="primary-button" type="submit">Add steps</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function IdeaForm({ id, folderId }: { id: string | null; folderId: string | null }) {
+  const { api, modal } = useApp();
+  const ws = api.ws, i = id ? ws.ideas.find(x => x.id === id) : null;
+  return (
+    <Modal title={i ? 'Edit idea' : 'New idea'} onClose={() => modal(null)}>
+      <p className="helper">An idea is a possibility, not a commitment. It never becomes work unless you promote it.</p>
+      <form onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget), input = { name: val(f, 'name'), notes: val(f, 'notes'), folderId: orNull(val(f, 'folder')) }; if (api.run((w, c) => (i ? C.editIdea(w, i.id, input) : C.createIdea(w, c, input)))) modal(null); }}>
+        <label className="form-field"><span className="small-note">Idea</span><input className="text-input" name="name" required maxLength={200} defaultValue={i?.name ?? ''} placeholder="What if…" /></label>
+        <label className="form-field"><span className="small-note">Notes (optional)</span><textarea className="text-input" name="notes" defaultValue={i?.notes ?? ''} /></label>
+        <label className="form-field"><span className="small-note">Folder</span><select className="select" name="folder" defaultValue={i ? i.folder_id ?? '' : folderId ?? ''}><option value="">Not filed</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+        <div className="capture-foot"><span></span><button className="primary-button" type="submit">{i ? 'Save idea' : 'Save idea'}</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function PromoteIdea({ id }: { id: string }) {
+  const { api, modal } = useApp();
+  const i = api.ws.ideas.find(x => x.id === id);
+  if (!i) return null;
+  return (
+    <Modal title="Promote to an outcome?" onClose={() => modal(null)}>
+      <p className="helper"><strong>{i.name}</strong><br />This creates an outcome in <strong>Later</strong> (never in Now). The idea is kept, archived, and linked to it. You choose what becomes active.</p>
+      <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Not now</button><button className="primary-button" onClick={() => { api.run((w, c) => C.promoteIdea(w, c, id)); modal(null); }}>Create the outcome</button></div>
+    </Modal>
+  );
+}
+
+/** The optional weekly review: real counts from real dates, no streaks or scores. Closing it marks this week as seen. */
+function WeeklyDialog() {
+  const { api, modal } = useApp();
+  const s = weeklySummary(api.ws, new Date()), close = () => { api.run((w, c) => C.dismissPrompt(w, c, weeklyId(s.week))); modal(null); };
+  return (
+    <Modal title="Your week" onClose={close}>
+      <p className="helper">The last 7 days, from what you actually did. You can ignore this.</p>
+      {s.anything ? <ul className="weekly-list">
+        {s.stepsDone.map(x => <li key={x.name}><strong>{x.count}</strong> {x.count === 1 ? 'step' : 'steps'} done in <strong>{x.name}</strong></li>)}
+        {s.outcomesDone.map(n => <li key={n}>You finished the outcome <strong>{n}</strong></li>)}
+        {s.decisionsResolved.map(n => <li key={n}>You resolved the decision <strong>{n}</strong></li>)}
+        {s.capturesAdded > 0 && <li><strong>{s.capturesAdded}</strong> {s.capturesAdded === 1 ? 'thought' : 'thoughts'} captured</li>}</ul>
+        : <p className="small-note">Nothing was recorded this week. That is fine.</p>}
+      <h3 className="section-heading" style={{ marginTop: 14 }}>Still open</h3>
+      <ul className="weekly-list"><li>{s.unresolvedDecisions} unresolved {s.unresolvedDecisions === 1 ? 'decision' : 'decisions'}</li><li>{s.waitingReview} {s.waitingReview === 1 ? 'capture' : 'captures'} waiting for AI Review</li><li>{s.blocked} blocked (confirmed blocks only)</li></ul>
+      <div className="capture-foot"><span></span><button className="primary-button" onClick={close}>Done</button></div>
+    </Modal>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { archiveTask, confirmRelationship, removeRelationship, reopenOutcome, setLane, togglePin } from '../../src/domain/commands';
+import { archiveIdea, archiveTask, confirmRelationship, removeRelationship, reopenOutcome, setLane, togglePin } from '../../src/domain/commands';
 import { entityName, isOutcomeBlocked } from '../../src/domain/blocking';
 import { progressOf, stepsOf } from '../../src/domain/progress';
 import type { Outcome, Relationship, Workspace } from '../../src/domain/model';
@@ -51,6 +51,7 @@ function OutcomeBlock({ o, open, onToggle, showFolder }: { o: Outcome; open: boo
           <button className="mini-button" aria-label={`Restore step: ${t.name}`} onClick={() => api.run((w, c) => archiveTask(w, c, t.id, false))}>Restore</button></div>)}</div>}
         <div className="action-line">
           <button className="mini-button" onClick={() => modal({ kind: 'taskNew', outcomeId: o.id })}><Icon name="plus" /> Add step</button>
+          <button className="mini-button" onClick={() => modal({ kind: 'steps', outcomeId: o.id })}>Break it down</button>
           <button className="mini-button" aria-pressed={o.pinned} onClick={() => api.run(w => togglePin(w, o.id))}>{o.pinned ? 'Unpin' : 'Pin as priority'}</button>
           <button className="mini-button" onClick={() => modal({ kind: 'outcomeEdit', id: o.id })}>Edit outcome</button>
           {o.done_at ? <button className="mini-button" onClick={() => api.run((w, c) => reopenOutcome(w, c, o.id))}>Reopen outcome</button> : <button className="mini-button" onClick={() => modal({ kind: 'complete', id: o.id, prompted: false })}>Mark outcome done…</button>}
@@ -65,7 +66,7 @@ function OutcomeBlock({ o, open, onToggle, showFolder }: { o: Outcome; open: boo
 export function MapScreen() {
   const { api, modal, folderSel: sel, setFolderSel: setSel } = useApp();
   const ws = api.ws, mobile = useMobile();
-  const [pickerOpen, setPickerOpen] = useState(false), [opened, setOpened] = useState<Record<string, boolean>>({});
+  const [showArchivedIdeas, setShowArchivedIdeas] = useState(false), [pickerOpen, setPickerOpen] = useState(false), [opened, setOpened] = useState<Record<string, boolean>>({});
   const folder = sel === 'all' ? null : ws.folders.find(f => f.id === sel) ?? null, isAll = !folder;
   const title = folder?.name ?? 'All notes', desc = folder ? folder.description : 'Everything across all folders, plus anything not yet filed.';
   const os = isAll ? ws.outcomes : ws.outcomes.filter(o => o.folder_id === folder.id);
@@ -94,7 +95,17 @@ export function MapScreen() {
             <p className="small-note">Open a step to attach it to an outcome.</p></>}
           <div className="divider"></div><div className="row-between"><h3 className="section-heading">Relationships</h3><button className="mini-button" onClick={() => modal({ kind: 'relationship' })}><Icon name="plus" /> Add relationship</button></div>
           <div className="stack rel-list">{rels.map(r => <RelRow key={r.id} r={r} ws={ws} />)}{!rels.length && <p className="small-note">No relationships here yet.</p>}</div>
-          {ideas.length > 0 && <><div className="divider"></div><h3 className="section-heading" style={{ marginBottom: 10 }}>Ideas worth keeping</h3>{ideas.map(i => <div key={i.id} className="backlog-row"><span className="folder"><Icon name="lightbulb" /></span><strong>{i.name}</strong></div>)}</>}
+          <div className="divider"></div><div className="row-between"><h3 className="section-heading">Ideas worth keeping</h3><button className="mini-button" onClick={() => modal({ kind: 'idea', id: null, folderId: folder?.id ?? null })}><Icon name="plus" /> Add idea</button></div>
+          <p className="small-note">A possibility, not a commitment. It only becomes work if you promote it.</p>
+          {ideas.filter(i => showArchivedIdeas || !i.archived_at).map(i => (
+            <div key={i.id} className={`idea-row ${i.archived_at ? 'is-archived' : ''}`}><span className="folder"><Icon name="lightbulb" /></span>
+              <span className="idea-copy"><strong>{i.name}</strong>{i.notes && <small>{i.notes}</small>}{i.archived_at && <small>Archived</small>}</span>
+              <span className="rel-actions"><button className="mini-button" aria-label={`Edit idea: ${i.name}`} onClick={() => modal({ kind: 'idea', id: i.id, folderId: i.folder_id })}>Edit</button>
+                {i.archived_at ? <button className="mini-button" aria-label={`Restore idea: ${i.name}`} onClick={() => api.run((w, c) => archiveIdea(w, c, i.id, false))}>Restore</button> : <>
+                  <button className="mini-button" aria-label={`Promote idea: ${i.name}`} onClick={() => modal({ kind: 'promote', id: i.id })}>Promote</button>
+                  <button className="mini-button" aria-label={`Archive idea: ${i.name}`} onClick={() => api.run((w, c) => archiveIdea(w, c, i.id, true))}>Archive</button></>}</span></div>))}
+          {!ideas.some(i => !i.archived_at) && <p className="small-note">No ideas yet.</p>}
+          {ideas.some(i => i.archived_at) && <button className="quiet-button" aria-pressed={showArchivedIdeas} onClick={() => setShowArchivedIdeas(v => !v)}>{showArchivedIdeas ? 'Hide archived ideas' : 'Show archived ideas'}</button>}
           {caps.length > 0 && <><div className="divider"></div><h3 className="section-heading" style={{ marginBottom: 10 }}>{isAll ? 'Captures not filed yet' : 'Captures filed here'}</h3>
             {caps.slice(0, 6).map(c => <div key={c.id} className="backlog-row"><span className="folder"><Icon name="inbox" /></span><strong>{c.edited_text ?? c.text}</strong></div>)}{caps.length > 6 && <p className="small-note">{caps.length - 6} more in the Inbox.</p>}</>}
           <p className="endnote">Only confirmed “blocks” relationships hold work up; suggestions never do.</p></section>

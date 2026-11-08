@@ -1,7 +1,7 @@
 // Asks the user's own AI provider for SUGGESTIONS about their pending captures. Nothing is written to the workspace:
 // the result is validated against a strict schema and returned as proposals the person must approve.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { buildPrompt, buildRequest, extractText, MAX_CAPTURES, parseProposals, SYSTEM, type Provider } from '../_shared/ai.ts';
+import { buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
 
@@ -22,9 +22,17 @@ Deno.serve(async (req: Request) => {
   if (!test && (!s.enabled || !s.disclosure_accepted_at)) return json({ error: 'Turn on AI in Settings and accept the notice first.' }, 403);
   let apiKey: string; try { apiKey = await decryptKey(secret, hexToB64(String(s.key_ciphertext))); } catch { return json({ error: 'Your saved key could not be read. Save it again.' }, 500); }
 
+  const stepsMode = body.mode === 'steps';
+  let existingSteps: string[] = [];
   let system = SYSTEM, user = '', allowed = { captureIds: new Set<string>(), folderIds: new Set<string>(), outcomeIds: new Set<string>() };
   if (test) { system = 'Reply with exactly this JSON and nothing else: {"ok":true}'; user = 'ping'; }
-  else {
+  else if (stepsMode) {
+    if (typeof body.outcomeId !== 'string') return json({ error: 'Choose an outcome.' }, 400);
+    const [o, t] = await Promise.all([admin.from('outcomes').select('id, name, description').eq('owner_id', uid).eq('id', body.outcomeId).maybeSingle(), admin.from('tasks').select('name').eq('owner_id', uid).eq('outcome_id', body.outcomeId).is('archived_at', null)]);
+    if (!o.data) return json({ error: 'That outcome was not found.' }, 400);
+    existingSteps = (t.data ?? []).map(x => x.name as string); system = STEPS_SYSTEM;
+    user = buildStepsPrompt({ title: o.data.name, description: o.data.description ?? '', existing: existingSteps });
+  } else {
     const ids = Array.isArray(body.captureIds) ? body.captureIds.filter((x): x is string => typeof x === 'string').slice(0, MAX_CAPTURES) : [];
     if (!ids.length) return json({ error: 'Nothing to review.' }, 400);
     const [caps, folders, outcomes] = await Promise.all([
@@ -47,6 +55,7 @@ Deno.serve(async (req: Request) => {
   }
   const text = extractText(s.provider as Provider, await res.json().catch(() => null));
   if (test) return json({ ok: /"ok"\s*:\s*true/.test(text), provider: s.provider, model: s.model });
+  if (stepsMode) return json({ steps: parseSteps(text, existingSteps), provider: s.provider, model: s.model });
   const { proposals, dropped } = parseProposals(text, allowed);
   return json({ proposals, dropped, provider: s.provider, model: s.model });
 });

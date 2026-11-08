@@ -2,7 +2,10 @@ import { useMemo, useState } from 'react';
 import { ignoreSuggestion, selectCurrentFocus } from '../../src/domain/commands';
 import { activeIds, computeSuggestion } from '../../src/domain/engine';
 import { blockedCount } from '../../src/domain/blocking';
+import { dismissPrompt } from '../../src/domain/commands';
 import { currentFocusId, type Outcome, type Workspace } from '../../src/domain/model';
+import { prompts as changePrompts, quickWin } from '../../src/domain/next';
+import { isoWeek, weeklyId } from '../../src/domain/weekly';
 import { progressOf, stepsOf } from '../../src/domain/progress';
 import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
@@ -24,7 +27,8 @@ function HeroStat({ ws, id }: { ws: Workspace; id: string }) {
 }
 
 export function Focus() {
-  const { api, go, modal, awaitingReview } = useApp();
+  const { api, go, modal, awaitingReview, setFolderSel, setDecisionSel } = useApp();
+  const [mins, setMins] = useState(0);
   const ws = api.ws, ids = activeIds(ws), stored = currentFocusId(ws);
   const currentId = stored && ids.includes(stored) ? stored : ids[0] ?? null;
   const current = ws.outcomes.find(o => o.id === currentId) ?? null;
@@ -36,6 +40,10 @@ export function Focus() {
   const showSg = !!sg && !dismissed.includes(sg.fingerprint) && sg.fingerprint !== deferred;
   const blocked = blockedCount(ws);
   const empty = ws.outcomes.length === 0 && ws.captures.length === 0;
+  const win = useMemo(() => (mins ? quickWin(ws, mins) : null), [ws, mins]);
+  const nowMs = Date.now(), plist = useMemo(() => changePrompts(ws, nowMs), [ws]);   // eslint-disable-line
+  const week = isoWeek(new Date()), weeklyDue = !empty && !(ws.settings?.priority_dismissed ?? []).includes(weeklyId(week));
+  const reviewPrompt = (p: (typeof plist)[number]) => { if (p.page === 'decisions') setDecisionSel(p.targetId); else setFolderSel(p.folderId ?? 'all'); go(p.page); };
 
   const steps = current ? stepsOf(ws, current.id) : [], firstOpen = steps.find(t => t.done_at === null), nextStep = firstOpen ?? steps[0];
   const nx = ws.focus.filter(f => f.lane === 'next').length, lt = ws.focus.filter(f => f.lane === 'later').length;
@@ -91,6 +99,22 @@ export function Focus() {
                   <button className="mini-button" onClick={() => api.run((w, c) => ignoreSuggestion(w, c, sg.fingerprint))}>Ignore</button>
                   <button className="mini-button" onClick={() => setDeferred(sg.fingerprint)}>Defer</button></div></div>
             ) : <div className="suggest-quiet"><p className="small-note" role="status">{note}</p></div>}
+          </section>)}
+
+        {ws.outcomes.length > 0 && (
+          <section className="mission-extras" aria-label="Suggestions and prompts">
+            {plist.slice(0, 3).map(p => (
+              <div key={p.id} className="card prompt-card" role="status"><p className="prompt-text">{p.text}</p>
+                <div className="action-line"><button className="mini-button" onClick={() => reviewPrompt(p)}>Review</button><button className="mini-button" onClick={() => api.run((w, c) => dismissPrompt(w, c, p.id))}>Later</button></div></div>))}
+            {plist.length > 3 && <p className="small-note">{plist.length - 3} more prompts. Handle these first.</p>}
+            <div className="card quick-win"><div className="quick-win-head"><label htmlFor="minutes">I have</label>
+              <select className="select" id="minutes" value={mins} onChange={e => setMins(+e.target.value)}><option value={0}>…</option>{[10, 20, 30, 60].map(m => <option key={m} value={m}>{m}</option>)}</select><span>minutes</span></div>
+              {mins > 0 && (win ? (
+                <div className="quick-win-result"><div className="overline">SUGGESTED NEXT ACTION</div><p className="suggest-what"><strong>{win.task.name}</strong>{win.outcome && <> <span className="small-note">in {win.outcome.name}</span></>}</p><p className="suggest-why"><span>Why:</span> {win.reason}</p>
+                  <div className="action-line">{win.outcome ? <button className="mini-button" onClick={() => modal({ kind: 'focusMode', id: win.outcome!.id })}>Start in Focus Mode</button> : <button className="mini-button" onClick={() => go('map')}>Open in Map</button>}</div>
+                  <p className="small-note">Suggestion only. Nothing moves or changes. Estimates are your own; add them with Edit step.</p></div>
+              ) : <p className="small-note quick-win-result" role="status">Nothing fits in {mins} minutes. Steps without an estimate are skipped when they are known to be longer. Add estimates with Edit step, or try a longer time.</p>)}</div>
+            {weeklyDue && <div className="card prompt-card"><p className="prompt-text">Your weekly review is ready. It is optional.</p><div className="action-line"><button className="mini-button" onClick={() => modal({ kind: 'weekly' })}>Open</button><button className="mini-button" onClick={() => api.run((w, c) => dismissPrompt(w, c, weeklyId(week)))}>Skip this week</button></div></div>}
           </section>)}
         {ws.outcomes.length > 0 && (
           <section className="mission-lanes" aria-label="Next and Later"><button type="button" className="priority-mini lanes-link" onClick={() => go('lanes')}>
