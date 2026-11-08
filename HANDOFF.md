@@ -1,0 +1,46 @@
+# Exe — Handoff for the next developer or AI
+
+Keep this file current. Update it in every commit that changes project state. Last updated: 2026-11-08 (see Progress log).
+
+## Read first, in this order
+1. `DECISIONS.md` — owner-approved and owner-delegated product decisions (DEC-001 to DEC-004), each with rationale.
+2. `EXE_MASTER_PRODUCT_AND_BUILD_SPEC.md` — **governing product spec**. The owner says earlier specs are outdated (DEC-004).
+3. `AGENTS.md` — process rules (feature branch, tests, real screenshots, PR per phase).
+4. `PRODUCT-BLUEPRINT.md` — reconstructed inventory of the current code and the gap register (§9). Gaps resolved by DEC-001 to DEC-004 are listed there as open; treat DECISIONS.md as newer.
+5. `V1-LOCKED-SPEC.md` — older. Do not edit. Master spec wins on conflict.
+
+## State
+- Branch: `feat/phase-1b-mockup-fidelity` (separate from PR #1's branch `feat/phase-1-inbox-mobile-parity`, which has diverged; reconcile after Phase 1). Pushed to origin after every commit.
+- App is still the vanilla HTML/CSS/JS localStorage prototype. Not a deployed or AI-backed app.
+- Untracked, unknown origin, never commit: `assets/diagonal-paint.png`, `assets/white-paint.png`, `assets/yellow-paint.jpg`.
+- Running tests on a Mac: `python3 -m venv v && v/bin/pip install playwright`, serve with `python3 -m http.server 8000 --bind 127.0.0.1`, and set `EXE_CHROMIUM` to a Chrome/Chromium binary (tests default to `/usr/bin/chromium`).
+
+## Owner permissions (stated in chat, 2026-11-08)
+- Commit and push to feature branches after every commit, without asking.
+- Still ask first for: merging to `main`, force-pushing, deploying, major visual changes (AGENTS.md).
+
+## Build order (Phase 1) and status
+1. Next & Later screen (DEC-003): **done**.
+2. Status line and Inbox badge (DEC-003): **done**.
+3. Five labeled tabs + separate "+" (DEC-004): **done**.
+4. Priority Engine suggestions card (DEC-003): **done**.
+5. Relationship as single authority, `CAPTURE_TASKS` removed: **done** (migration in `migrate()`).
+6. Decision fields (evidence, chosen option, log): **done**. Outcome completion flow, Task edit: see Progress log.
+7. Tests, screenshots, `docs/REQUIREMENTS-MATRIX.md`, PR: see Progress log.
+Not in the owner's Phase 1 order and not built: AI Review actions per DEC-002 (reject, merge, defer rules), empty start for regular users (DEC-002), folders (DEC-001), search over ideas/folders, dark theme removal.
+
+## Rules that must hold
+Eight entities only; five tabs; max three Now outcomes; AI suggests, never silently changes; light theme only; never fabricate progress; the prototype is not a deployed AI app.
+
+## Progress log
+- 2026-11-08: decisions DEC-001 to DEC-004 logged. No feature code yet.
+- 2026-11-08: Phase 1 items 1-5 and decision fields built and pushed (Next & Later screen, status line, Inbox badge, labeled dock + separate "+", Priority Engine card, Relationship authority with cycle checks, decision evidence/chosen option/log, outcome pin/deadline/effort). DEC-005 logged. Existing tests repaired for phones (collapsed pickers, overflow at 768px). Remaining: outcome completion flow, task edit, new tests, screenshots, requirements matrix.
+- 2026-11-08: Outcome completion (user confirmation only; prompts when all steps are done; frees the Now slot, nothing auto-fills) and task edit (rename, move, reorder, archive/restore) built. New tests: `tests/phase1b.py` (8 widths), `tests/accessibility_phase1b.py`. Fixed: completed-row contrast, option-edit form attribute clash. All suites except `visual_conformance.py` / `visual_compare.py` (not re-run; they compare against the old icon-only dock) pass. Remaining: real screenshots, `docs/REQUIREMENTS-MATRIX.md`, test/PR docs.
+- 2026-11-08: Phase 1b build complete on the prototype. Added `docs/REQUIREMENTS-MATRIX.md` (status per spec section), screenshots in `docs/screenshots/phase1b/` (regenerate with `tests/screenshots_phase1b.py`). All 8 suites pass in headless Chromium: baseline, phase1, phase1b, capture_context, design_system, accessibility, accessibility_phase1b, refinement. Not run: visual_conformance, visual_compare. No PR opened; nothing merged. Next: owner review, then PR for Phase 1b; Phase 2 starts with the schema (DEC-005).
+- 2026-11-08: DEC-005 rewritten for the owner's "spend nothing on AI" direction: AI is bring-your-own-key (provider-agnostic adapters, no hard-coded model, keys encrypted server-side only, strict schema validation, disclosure before first call, app works fully without AI). Matrix updated. AI Review in the prototype stays a labeled simulation. No code change.
+- 2026-11-08: Owner decided AI providers: Anthropic, OpenAI, Google Gemini (one adapter each, DEC-005). Open: search provider for Phase 4. No code change.
+- 2026-11-08: DEC-005 amended: research uses the AI provider's built-in web search (no separate search service unless a provider lacks one); verify provider offerings before Phase 4. No code change.
+- 2026-11-08: DEC-006 logged (decisions made by Claude, owner can overrule). Built: Quick Capture list-vs-paragraph rule, newest-first Inbox, forced light theme. All 8 suites pass. Next slice: Folders + empty first run (`?example=1` keeps the Altr data), then AI Review reject/defer/merge/undo as labeled simulation. Draft PR opened for owner review.
+- 2026-11-08: Folders + empty first run built (DEC-001/002): Workstream shown as Folder with create/rename/delete-with-move, All notes view, filing for captures/outcomes/decisions, loose steps instead of silent 'Unsorted work', user-named workspace, empty start (Altr data only via `?example=1` into an empty workspace). Tests now load `?example=1`; new `tests/phase1c.py`. Next: AI Review reject/defer/merge/undo and the ask-before-creating-an-outcome prompt (labeled simulation), then remove dead dark CSS.
+- 2026-11-08: AI Review actions built as labeled simulation (DEC-002): Not now (Set aside list), Reject (not repeated), merge preview (both captures kept, linked), Undo (only while untouched), placement question for unmatched steps, 'just a note'. New `tests/phase1d.py`; 10 suites pass. Not built: one capture into several items, selective batch approve with preview. Next: remove dead dark CSS; owner review of draft PR #2; then Phase 2 schema (DEC-005).
+- 2026-11-08: Owner chose a dark graphite mobile dock (DEC-007); labels and separate + kept. Tokens in `exe-ui.css` (`--dock-*`).
