@@ -5,6 +5,7 @@ import { makeClient, SupabaseStore, type Db } from '../../src/store/supabase';
 import { AuthGate } from '../auth/AuthGate';
 import { makeAi } from './ai';
 import { Shell } from './Shell';
+import { makeFakeAi } from './fakeAi';
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined, anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 const forceLocal = new URLSearchParams(location.search).has('local');
@@ -18,7 +19,8 @@ export function App() {
 
 function LocalApp() {
   const store = useMemo(() => new LocalStore('local', localStorage), []);
-  return <Shell store={store} where="This device only" />;
+  const fake = useMemo(() => (new URLSearchParams(location.search).has('fakeai') ? makeFakeAi() : null), []);   // development only
+  return <Shell store={store} where="This device only" fakeAi={fake} />;
 }
 function RemoteApp({ db, owner, email }: { db: Db; owner: string; email: string }) {
   const store = useMemo(() => new QueuedStore(new SupabaseStore(db, owner), localStorage), [db, owner]);

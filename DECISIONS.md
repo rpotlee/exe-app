@@ -232,3 +232,15 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Migration 8** added the comparison text columns and the "Split" marker (applied to the owner's project).
 - **Left out: research with real sources (master §13).** Quick Answers and Guided Research need each AI provider's web-search tool, whose request formats were not verified, cannot be tested without the owner's key, and would need the AI function published again (blocked for Claude). Building it blind would risk invented sources, which the spec forbids. It should be built after one live AI call succeeds and the three providers' search tools are checked.
 
+
+## DEC-015 — The baseline is live help while you build your list (2026-11-08)
+**Source:** the owner said the app felt like a mess and described the baseline: write a to-do list (a huge one, or naturally as you go); Exe finds groups and dependencies as the list grows; then it helps with individual to-dos (an email draft to copy, links to sources for research tasks, a neat answer plus a source for a quick fact). Claude's choices follow; the owner can overrule.
+
+- **First screen is the list.** A first visit opens the Inbox with an empty input. Someone who already has active priorities still opens Focus. The input takes Enter to add and keep typing, and a pasted list becomes one to-do per line. **No instruction text on screen**: explanations live in the help center (owner direction).
+- **Help arrives by itself, but only suggests.** A few seconds after typing stops, new to-dos (8 at a time) go to the person's own AI provider through the existing function (new `assist` mode). Needs AI turned on with the notice accepted; otherwise a small "Turn on AI help" link.
+- **Groups and order.** A card per group. "Group these" creates an outcome in Later with the to-dos as steps. Suggested order is stored as an **unconfirmed** block (source AI) so it never holds work up until confirmed in Map (master §2.4). Not now hides it.
+- **Email drafts** are copy-only (Copy, or open the mail app prefilled). Exe never sends. Missing details are left in [brackets].
+- **Sources are domains, not URLs.** Models invent deep links, so the AI may only name a source and its real domain; the app links to a search on that site (`site:domain topic`). Links always land on something real. Domains are validated as plain domains.
+- **Quick answers** only for short, stable facts; anything uncertain, recent, legal, medical or financial must become "Where to look". Labeled AI, with a link to check a source. No web-search tool is used, so this is not verified research (master §13 still open); the model answers from its own knowledge.
+- **Remembered on this device only** (browser storage, keyed by a hash of each to-do's text), so the same to-do is not sent again. Nothing new is stored in the database except what the person approves.
+- **Not verified live:** unit-tested, and the screen was tested with a local fake AI. The function is deployed (owner go-ahead) but has not been run against a real provider by Claude. Each to-do with help gets one closed dropdown; every item carries a concrete "Next" step.

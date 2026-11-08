@@ -433,3 +433,29 @@ function undoSplit(ws: Workspace, ctx: Ctx, c: Workspace['captures'][number]): R
   writes.push(audit(ctx, 'approval-undo', 'capture', c.id, { type: 'Split' }));
   return done(writes, 'Split undone. The capture is back in the review list.');
 }
+
+// ------------------------------------------------------------------ group related to-dos (live help, DEC-015)
+/** One approved suggestion: related to-dos become the steps of a new outcome (in Later, not Now). Suggested dependencies are saved as
+ *  UNCONFIRMED blocks: they show as suggestions and never hold anything up until the person confirms them. */
+export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; name: string; deps: { before: string; after: string; why: string }[] }): Result {
+  const caps = [...new Set(input.ids)].map(id => capture(ws, id)).filter((c): c is NonNullable<typeof c> => !!c && c.status === 'pending' && !c.archived_at);
+  if (caps.length < 2) return fail('Choose at least two to-dos that are still waiting.');
+  const name = trimmed(input.name).slice(0, 200); if (!name) return fail('Name the group.');
+  const oid = ctx.id(), sources = caps.map(c => c.id), writes: Write[] = [];
+  writes.push(ins('outcomes', { ...baseRow(ctx), id: oid, folder_id: null, name, description: 'Grouped from your list.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
+  writes.push(ins('focus_assignments', { ...baseRow(ctx), outcome_id: oid, lane: 'later', position: ws.focus.length }));
+  const taskOf = new Map<string, string>();
+  caps.forEach((c, i) => {
+    const r = approveWrites(ws, ctx, c, { type: 'Task', folderId: c.folder_id, outcomeId: oid, title: c.edited_text ?? c.text });
+    for (const w of r.writes) if (w.table === 'tasks' && w.op === 'insert') w.row.position = i;
+    if (r.itemId) taskOf.set(c.id, r.itemId); writes.push(...r.writes);
+  });
+  const edges: [string, string][] = [];
+  const reaches = (from: string, to: string, seen = new Set<string>()): boolean => from === to || (!seen.has(from) && (seen.add(from), edges.some(([a, b]) => a === from && reaches(b, to, seen))));
+  for (const d of input.deps) {
+    const a = taskOf.get(d.before), b = taskOf.get(d.after); if (!a || !b || a === b || reaches(b, a)) continue;
+    edges.push([a, b]);
+    writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
+  }
+  return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in the Inbox.`);
+}

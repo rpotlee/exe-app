@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentFocusId } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
 import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
 import type { AiApi } from './ai';
+import type { AssistClient } from './useAssist';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
@@ -18,14 +19,15 @@ import { Decisions } from '../screens/Decisions';
 import { Review } from '../screens/Review';
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
-const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'focus'; };
+const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'inbox'; };
 const TABS: { page: Page; label: string; icon: string; desktopIcon: string }[] = [
   { page: 'focus', label: 'Focus', icon: 'crosshair', desktopIcon: 'target' }, { page: 'inbox', label: 'Inbox', icon: 'inbox', desktopIcon: 'inbox' },
   { page: 'review', label: 'AI Review', icon: 'sparkles', desktopIcon: 'sparkles' }, { page: 'map', label: 'Map', icon: 'network', desktopIcon: 'network' },
   { page: 'decisions', label: 'Decisions', icon: 'git-branch', desktopIcon: 'git-branch' },
 ];
 
-export function Shell({ store, where, onSignOut, ai = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null }) {
+export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null }) {
+  const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
   const [page, setPage] = useState<Page>(fromHash);
   const [folderSel, setFolderSel] = useState('all');
@@ -50,8 +52,10 @@ export function Shell({ store, where, onSignOut, ai = null }: { store: Store; wh
     return () => { off(); window.removeEventListener('online', on); };
   }, [queue]);
   const ws = api.ws;
+  const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
+  useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai, assist, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;

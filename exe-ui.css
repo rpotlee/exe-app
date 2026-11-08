@@ -52,7 +52,7 @@
   --blue: #0a62cc;
   --blue-dark: #0a4fae;
   --blue-light: rgba(10, 103, 216, .12);
-  --red: #c4231a;
+  --red: #a81d16;
   --red-bg: rgba(255, 59, 48, .12);
   --edge: rgba(60, 60, 67, .22);
   --edge-strong: #c6c6c8;
@@ -978,3 +978,35 @@ body::before {
 @media (min-width: 761px) and (not ((pointer: coarse) and (max-height: 500px))) {
   .outcome-chevron { display: none; }
 }
+
+/* ---------- 15. live help in the Inbox (DEC-015) ----------
+   Everything the AI adds is quiet, labeled "AI", and sits under the to-do it is about. */
+.inbox-add textarea.text-input { resize: none; min-height: 44px; max-height: 220px; padding-block: 11px; line-height: 22px; background: none; border: 0; box-shadow: none; font: inherit; color: var(--ink); }
+.welcome { padding: 20px; margin-bottom: 16px; }
+.welcome h2 { font-size: 20px; line-height: 25px; font-weight: 600; margin-bottom: 8px; }
+#view .welcome p { font-size: 15px; line-height: 20px; color: var(--secondary); }
+.assist-note { margin: 4px 4px 12px; font-size: 13px; line-height: 18px; color: var(--secondary); }
+.assist-groups { display: grid; gap: 12px; margin-bottom: 16px; }
+.assist-card { padding: 16px; }
+.assist-card .overline { display: flex; align-items: center; gap: 6px; color: #3f3dae; }
+:root[data-theme="dark"] .assist-card .overline { color: #a5a3ff; }
+.assist-card .overline svg { width: 16px; height: 16px; }
+.assist-card h2 { font-size: 20px; line-height: 25px; font-weight: 600; margin: 4px 0; }
+.assist-card ul { margin: 10px 0; padding-left: 20px; font-size: 15px; line-height: 20px; }
+.assist-help { margin: 0 0 10px 40px; font-size: 15px; line-height: 20px; }
+.assist-help summary { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border-radius: 999px; cursor: pointer; list-style: none; background: color-mix(in srgb, var(--exe-badge) 10%, transparent); color: #3f3dae; font-weight: 600; width: fit-content; max-width: 100%; }
+:root[data-theme="dark"] .assist-help summary { color: #a5a3ff; }
+.assist-help summary::-webkit-details-marker { display: none; }
+.assist-help summary svg { width: 16px; height: 16px; flex: none; }
+.assist-kinds { font-weight: 400; font-size: 13px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assist-chevron { transition: transform .2s; }
+.assist-help[open] .assist-chevron { transform: rotate(180deg); }
+.assist-body { display: grid; gap: 10px; margin-top: 8px; padding: 12px; border-radius: var(--r-md); background: var(--surface-soft); }
+.assist-next { margin: 0; }
+.assist-help .pill { margin-left: 6px; padding: 1px 8px; background: color-mix(in srgb, var(--exe-badge) 14%, transparent); color: #3f3dae; }
+:root[data-theme="dark"] .assist-help .pill { color: #a5a3ff; }
+.assist-email pre { margin: 6px 0 10px; padding: 10px; border-radius: 12px; background: var(--surface); white-space: pre-wrap; font: inherit; }
+.assist-sources { margin: 0; padding-left: 20px; }
+.assist-sources a, .assist-answer a { color: var(--exe-accent-ink); }
+.assist-answer p { margin: 0 0 4px; }
+.assist-help a.mini-button { display: inline-flex; align-items: center; text-decoration: none; }
