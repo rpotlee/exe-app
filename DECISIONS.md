@@ -93,3 +93,12 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 
 ### Not decided here (needs the owner)
 - **D-01 mobile nav / D-02 / D-03 visual precedence.** AGENTS.md and both specs require five labeled tabs plus a separate floating "+". The owner's earlier direction (icon-only dock, "+" inside the dock) conflicts. This changes the look, so it needs the owner's explicit choice. Recommendation: five labeled tabs and a separate "+" (labels are readable, and AI Review stays reachable at 320–430px).
+
+## DEC-004 — Master spec governs; navigation resolved (2026-11-08)
+**Resolves:** D-01, D-02, D-03 (and closes the "Not decided here" item in DEC-003). **Source:** owner statement in chat that EXE_MASTER_PRODUCT_AND_BUILD_SPEC is the authoritative description of the app and earlier specs are outdated.
+
+1. **Precedence.** EXE_MASTER_PRODUCT_AND_BUILD_SPEC.md (v1.0, 2026-11-08) is the governing product spec. Where V1-LOCKED-SPEC.md, the owner crops or earlier notes differ, the master spec wins. V1-LOCKED-SPEC.md is not edited; this log records the override.
+2. **Navigation.** Five labeled destinations (Focus, Inbox, AI Review, Map, Decisions) on desktop sidebar and mobile dock, plus a separate elevated cobalt "+" for Quick Capture that does not obscure the center tab [master §2.3, §4.2, §19.3]. The icon-only dock with "+" inside is retired.
+3. **Visual.** Near-white canvas, hairline borders, cobalt accent, frosted dock starting from rgba(255,255,255,.82) with blur(18px) and an opaque fallback; no dark theme [master §15.2, §19.1, §19.4]. The approved reference images stay authoritative for exact tokens.
+4. **Process rules unchanged.** The master spec itself says repo process documents win for existing implementation detail [master header]; AGENTS.md process rules still apply: feature branch, tests, real screenshots, a PR per phase, no push or merge or deploy without owner approval.
+5. **Phase plan.** The master spec's Phases 0–5 (§24) are the roadmap. Work now is Phase 1; it ends with all locked V1 behavior tests passing [master §24].
