@@ -1,0 +1,133 @@
+{
+ "version": 1,
+ "workspaceName": "Messy inbox",
+ "workstreams": [],
+ "outcomes": [],
+ "focusAssignments": [],
+ "tasks": [],
+ "relationships": [],
+ "decisions": [],
+ "ideas": [],
+ "captures": [
+  {
+   "id": "c0",
+   "text": "call mom sunday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c1",
+   "text": "phone mom",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c2",
+   "text": "dentist appt?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c3",
+   "text": "book dentist",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c4",
+   "text": "Book flights for May",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c5",
+   "text": "pick travel dates for May trip",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c6",
+   "text": "fix leaky faucet",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c7",
+   "text": "plumber quote for faucet",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c8",
+   "text": "renew car registration",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c9",
+   "text": "registration due 12/15",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c10",
+   "text": "gift ideas for Sam",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c11",
+   "text": "Sam birthday gift",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c12",
+   "text": "clean garage",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c13",
+   "text": "donate old clothes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c14",
+   "text": "email Priya re: budget",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c15",
+   "text": "budget review Q4",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c16",
+   "text": "buy printer ink",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c17",
+   "text": "cancel gym?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c18",
+   "text": "gym membership cancel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c19",
+   "text": "read Atomic Habits",
+   "status": "pending",
+   "source": "Imported"
+  }
+ ]
+}

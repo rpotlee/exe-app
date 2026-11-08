@@ -1,0 +1,162 @@
+{
+ "version": 1,
+ "workspaceName": "Launch plan",
+ "workstreams": [
+  {
+   "id": "w1",
+   "name": "Product",
+   "description": "Ship v1",
+   "icon": "folder"
+  },
+  {
+   "id": "w2",
+   "name": "Legal",
+   "description": "Contracts",
+   "icon": "folder"
+  }
+ ],
+ "outcomes": [
+  {
+   "id": "o1",
+   "name": "Launch the beta",
+   "stream": "w1",
+   "deadline": "2026-12-15"
+  },
+  {
+   "id": "o2",
+   "name": "Close the seed round",
+   "stream": "w2"
+  },
+  {
+   "id": "o3",
+   "name": "Hire a designer",
+   "stream": "w1"
+  }
+ ],
+ "focusAssignments": [
+  {
+   "outcome": "o1",
+   "lane": "now"
+  },
+  {
+   "outcome": "o2",
+   "lane": "now"
+  },
+  {
+   "outcome": "o3",
+   "lane": "next"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Finish onboarding flow",
+   "outcome": "o1"
+  },
+  {
+   "id": "t2",
+   "name": "Security review",
+   "outcome": "o1"
+  },
+  {
+   "id": "t3",
+   "name": "Pick pricing",
+   "outcome": "o1"
+  },
+  {
+   "id": "t4",
+   "name": "Publish landing page",
+   "outcome": "o1"
+  },
+  {
+   "id": "t5",
+   "name": "Review term sheet",
+   "outcome": "o2"
+  },
+  {
+   "id": "t6",
+   "name": "Sign with lead investor",
+   "outcome": "o2"
+  },
+  {
+   "id": "t7",
+   "name": "Write job post",
+   "outcome": "o3"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "d1",
+   "name": "Pricing model",
+   "stream": "w1",
+   "options": [
+    "Per seat",
+    "Usage based",
+    "Flat fee"
+   ],
+   "criteria": "Simple to explain, grows with customers",
+   "status": "open"
+  },
+  {
+   "id": "d2",
+   "name": "Lead investor",
+   "stream": "w2",
+   "options": [
+    "Fund A",
+    "Fund B"
+   ],
+   "status": "resolved",
+   "chosenOption": "Fund A",
+   "selected": "Fund A",
+   "rationale": "Better terms",
+   "resolvedAt": "2026-11-01T12:00:00Z"
+  }
+ ],
+ "relationships": [
+  {
+   "from": "t2",
+   "to": "t4",
+   "kind": "blocks"
+  },
+  {
+   "from": "d1",
+   "to": "t3",
+   "kind": "blocks"
+  },
+  {
+   "from": "t3",
+   "to": "t4",
+   "kind": "blocks"
+  },
+  {
+   "from": "t5",
+   "to": "t6",
+   "kind": "blocks"
+  },
+  {
+   "from": "d2",
+   "to": "t5",
+   "kind": "informs"
+  },
+  {
+   "from": "t1",
+   "to": "t2",
+   "kind": "related"
+  }
+ ],
+ "ideas": [],
+ "captures": [
+  {
+   "id": "c1",
+   "text": "Ask legal about data retention",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c2",
+   "text": "Pricing page copy",
+   "status": "pending",
+   "source": "Imported"
+  }
+ ]
+}
