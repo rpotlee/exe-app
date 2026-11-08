@@ -12,6 +12,7 @@ import { Inbox } from '../screens/Inbox';
 import { MapScreen } from '../screens/Map';
 import { Later } from '../screens/Later';
 import { Decisions } from '../screens/Decisions';
+import { Review } from '../screens/Review';
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'focus'; };
@@ -46,7 +47,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
   const navPage = page === 'lanes' ? 'focus' : page;
   const name = ws.settings?.workspace_name || 'My workspace';
   const save = api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
-  const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : <Later which={page} />;
+  const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Review /> : <Later which={page} />;
   const badge = (p: Page) => (p === 'inbox' || p === 'review') && awaiting > 0 ? awaiting : 0;
   const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} awaiting AI Review`}>{n > 99 ? '99+' : n}</span> : null);
 

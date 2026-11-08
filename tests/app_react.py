@@ -92,6 +92,27 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Delete folder').click(); expect(page.locator('#modal-root .helper')).to_contain_text('Nothing is deleted with the folder')
         page.get_by_role('button', name='Delete folder').last.click()
         assert S(page)['folders'] == [] and len(S(page)['outcomes']) == 5
+        # AI Review (a simulation): duplicates are proposed, merge keeps both, undo restores, reject is remembered, not now keeps it
+        cap(page, 'Order balloons for the party'); cap(page, 'Order the balloons for party'); nav(page, 'review')
+        def card(text): return page.locator('.review-item').filter(has=page.locator('.review-original', has_text=text))
+        expect(card('Order balloons')).to_contain_text('Possible duplicate')
+        card('Order balloons').get_by_role('button', name='Preview merge').click(); expect(page.locator('#modal-root')).to_contain_text('Nothing is deleted')
+        page.get_by_role('button', name='Cancel').click(); assert all(c['status'] == 'pending' for c in S(page)['captures'])
+        card('Order balloons').get_by_role('button', name='Preview merge').click(); page.locator('#modal-root').get_by_role('button', name='Merge', exact=True).click()
+        page.get_by_role('heading', name='Where does this step go?').wait_for(); page.locator('#modal-root').get_by_role('button', name='Approve', exact=True).click()
+        d = S(page); ca = next(c for c in d['captures'] if c['text'] == 'Order balloons for the party'); cb = next(c for c in d['captures'] if c['text'] == 'Order the balloons for party')
+        assert cb['merged_into'] == ca['id'] and ca['organized_as'] == 'Task' and sorted(next(t for t in d['tasks'] if t['name'] == 'Order balloons for the party')['sources']) == sorted([ca['id'], cb['id']])
+        page.get_by_role('button', name='Undo approval: Order balloons for the party').click()
+        d = S(page); assert not any(t['name'].startswith('Order balloons') for t in d['tasks']) and all(c['status'] == 'pending' for c in d['captures'] if c['text'].startswith('Order'))
+        card('Order balloons').get_by_role('button', name='Reject').click(); expect(card('Order balloons')).to_have_count(0)
+        page.get_by_role('button', name='Review again: Order balloons for the party').click()
+        expect(card('Order balloons')).to_contain_text('rejected this exact suggestion'); expect(card('Order balloons').get_by_role('button', name='Approve & organize')).to_be_disabled()
+        card('Order balloons').locator('select').first.select_option('Idea'); expect(card('Order balloons').get_by_role('button', name='Approve & organize')).to_be_enabled()
+        card('Order balloons').get_by_role('button', name='Approve & organize').click(); assert len(S(page)['ideas']) == 1
+        card('Order the balloons').get_by_role('button', name='Not now').click(); expect(page.locator('.review-aside', has_text='Set aside')).to_contain_text('Not now')
+        page.get_by_role('button', name='Review again: Order the balloons for party').click()
+        card('Order the balloons').locator('select').first.select_option('Note'); card('Order the balloons').get_by_role('button', name='Approve & organize').click()
+        assert next(c for c in S(page)['captures'] if c['text'] == 'Order the balloons for party')['organized_as'] == 'Note'
         # decisions: create, options, evidence, resolve with a chosen option, dated log, reopen; nothing else changes
         nav(page, 'decisions'); page.get_by_role('button', name='New decision').click(); page.locator('#modal-root input[name=name]').fill('Which CRM?'); page.get_by_role('button', name='Add decision').click()
         for o in ['HubSpot', 'Pipedrive']:
@@ -112,10 +133,10 @@ with sync_playwright() as p:
         expect(page.locator('.decision-log li')).to_have_count(3)
         assert [l['type'] for l in sorted(S(page)['decisionLog'], key=lambda x: x['at'])] == ['created', 'resolved', 'reopened']
         # persistence: a reload keeps everything
-        before = S(page); page.reload(); nav(page, 'inbox'); expect(page.locator('.raw-row')).to_have_count(4); assert S(page)['outcomes'] == before['outcomes']
+        before = S(page); page.reload(); nav(page, 'inbox'); expect(page.locator('.raw-row')).to_have_count(6); assert S(page)['outcomes'] == before['outcomes']
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
-            for r in ['focus', 'inbox', 'map', 'decisions']:
+            for r in ['focus', 'inbox', 'map', 'decisions', 'review']:
                 nav(page, r); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
         for r in ['focus', 'inbox', 'review', 'map', 'decisions']:
             nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r)

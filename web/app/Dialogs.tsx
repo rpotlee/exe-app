@@ -6,6 +6,7 @@ import type { RelationshipKind } from '../../src/domain/model';
 import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { stepsOf, progressOf } from '../../src/domain/progress';
+import { captureText, propose } from '../../src/domain/review';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
 import { Modal, useDialog } from '../ui/Modal';
@@ -18,6 +19,8 @@ const DRAFT = 'exe-capture-draft';
 export function Dialogs({ m }: { m: ModalState }) {
   switch (m.kind) {
     case 'capture': return <CaptureSheet />;
+    case 'placement': return <Placement id={m.id} folderId={m.folderId} mergeWith={m.mergeWith} />;
+    case 'mergePreview': return <MergePreview id={m.id} otherId={m.otherId} folderId={m.folderId} type={m.type} />;
     case 'decisionForm': return <DecisionForm id={m.id} />;
     case 'optionAdd': return <OptionAdd decisionId={m.decisionId} />;
     case 'optionEdit': return <OptionEdit id={m.id} />;
@@ -351,6 +354,49 @@ function ResolveDecision({ id }: { id: string }) {
         <label className="form-field"><span className="small-note">Why (optional)</span><textarea className="text-input" name="rationale" maxLength={800} defaultValue={d.rationale} /></label>
         <div className="capture-foot"><span className="small-note">This will not move any Focus Board items.</span><button className="primary-button" type="submit">Confirm decision</button></div>
       </form>
+    </Modal>
+  );
+}
+
+/** A step with no matching outcome: ask. Nothing is created unless the user picks it. */
+function Placement({ id, folderId, mergeWith }: { id: string; folderId: string | null; mergeWith: string | null }) {
+  const { api, modal } = useApp();
+  const ws = api.ws, c = ws.captures.find(x => x.id === id), open = ws.outcomes.filter(o => !o.done_at);
+  const [choice, setChoice] = useState<'loose' | 'existing' | 'create'>('loose'), [outcome, setOutcome] = useState(open[0]?.id ?? ''), [name, setName] = useState(c ? captureText(c) : '');
+  if (!c) return null;
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const p = propose(ws, c), a: C.Approval = { type: 'Task', folderId, outcomeId: choice === 'existing' && outcome ? outcome : null, title: p.title, ...(choice === 'create' ? { newOutcomeName: name } : {}) };
+    if (api.run((w, cx) => (mergeWith ? C.mergeCaptures(w, cx, id, mergeWith, a) : C.approveCapture(w, cx, id, a)))) modal(null);
+  };
+  return (
+    <Modal title="Where does this step go?" onClose={() => modal(null)}>
+      <p className="helper"><q>{captureText(c)}</q><br />No outcome matches it. Choose one option. Nothing is created unless you pick it.</p>
+      <form onSubmit={submit}>
+        <label className="form-field"><span className="small-note">What should happen</span><select className="select" value={choice} onChange={e => setChoice(e.target.value as typeof choice)}><option value="loose">Leave it loose (no outcome)</option>{open.length > 0 && <option value="existing">Add it to an existing outcome</option>}<option value="create">Create a new outcome for it</option></select></label>
+        {open.length > 0 && <label className="form-field"><span className="small-note">Existing outcome</span><select className="select" value={outcome} onChange={e => setOutcome(e.target.value)}>{open.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
+        <label className="form-field"><span className="small-note">New outcome name</span><input className="text-input" value={name} onChange={e => setName(e.target.value)} maxLength={200} /></label>
+        <div className="capture-foot"><span></span><button className="primary-button" type="submit">Approve</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function MergePreview({ id, otherId, folderId, type }: { id: string; otherId: string; folderId: string | null; type: C.Approval['type'] }) {
+  const { api, modal } = useApp();
+  const ws = api.ws, a = ws.captures.find(x => x.id === id), b = ws.captures.find(x => x.id === otherId);
+  if (!a || !b) return null;
+  const p = propose(ws, a);
+  const confirm = () => {
+    if (type === 'Task' && !p.outcomeId) { modal(null); modal({ kind: 'placement', id, folderId, mergeWith: otherId }); return; }
+    if (api.run((w, c) => C.mergeCaptures(w, c, id, otherId, { type, folderId, outcomeId: p.outcomeId, title: p.title }))) modal(null);
+  };
+  return (
+    <Modal title="Preview merge" onClose={() => modal(null)}>
+      <p className="helper">Nothing is deleted. Both captures stay in your Inbox exactly as written, and both are linked to the result.</p>
+      <div className="merge-grid"><div><div className="eyebrow">CAPTURE A</div><p className="review-original">{captureText(a)}</p></div><div><div className="eyebrow">CAPTURE B</div><p className="review-original">{captureText(b)}</p></div></div>
+      <div className="recommendation"><span className="review-tag">RESULT</span><p>One {type === 'Note' ? 'note' : type.toLowerCase()}: <strong>{p.title}</strong>. Both captures point to it. You can undo this.</p></div>
+      <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Cancel</button><button className="primary-button" onClick={confirm}>Merge</button></div>
     </Modal>
   );
 }
