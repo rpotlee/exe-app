@@ -27,7 +27,8 @@ with sync_playwright() as p:
             assert page.locator('.priority-hero').bounding_box()['width'] in (468,500)  # 500 in the two-column layout (>=1100px)
         else:
             targets=page.locator('.dock-item').all();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
-            assert dock['x']<=plus['x'] and plus['x']+plus['width']<=dock['x']+dock['width']  # Capture lives inside the glass island
+            assert plus['y']+plus['height']<=dock['y']  # Capture is separate: entirely above the dock
+            assert page.locator('.mobile-dock .mobile-capture').count()==0
             for target in targets:
                 r=target.bounding_box();assert r['width']>=44 and r['height']>=44
             for route in ['focus','inbox','review','map','decisions']:
@@ -47,7 +48,7 @@ with sync_playwright() as p:
         page.mouse.down()
         assert button.evaluate('e=>getComputedStyle(e).filter')!='none'
         page.mouse.up()
-        button.evaluate('e=>e.disabled=true')
+        button.evaluate('e=>e.disabled=true');page.wait_for_timeout(500)  # let the opacity transition finish
         assert button.evaluate('e=>getComputedStyle(e).opacity')=='0.45'
         assert button.evaluate('e=>getComputedStyle(e).cursor')=='not-allowed'
         print(f'PASS {width}px shared tokens, unique CSS rules, ring font, progress geometry, touch/nav/validation/focus/disabled states')

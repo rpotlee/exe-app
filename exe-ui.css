@@ -758,6 +758,8 @@ body::before {
 @media (max-width: 520px) { .confirm-grid { grid-template-columns: 1fr; } }
 
 /* Map relationships, outcome meta, decision detail additions */
+.map-detail, .decision-detail { min-width: 0; }
+.action-line { flex-wrap: wrap; }
 .rel-list { gap: 10px; }
 .rel-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 10px 0; background: var(--hairline) top / 100% 1px no-repeat; }
 .rel-row:first-child { background: none; }

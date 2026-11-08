@@ -102,3 +102,31 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 3. **Visual.** Near-white canvas, hairline borders, cobalt accent, frosted dock starting from rgba(255,255,255,.82) with blur(18px) and an opaque fallback; no dark theme [master §15.2, §19.1, §19.4]. The approved reference images stay authoritative for exact tokens.
 4. **Process rules unchanged.** The master spec itself says repo process documents win for existing implementation detail [master header]; AGENTS.md process rules still apply: feature branch, tests, real screenshots, a PR per phase, no push or merge or deploy without owner approval.
 5. **Phase plan.** The master spec's Phases 0–5 (§24) are the roadmap. Work now is Phase 1; it ends with all locked V1 behavior tests passing [master §24].
+
+## DEC-005 — Phase 2 technical direction (2026-11-08)
+**Resolves:** T-01, T-02 (refines the inference in DEC-003). **Source:** the owner delegated these decisions on 2026-11-08. Each is a recommendation made by Claude, not a statement from the owner; the owner may overrule any line and the log will be amended. Nothing here is built yet. Anything not in the master spec is an inference.
+
+**Guiding principle:** the rules that protect the user (three Now, confirmed blockers only, AI never changes work silently) must hold even if a screen has a bug, so they live in the database, not only in the interface.
+
+### Order of work
+- **Finish Phase 1 on the prototype first.** Feature work does not pause for the backend. *Why:* Phase 1 is how the product behavior is verified with the owner; changing storage at the same time would hide which change broke what.
+- **The schema is the first Phase 2 deliverable, before any screen is ported.** It covers the eight entities (Capture, Workstream/Folder, Outcome, Task, Decision, Idea, Relationship, FocusAssignment) plus supporting tables for AI proposals, audit/undo history and idempotency keys (master §16.2; none is a ninth user-facing entity). Every row has an owner, created/updated timestamps and a revision number. *Why:* screens are only a view of the schema; getting it reviewed first is the cheapest place to find a mistake.
+- **Sync and the offline queue come after the port**, built on idempotency keys and revision checks. When two versions conflict the user is shown both; nothing is overwritten silently (DEC-003 P-17). *Why:* sync is only correct if the storage rules under it are already enforced.
+
+### Backend and stack
+- **Backend is Supabase:** Postgres, Auth, row-level security (every row visible only to its owner). *Why:* one service gives the database, sign-in and per-user isolation that master §15.4 and §21.2 require, without writing a server first.
+- **Stack is React + TypeScript + Vite**, with TypeScript types generated from the database schema, so a screen cannot disagree with the schema. *Why:* typed code catches a wrong field at build time; Vite avoids server rendering, which a signed-in app does not need.
+
+### Rules enforced in the database (master §16.6)
+- At most **three** Now outcomes per user, enforced in a transaction.
+- Exactly **one current focus**, and it must be a Now outcome.
+- **No dependency cycles** and no self-blocks among `blocks` relationships.
+- **Only confirmed `blocks`** relationships count as blocking; an unconfirmed (suggested) one never does.
+- **AI can never delete or complete anything.** AI-originated writes can only create proposals; completing a task, resolving a decision, deleting, moving a lane and confirming a blocker require a user-authorized write. *Why:* this makes the "AI suggests, user decides" principle (master §2.4) impossible to bypass from a bug or a bad model response.
+
+### Logic and AI
+- **The Priority Engine and progress calculations stay pure functions** (data in, result out, no storage access), so they move to the new storage unchanged and keep their tests. The prototype's engine in `app.js` is written this way on purpose.
+- **AI calls run on the server only**, with strict schema-validated output, and every result is stored as a **proposal** that needs approval (master §7.6, §13, §18). API keys never reach the browser.
+
+### Still open (needs the owner or verified pricing)
+- **AI provider.** **Search provider** for research. Both need verified capability and cost before they are chosen (master §26).

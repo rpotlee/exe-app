@@ -80,13 +80,16 @@ with sync_playwright() as p:
             assert page.locator('[data-task-check]').filter(visible=True).count()==3
         nav(page,'map')
         for stream in ['market','partners','technology','growth','foundation']:
+            if width<761: page.locator('[data-picker] .active').click()  # the mobile picker is collapsed until opened
             page.locator(f'[data-stream="{stream}"]').click()
             assert state(page)['selectedStream']==stream
+        if width<761: page.locator('[data-toggle-outcome="insurance"]').click()  # outcomes are collapsed on phones
         page.locator('[data-set-lane="insurance"][data-lane="now"]').click()
         page.get_by_role('heading',name='Keep focus to three').wait_for()
         page.keyboard.press('Escape')
         assert len([a for a in state(page)['focusAssignments'] if a['lane']=='now'])==3
         nav(page,'decisions')
+        if width<761: page.locator('[data-picker] .active').click()
         page.locator('[data-decision="decision-backend"]').click()
         page.get_by_label('Research notes').fill('Regression note')
         page.reload();assert page.get_by_label('Research notes').input_value()=='Regression note'
@@ -100,7 +103,9 @@ with sync_playwright() as p:
         if width<761:
             assert page.locator('.mobile-dock [data-nav]').count()==5
             dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
-            assert dock['x']<=plus['x'] and plus['x']+plus['width']<=dock['x']+dock['width']  # Capture lives inside the dock island
+            assert plus['y']+plus['height']<=dock['y']  # Capture is a separate button above the dock
+            assert page.locator('.mobile-dock .mobile-capture').count()==0
+            for item in page.locator('.mobile-dock small').all(): assert item.is_visible()  # labels are drawn
             assert page.locator('.mobile-dock [aria-current=page]').count()==1
         assert not errors,errors
         if width in [390,1280]:
