@@ -51,7 +51,7 @@ The blueprint's behavior statements are based on the **local branch code**, with
 5. **Honesty.** It is a prototype, not live AI; prototype keyword rules must never be described as AI [S§3 AI Review, A].
 6. **Separate dimensions.** Capture completion ≠ AI review status ≠ structured Task completion [S§0, S§5].
 
-**Not stated anywhere (gap G-01):** a written target-user definition, the specific problems it solves, success measures, or scope limits (single user vs team). The seed data is one founder's business ("Altr"), and [S§9]/[S§6] imply a **personal workspace**. Anything about the user beyond that is my inference [I] and needs your confirmation.
+**Not stated anywhere (gap G-01):** a written target-user definition, the specific problems it solves, success measures, or scope limits (single user vs team). The seed data is one founder's business ("Acme"), and [S§9]/[S§6] imply a **personal workspace**. Anything about the user beyond that is my inference [I] and needs your confirmation.
 
 ---
 
@@ -82,7 +82,7 @@ Legend: **S** = required/named by spec · **C** = exists in code · **—** = ab
 
 | Entity | Properties (code) | Spec-required but absent |
 |---|---|---|
-| **Capture** | `id`, `text` (original, never edited), `status` `'pending'\|'organized'`, `createdAt` (ISO, or the literal string `'Imported example'` for seed), `source` (`'Altr brain dump'\|'Inbox'\|'Quick Capture'`), `proposal` `{type, stream, title, related}`, `organizedAs`, `completedAt` (nullable, **S**), `archivedAt`, `checklistText` (edited display text), `taskId` (optional link, **never set by any code path**) | Link from an approved capture to the entity it produced; audit/undo history; provenance beyond `source` [S§3 AI Review, S§5] |
+| **Capture** | `id`, `text` (original, never edited), `status` `'pending'\|'organized'`, `createdAt` (ISO, or the literal string `'Imported example'` for seed), `source` (`'Acme brain dump'\|'Inbox'\|'Quick Capture'`), `proposal` `{type, stream, title, related}`, `organizedAs`, `completedAt` (nullable, **S**), `archivedAt`, `checklistText` (edited display text), `taskId` (optional link, **never set by any code path**) | Link from an approved capture to the entity it produced; audit/undo history; provenance beyond `source` [S§3 AI Review, S§5] |
 | **Workstream** | `id`, `name`, `icon`, `description`. Five fixed: foundation, market, partners, technology, growth | Spec says "preserve the five"; creating/editing workstreams is unspecified |
 | **Outcome** | `id`, `stream`, `name`, `description`. Created by seed, by an approved Outcome capture, or auto-created "Unsorted work" | Status/lifecycle; completion; deadline; effort; readiness (all inputs the Priority Engine is said to use [S§3]) |
 | **Task** | `id`, `outcome`, `name`, `done` (bool), `blockedBy[]` (task ids) | Status beyond done; edit/delete; deadline; effort; ordering |
@@ -114,8 +114,8 @@ Two dependency mechanisms coexist: **`Task.blockedBy`** (drives the Blocked badg
 | FocusAssignment | Lane changed by the user only. Moving to `now` when three exist opens a replacement dialog. |
 | Idea / Workstream / Relationship | Static after creation. |
 
-### 3.4 Seed data (the "Altr example") [C, `docs/baseline-example.json`]
-5 workstreams, 12 outcomes, 23 tasks (none done; two with `blockedBy`), 5 decisions (all open), 2 ideas, 5 relationships, **18 captures all `status:'organized'` with `createdAt:'Imported example'`**, 12 focus assignments: **Now** = Confirm New York business registration, Determine first service area, Define Backend V1 (matches [S§5]); Next = insurance, pricing, hiring, communications, security, seo, locations; Later = reviews, thumbtack. `currentPriority` = `registration`.
+### 3.4 Seed data (the "Acme example") [C, `docs/baseline-example.json`]
+5 workstreams, 12 outcomes, 23 tasks (none done; two with `blockedBy`), 5 decisions (all open), 2 ideas, 5 relationships, **18 captures all `status:'organized'` with `createdAt:'Imported example'`**, 12 focus assignments: **Now** = Confirm New York business registration, Determine first service area, Define Backend V1 (matches [S§5]); Next = insurance, pricing, hiring, communications, security, seo, locations; Later = reviews, marketplace. `currentPriority` = `registration`.
 
 ---
 
@@ -169,7 +169,7 @@ Each flow lists the specified behavior, what the code does, and where they diffe
 - **Specified only as the last step of the workflow** [S§0]. There is **no defined review ritual, cadence, screen or trigger** (gap P-26). The only code that resembles it is the "Review your priorities" dialog (`showFocusReview`: lists Now/Next/Later with move buttons), which on the local branch is **unreachable** (§8.3 R-01).
 
 ### 4.9 Backup, restore, reset [C]
-Export downloads `exe-altr-backup.json`. Import accepts a file only if `version === 1` and the eight entity arrays exist (shapes are **not** validated), then asks for confirmation. "Reset to initial Altr example" asks for confirmation. A failed save (`localStorage` disabled/full) is **silent** — the user is not told.
+Export downloads `exe-acme-backup.json`. Import accepts a file only if `version === 1` and the eight entity arrays exist (shapes are **not** validated), then asks for confirmation. "Reset to initial Acme example" asks for confirmation. A failed save (`localStorage` disabled/full) is **silent** — the user is not told.
 
 ---
 
@@ -189,7 +189,7 @@ Export downloads `exe-altr-backup.json`. Import accepts a file only if `version 
 ### 5.3 Classification rules (`propose`) — the only "AI"
 First match wins; defaults: type **Task**, workstream **technology**.
 - **Type:** Idea if it contains idea / maybe / worthwhile / explore / creative / consider / incentiv / possib; else Decision if it contains `?` / should we / do we need / figure out / which area / choose between / decide; else Outcome if finaliz / establish / build a process / launch readiness; else Task.
-- **Workstream:** foundation (insurance, llc, filing, register, publication, compliance) → market (pricing, price, profit, competitor, service area, location, market) → partners (partner, hiring, recruit, cleaner, onboard, spanish) → growth (seo, reviews, thumbtack, lead, website, image, alt text) → technology (backend, phone, twilio, software, code, security, dispatch).
+- **Workstream:** foundation (insurance, llc, filing, register, publication, compliance) → market (pricing, price, profit, competitor, service area, location, market) → partners (partner, hiring, recruit, cleaner, onboard, spanish) → growth (seo, reviews, marketplace, lead, website, image, alt text) → technology (backend, phone, twilio, software, code, security, dispatch).
 - **"Related" outcome:** only seo, insurance, hiring, phone/twilio → communications, pricing. No duplicate detection.
 - Consequence [I]: anything with no keyword is silently proposed as a Task in *Technology* (the user sees the select, but nothing flags low confidence).
 
@@ -320,7 +320,7 @@ First match wins; defaults: type **Task**, workstream **technology**.
 |---|---|---|---|
 | **P-01** | **Target user, problem statement, scope** (solo founder vs team; success measures) | Everything else (sharing, accounts, copy) depends on it | [S§9], §1 |
 | **P-02** | **Initial status of the 18 imported captures.** [S§1.7] calls "pre-marked organized" a defect, yet outcomes/tasks already exist from them. Gate 5 expects AI Review to flag SEO overlap. | Decides whether AI Review is demonstrable at first run and whether duplicates are re-proposed | [S§1.7, S§5, S§7.5], seed |
-| **P-03** | **First-run state for a new account:** empty workspace, the Altr seed, or both ("simple first-run empty workspace and importing the Altr seed") | Onboarding and migration design | [S§6] |
+| **P-03** | **First-run state for a new account:** empty workspace, the Acme seed, or both ("simple first-run empty workspace and importing the Acme seed") | Onboarding and migration design | [S§6] |
 | **P-04** | **What links a Capture to structured work** after approval (and in general), and what "linked" means for Blocked/progress display. Currently only a hard-coded 2-item map. | Traceability and the Inbox Blocked badge | [S§3, S§5], R-04 |
 | **P-05** | **Outcome lifecycle:** what happens at 100%; can an outcome be done/archived; does it leave Now; is the next one proposed? Outcomes with no tasks? | Progress, Focus, "adapt/review" | [S§3] (silent) |
 | **P-06** | **Dependency model:** is `Task.blockedBy` or Relationship authoritative? Do outcome-level `blocks` block an outcome's readiness/tasks? Who creates, confirms or removes relationships, and where? How are user-declared vs AI-suggested shown? | Priority Engine inputs; Blocked semantics | [S§3, S§5], §3.2 |
@@ -337,7 +337,7 @@ First match wins; defaults: type **Task**, workstream **technology**.
 | **P-17** | **Ongoing review:** the cadence, trigger and screen for "adapt/review"; whether a weekly review exists | Last step of the workflow has no definition | [S§0] |
 | **P-18** | **Conflict and offline policy visible to the user:** last-write-wins vs field merge vs ask; what "unsynced" looks like | Required behavior for gate 14 | [S§6] |
 | **P-19** | **AI service policy:** provider/model, what captured text leaves the device, consent/disclosure copy, cost limits, failure messaging when unavailable | Privacy-sensitive; user-facing | [S§3, S§6] |
-| **P-20** | **Accounts:** single personal workspace per user, multiple workspaces, or sharing; naming ("Altr Workspace" is hard-coded) | Auth and data design | [S§6, S§7.16] |
+| **P-20** | **Accounts:** single personal workspace per user, multiple workspaces, or sharing; naming ("Acme Workspace" is hard-coded) | Auth and data design | [S§6, S§7.16] |
 | **P-21** | **Search scope:** ideas, workstreams, archived captures, ranking | Gate 11 only says "same Search" | [S§2] |
 | **P-22** | **Quick Capture details:** one line = one capture (current) vs preserving a paragraph; list-marker handling; draft preservation on cancel; length limit | Data entry | [S§3, S§7.4] |
 | **P-23** | **Workstreams:** fixed five, or user-editable | Map | [S§3 Map] |

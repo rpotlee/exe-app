@@ -16,7 +16,7 @@
 
 Exe is an intelligent **personal execution system**. It helps one person convert a crowded mind—tasks, obligations, ideas, unanswered questions, choices, and projects—into a trusted structure and then into concrete forward movement. Exe is not primarily a collaborative project-management suite, a notes repository, or a chatbot. The central user experience is: **capture without organizing; understand without administrative overload; decide what matters; start the next useful action; adapt as circumstances change.**
 
-A user can capture an unstructured thought such as “Find out whether Altr needs to register in New York.” Exe stores the exact thought, optionally offers classification and connections to existing work, identifies whether the item needs a quick factual answer, deeper research, a decision, or an action, and surfaces useful recommendations. The user remains the authority over conclusions, structured changes, priorities, deadlines, and completion.
+A user can capture an unstructured thought such as “Find out whether Acme needs to register in New York.” Exe stores the exact thought, optionally offers classification and connections to existing work, identifies whether the item needs a quick factual answer, deeper research, a decision, or an action, and surfaces useful recommendations. The user remains the authority over conclusions, structured changes, priorities, deadlines, and completion.
 
 **Customer-facing promise:** “Less organizing. More doing.”  
 **Internal product test:** Exe succeeds only if it decreases the mental and administrative effort between intention and meaningful progress.
@@ -53,7 +53,7 @@ People experience competing responsibilities, incomplete information, unclear ne
 
 Keep exactly these eight **core domain entity types** as the public conceptual model: `Capture`, `Workstream`, `Outcome`, `Task`, `Decision`, `Idea`, `Relationship`, and `FocusAssignment`. The term “project” may appear as an organizing context in prose or the UI; it is **not authorization to introduce a ninth core Project entity**. Do not replace Outcomes with goals, epics, missions, or AI-generated equivalent types.
 
-Existing workstreams, outcomes, links, identifiers, and choices must survive migrations. Preserve the five existing Altr workstreams in the real data; inspect their exact names and IDs in source rather than recreating them from guesswork. Preserve the three approved example active outcomes in existing data where applicable: **Confirm New York business registration**, **Determine first service area**, and **Define Backend V1**. No fabricated completion statuses.
+Existing workstreams, outcomes, links, identifiers, and choices must survive migrations. Preserve the five existing Acme workstreams in the real data; inspect their exact names and IDs in source rather than recreating them from guesswork. Preserve the three approved example active outcomes in existing data where applicable: **Confirm New York business registration**, **Determine first service area**, and **Define Backend V1**. No fabricated completion statuses.
 
 ### 2.2 Locked process
 
@@ -89,7 +89,7 @@ The owner has approved adding the previously proposed improvements: stronger act
 
 - **Outcome:** a result the user wants to achieve, such as “Determine first service area.” Outcomes are what FocusAssignments place in Now, Next, or Later.
 - **Task:** a specific action that contributes to an outcome, such as “Compare contractor supply in three candidate cities.” Tasks have clear done/not-done criteria and may have checklist children only if already supported by the existing schema/implementation.
-- **Decision:** an unresolved choice that may block or inform one or more outcomes, such as “Which city should Altr launch in?” A decision is not disguised as a task merely to make a checklist simpler.
+- **Decision:** an unresolved choice that may block or inform one or more outcomes, such as “Which city should Acme launch in?” A decision is not disguised as a task merely to make a checklist simpler.
 
 A user can complete several Tasks under one active Outcome without consuming multiple Now slots.
 
@@ -536,7 +536,7 @@ All fields below are **implementation contract suggestions**; map to existing sc
 | Core entity | Required meaning / typical fields | Critical invariant |
 | --- | --- | --- |
 | `Capture` | ID, owner/workspace, raw text, created/updated, source/provenance, `completedAt?`, archivedAt?, review/link references | Source preserved; raw completion separate from Task state |
-| `Workstream` | ID, name, description, user-defined order/status | Preserve existing Altr workstreams |
+| `Workstream` | ID, name, description, user-defined order/status | Preserve existing Acme workstreams |
 | `Outcome` | ID, Workstream reference, title, success definition, status, ordered Tasks | Focus assignments attach to Outcomes |
 | `Task` | ID, Outcome reference (nullable if baseline allows), title, notes, doneAt?, user deadline?, effort estimate? | Only user-confirmed completion writes doneAt |
 | `Decision` | ID, question, options, evidence, status, selected option?, resolution notes/time, linked work | AI cannot resolve it |
@@ -722,7 +722,7 @@ Keyboard nav through all actions; semantic headings; proper checkbox labels; des
 
 ### Journey B — clarify a factual question
 
-1. Capture “Find out whether Altr must register in New York.”
+1. Capture “Find out whether Acme must register in New York.”
 2. AI Review flags Quick Answer candidate with explanation; auto public lookup only if explicit preference permits and sensitivity policy allows; legal implications likely require deliberate approval.
 3. User authorizes scoped research; Exe retrieves official relevant guidance.
 4. Result shows evidence, date, conditions and uncertainty without pretending it provides individualized legal advice.
@@ -835,7 +835,7 @@ Log aggregate, privacy-minimized effectiveness metrics; do not transmit raw priv
 
 ### 23.1 Existing locked V1 regression gates
 
-- All existing raw Altr Captures import exactly, including 18 original entries where present. Preserve spelling, source and IDs; do not invent missing seed text.
+- All existing raw Acme Captures import exactly, including 18 original entries where present. Preserve spelling, source and IDs; do not invent missing seed text.
 - Inbox shows raw checklist with All/Active/Done and inline add immediately under heading.
 - Check/uncheck/edit/archive/restore works across refresh; raw completion doesn't change linked Tasks or AI Review state.
 - Mobile dock has five labeled destinations and separate visible floating `+`; no covered nav at 320/375/390/430px.
@@ -917,7 +917,7 @@ Tune relevance/noise, monitor citation quality and suggestion correction rates, 
 1. **Inspect, don't assume.** Read `AGENTS.md`, `V1-LOCKED-SPEC.md`, `START-HERE.md`, existing UI/source/tests and any current PR. The latest actual code, not this document's examples, determines implementation inventory.
 2. **Respect locked architecture.** Keep eight core entities and five nav destinations; no new “Projects/Agents/Research” permanent tab or substitute productivity methodology.
 3. **Create a requirements matrix**: `Spec section → current implementation → gap → component/API → tests → phase`.
-4. **Do not overwrite real data.** Preserve Altr workstreams, active priorities, original Captures and IDs. Record a migration/backup strategy before schema edits.
+4. **Do not overwrite real data.** Preserve Acme workstreams, active priorities, original Captures and IDs. Record a migration/backup strategy before schema edits.
 5. **Implement domain invariants server-side.** Especially three Now max, one current focus, Capture/Task completion independence, confirmed blockers, approvals.
 6. **Keep AI advisory.** Model outputs are proposals/grounded findings, not automatic authority. Real AI/research must be backed by actual APIs and citation data.
 7. **Keep UX restrained.** Match existing premium light design; prioritize first-viewport clarity and mobile Safari behavior. Never “improve” styling by inventing heavy dashboards or a new color system.

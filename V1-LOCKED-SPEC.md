@@ -6,7 +6,7 @@
 
 ## 0. Non-negotiable change control
 - The previously approved business logic, entities, project structure, and flows are locked. Do not replace or reimagine the application, or silently add a new product methodology.
-- Core entities remain **Capture, Workstream, Outcome, Task, Decision, Idea, Relationship, FocusAssignment**. Existing workstreams, the three approved Altr Now priorities, statuses and relationships must survive the migration.
+- Core entities remain **Capture, Workstream, Outcome, Task, Decision, Idea, Relationship, FocusAssignment**. Existing workstreams, the three approved Acme Now priorities, statuses and relationships must survive the migration.
 - Preserve the workflow: **Capture -> AI Review -> Project Map/Decision Queue -> explainable Priority Engine -> Now/Next/Later Focus Board -> Focus Mode -> adapt/review**.
 - The user requested one additive Inbox behavior: original Captures also function as a raw checklist. Support an independent completion flag on the existing Capture entity. Completion of a raw Capture does NOT silently mark an underlying structured Task as completed, nor does AI classification itself signify completion.
 - AI suggestions are advisory; no silent merges, deletion, reclassification, dependency creation, task completion or priority promotion.
@@ -19,7 +19,7 @@
 4. The floating Quick Capture plus currently occupies the dock's center position instead of being a separate prominent action slightly above the five-destination dock.
 5. Current dock CSS is `rgba(255,255,255,.97)`; its blur is visually minimized by near-opacity.
 6. Mission Status says `1 priority in focus` as hardcoded text; the review count is dynamic. Other active Now outcomes are incorrectly titled `Next priorities`.
-7. Current 18 raw Altr entries have been pre-marked `organized` in seed data, and the two SEO inputs have not been semantically consolidated. No true live AI is connected.
+7. Current 18 raw Acme entries have been pre-marked `organized` in seed data, and the two SEO inputs have not been semantically consolidated. No true live AI is connected.
 8. Now/Next/Later are manually controlled; there is no full explainable Priority Engine, deadline validation or readiness-based recommendation process.
 9. LocalStorage data and JSON export/import are device-local; no authentication, backend, mobile/desktop sync, or production HTTPS deployment.
 10. The visual code contains duplicate `pageHeading` definitions, legacy unused metric styles and stacked overrides. This is technical debt; refactor organization, not intended UX.
@@ -62,7 +62,7 @@
 - Approved proposal preserves original Capture and links it to target work. Keep traceability and undo/audit history.
 
 ### Project Map
-- Preserve five original Altr workstreams and their existing outcomes, tasks, decisions, ideas and relationships.
+- Preserve five original Acme workstreams and their existing outcomes, tasks, decisions, ideas and relationships.
 - Allow outcome drill-down, checklist actions, relationship visibility, and task create/edit/complete.
 - Distinguish hard `blocks` from weaker `informs` or `related` suggestions; unconfirmed AI relationships are not real blockers.
 - Mobile uses readable list/drill-down, not cramped graph. Desktop may use a more information-rich hierarchy.
@@ -103,7 +103,7 @@
 - Core object names and associations remain frozen. Preserve current entity IDs and existing user choices whenever migrating.
 - Add only the minimal Capture completion metadata necessary for the explicitly requested raw checklist (`completedAt` nullable, derivable `isCompleted`) and references/audit metadata needed for traceability. Never equate `Capture.status = organized` with `Capture.completedAt != null`.
 - Preserve user-declared blockers and distinguish them from AI suggestions.
-- On source migration, import all 18 original Altr lines and honor approved three priority outcomes: `Confirm New York business registration`, `Determine first service area`, `Define Backend V1`. Do not mark historical tasks completed unless explicitly recorded by the user.
+- On source migration, import all 18 original Acme lines and honor approved three priority outcomes: `Confirm New York business registration`, `Determine first service area`, `Define Backend V1`. Do not mark historical tasks completed unless explicitly recorded by the user.
 - Consolidating SEO duplicate proposals requires approval and cannot delete either source capture.
 
 ## 6. Production engineering required before V1 release
@@ -113,10 +113,10 @@
 - Handle slow/offline connections without silent data loss: capture locally when necessary, clearly show unsynced state, retry safely, and resolve conflicts predictably. Never label unsaved work as synced.
 - Validate imports and AI JSON schema; prevent XSS/injection; enforce authorization at API/database, rate limiting, logging/monitoring and error recovery. No tokens or credentials in browser source.
 - Mobile web requirements: iOS Safari and Android Chrome, viewport safe areas, virtual keyboard, scrolling, 200% zoom, reduced motion, good tap targets, real-device screenshots, touch/keyboard accessibility. PWA install may be optional; a browser URL is required.
-- Support a simple first-run empty workspace and importing the Altr seed without presenting example data as true current completion.
+- Support a simple first-run empty workspace and importing the Acme seed without presenting example data as true current completion.
 
 ## 7. Automated and manual acceptance tests / RELEASE GATES
-1. Import/capture the exact 18 original Altr entries, see all 18 immediately in Inbox, and preserve them verbatim.
+1. Import/capture the exact 18 original Acme entries, see all 18 immediately in Inbox, and preserve them verbatim.
 2. Add new raw item inline; check, uncheck, edit, archive/undo; refresh and confirm the same state.
 3. Mark a raw capture Done; verify AI review state and linked structured task completion do not change without user action.
 4. Save multiline Quick Capture from any tab and from Focus Mode; return to previous context; each line appears in Inbox.

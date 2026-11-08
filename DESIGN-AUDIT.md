@@ -160,7 +160,7 @@ What already works: **one current priority**, a visible **next step**, **global 
 
 ### K. Content and copy (copy pass is planned; these are design-relevant only)
 - "Mission Status" vs "Focus": two names, one screen.
-- "Altr Workspace" is hard-coded in the sidebar, topbar and avatar.
+- "Acme Workspace" is hard-coded in the sidebar, topbar and avatar.
 - "AI Review" copy correctly says the prototype uses local rules. **Keep this honesty.**
 - Subtitles on Map/Decisions are marketing-length ("Outcomes, actions, decisions and related work — without the noise.").
 
