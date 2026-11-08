@@ -2,6 +2,7 @@
 // server with a unique key, so a retry (after a lost response or reconnecting) can never apply twice. If another device
 // changed the same thing, nothing is overwritten: the unsent changes are set aside and shown to the user.
 import type { Workspace } from '../domain/model';
+import { uuid } from '../domain/uuid';
 import { applyWrites, type Write } from '../domain/writes';
 import { ConflictError, type Store } from './store';
 
@@ -16,7 +17,7 @@ export class QueuedStore implements Store {
   readonly kind = 'supabase' as const;
   private entries: Entry[]; private conflict: Entry[] | null; private syncing = false; private offline = false; private listeners = new Set<() => void>();
   private timer: ReturnType<typeof setInterval> | undefined;
-  constructor(private readonly remote: Remote, private readonly storage: KV, private readonly newKey: () => string = () => crypto.randomUUID()) {
+  constructor(private readonly remote: Remote, private readonly storage: KV, private readonly newKey: () => string = uuid) {
     this.entries = this.read('queue'); const c = this.read('conflict'); this.conflict = c.length ? c : null;
   }
   get owner() { return this.remote.owner; }

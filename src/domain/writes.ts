@@ -2,13 +2,14 @@
 // applyWrites() replays writes in memory so the screen updates at once; the store then persists the same writes.
 import type { Database } from '../db/types';
 import { emptyWorkspace, type Workspace } from './model';
+import { uuid } from './uuid';
 
 export type Table = keyof Database['public']['Tables'];
 export type Row = Record<string, unknown>;
 export interface Write { table: Table; op: 'insert' | 'update' | 'delete'; row: Row }
 
 export interface Ctx { owner: string; now(): string; id(): string }
-export const realCtx = (owner: string): Ctx => ({ owner, now: () => new Date().toISOString(), id: () => crypto.randomUUID() });
+export const realCtx = (owner: string): Ctx => ({ owner, now: () => new Date().toISOString(), id: uuid });
 
 export const baseRow = (ctx: Ctx) => ({ id: ctx.id(), owner_id: ctx.owner, created_at: ctx.now(), updated_at: ctx.now(), revision: 1 });
 export const pk = (table: Table): string => (table === 'user_settings' ? 'owner_id' : 'id');

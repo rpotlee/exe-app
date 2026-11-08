@@ -366,11 +366,33 @@ body::before {
   box-shadow: 2px 0 12px var(--glass-light);
   filter: blur(.4px);
 }
+/* the slab: the glass has visible thickness. A rear contour offset down and to the left shows only where it extends past the
+   face (a few px at the bottom, a hairline on the left), shaded like polished silver glass catching light. Neutral on purpose:
+   the colored light stays on the face's left edge. */
+:root[data-theme="light"] .hero-stack::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translate(-1px, 6px);
+  border-radius: inherit;
+  box-sizing: border-box;
+  padding: 0 0 6px 1.5px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .5) 100%),
+    linear-gradient(118deg, rgba(146, 158, 182, .92) 0%, rgba(214, 221, 236, .95) 26%, rgba(138, 151, 177, .88) 54%, rgba(218, 225, 238, .95) 80%, rgba(146, 158, 182, .92) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  z-index: -1;
+  pointer-events: none;
+}
 @supports not (color: color-mix(in srgb, red 10%, transparent)) {
   :root[data-theme="light"] .priority-hero { --glass-light: transparent; --glass-reflection: transparent; --glass-rim-tint: transparent; }
   :root[data-theme="light"] .priority-hero::after { background: none; box-shadow: none; }
 }
 @media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  :root[data-theme="light"] .hero-stack { border-radius: 26px; }
   :root[data-theme="light"] .priority-hero {
     border-radius: 26px;
     box-shadow:

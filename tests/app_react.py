@@ -2,7 +2,7 @@
 import os
 import json
 from playwright.sync_api import sync_playwright, expect
-URL = 'http://127.0.0.1:5173/?local=1'
+URL = os.environ.get('APP_URL', 'http://127.0.0.1:5173/?local=1')   # APP_URL=http://<your-ip>:5173/?local=1 tests plain-http network access
 KEY = 'exe-v2:local'
 def S(page):
     page.wait_for_timeout(80)   # let the save chain flush
