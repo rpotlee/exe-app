@@ -120,6 +120,22 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       await ok(C.updateOutcome(ws, o4.id, { name: 'renamed', description: 'dod', folderId: null, deadline: '2027-03-01', effort: ' 3 hours ' }));
       await ok(C.setWorkspaceName(ws, ctx, ' Taylor home '));
       expect(ws.settings?.workspace_name).toBe('Taylor home');
+      // decisions: options, evidence, resolve, reopen; the log is dated and only the user resolves
+      await ok(C.createDecision(ws, ctx, { name: 'Which CRM?', folderId: work.id }));
+      const dec = ws.decisions[0]!;
+      await ok(C.addOption(ws, ctx, dec.id, 'HubSpot')); await ok(C.addOption(ws, ctx, dec.id, 'Pipedrive'));
+      expect(C.addOption(ws, ctx, dec.id, ' hubspot ').ok).toBe(false);
+      await ok(C.setDecisionText(ws, dec.id, 'evidence', 'free tier checked'));
+      const [opt1, opt2] = C.optionsOf(ws, dec.id) as [any, any];
+      await ok(C.renameOption(ws, ctx, opt1.id, 'HubSpot CRM'));
+      expect(C.resolveDecision(ws, ctx, dec.id, { chosenOption: '', conclusion: ' ', rationale: '' }).ok).toBe(false);
+      await ok(C.resolveDecision(ws, ctx, dec.id, { chosenOption: 'HubSpot CRM', conclusion: 'Use HubSpot', rationale: 'cheapest' }));
+      expect(ws.decisions[0]).toMatchObject({ status: 'resolved', chosen_option: 'HubSpot CRM' });
+      expect(C.removeOption(ws, ctx, opt1.id).ok).toBe(false);             // the chosen option cannot be removed while resolved
+      expect(C.resolveDecision(ws, ctx, dec.id, { chosenOption: '', conclusion: 'again', rationale: '' }).ok).toBe(false);
+      await ok(C.reopenDecision(ws, ctx, dec.id)); await ok(C.removeOption(ws, ctx, opt2.id));
+      expect((await d.query('select type from decision_log order by at')).rows.map((r: any) => r.type)).toEqual(['created', 'edited', 'resolved', 'reopened', 'edited']);
+      expect(ws.tasks.every(t => t.done_at === null || t.id === s1.id || t.id === s3.id)).toBe(true);   // resolving never completed any work
       const audits = (await d.query('select action from audit_events order by at')).rows.map((r: any) => r.action);
       expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done']));
     });

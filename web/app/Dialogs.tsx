@@ -18,6 +18,10 @@ const DRAFT = 'exe-capture-draft';
 export function Dialogs({ m }: { m: ModalState }) {
   switch (m.kind) {
     case 'capture': return <CaptureSheet />;
+    case 'decisionForm': return <DecisionForm id={m.id} />;
+    case 'optionAdd': return <OptionAdd decisionId={m.decisionId} />;
+    case 'optionEdit': return <OptionEdit id={m.id} />;
+    case 'resolve': return <ResolveDecision id={m.id} />;
     case 'focusMode': return <FocusMode id={m.id} />;
     case 'settings': return <Settings />;
     case 'complete': return <CompleteOutcome id={m.id} prompted={m.prompted} />;
@@ -283,4 +287,70 @@ function FocusMode({ id }: { id: string }) {
           {steps.map(t => <CheckRow key={t.id} task={t} />)}{!steps.length && <p className="small-note">No steps yet.</p>}</div>
         <div className="focus-actions"><span className="small-note">New thoughts go to Inbox, not your active work.</span><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
     </div>, document.getElementById('modal-root') as HTMLElement);
+}
+
+function DecisionForm({ id }: { id: string | null }) {
+  const { api, modal, setDecisionSel } = useApp();
+  const ws = api.ws, d = id ? ws.decisions.find(x => x.id === id) : null;
+  return (
+    <Modal title={d ? 'Edit decision' : 'New decision'} onClose={() => modal(null)}>
+      <p className="helper">{d ? 'Change the wording. The change is recorded in the log.' : 'Write the question you need to settle. You can add options and evidence afterwards.'}</p>
+      <form onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget), input = { name: val(f, 'name'), description: val(f, 'description'), folderId: orNull(val(f, 'folder')) };
+        if (api.run((w, c) => (d ? C.editDecision(w, c, d.id, input) : C.createDecision(w, c, input)))) { if (!d) { const made = api.get().decisions.at(-1); if (made) setDecisionSel(made.id); } modal(null); } }}>
+        <label className="form-field"><span className="small-note">Question</span><input className="text-input" name="name" required maxLength={200} defaultValue={d?.name ?? ''} placeholder="What needs to be decided?" /></label>
+        <label className="form-field"><span className="small-note">Context (optional)</span><textarea className="text-input" name="description" maxLength={600} defaultValue={d?.description ?? ''} /></label>
+        <label className="form-field"><span className="small-note">Folder</span><select className="select" name="folder" defaultValue={d?.folder_id ?? ''}><option value="">Not filed</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+        <div className="capture-foot"><span></span><button className="primary-button" type="submit">{d ? 'Save changes' : 'Add decision'}</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function OptionAdd({ decisionId }: { decisionId: string }) {
+  const { api, modal } = useApp();
+  const [error, setError] = useState('');
+  return (
+    <Modal title="Add an option" onClose={() => modal(null)}>
+      <p className="helper">A possibility to consider when deciding.</p>
+      <form onSubmit={e => { e.preventDefault(); const r = C.addOption(api.get(), api.ctx, decisionId, val(new FormData(e.currentTarget), 'option')); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
+        <input className="text-input" name="option" required maxLength={160} placeholder="Option or approach" aria-label="Option" />
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <div className="capture-foot"><span></span><button className="primary-button" type="submit">Add option</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function OptionEdit({ id }: { id: string }) {
+  const { api, modal } = useApp();
+  const o = api.ws.decisionOptions.find(x => x.id === id), [error, setError] = useState('');
+  if (!o) return null;
+  return (
+    <Modal title="Edit option" onClose={() => modal(null)}>
+      <form onSubmit={e => { e.preventDefault(); const r = C.renameOption(api.get(), api.ctx, id, val(new FormData(e.currentTarget), 'option')); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
+        <input className="text-input" name="option" required maxLength={160} defaultValue={o.text} aria-label="Option text" />
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <div className="capture-foot"><button type="button" className="quiet-button" onClick={() => { const r = C.removeOption(api.get(), api.ctx, id); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>Remove option</button>
+          <button className="primary-button" type="submit">Save option</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function ResolveDecision({ id }: { id: string }) {
+  const { api, modal } = useApp();
+  const ws = api.ws, d = ws.decisions.find(x => x.id === id), opts = C.optionsOf(ws, id);
+  const [chosen, setChosen] = useState(''), [conclusion, setConclusion] = useState(d?.conclusion ?? '');
+  if (!d) return null;
+  return (
+    <Modal title="Record your decision" onClose={() => modal(null)}>
+      <p className="helper">{d.name}<br />Record what you chose before marking it resolved. No tasks or priorities will be changed automatically.</p>
+      <form onSubmit={e => { e.preventDefault(); if (api.run((w, c) => C.resolveDecision(w, c, id, { chosenOption: chosen, conclusion, rationale: val(new FormData(e.currentTarget), 'rationale') }))) modal(null); }}>
+        {opts.length > 0 && <label className="form-field"><span className="small-note">Chosen option</span><select className="select" value={chosen} onChange={e => { setChosen(e.target.value); if (e.target.value && !conclusion.trim()) setConclusion(e.target.value); }}><option value="">Something else</option>{opts.map(o => <option key={o.id} value={o.text}>{o.text}</option>)}</select></label>}
+        <label className="form-field"><span className="small-note">Your decision</span><input className="text-input" value={conclusion} onChange={e => setConclusion(e.target.value)} required maxLength={320} placeholder="What did you decide?" /></label>
+        <label className="form-field"><span className="small-note">Why (optional)</span><textarea className="text-input" name="rationale" maxLength={800} defaultValue={d.rationale} /></label>
+        <div className="capture-foot"><span className="small-note">This will not move any Focus Board items.</span><button className="primary-button" type="submit">Confirm decision</button></div>
+      </form>
+    </Modal>
+  );
 }

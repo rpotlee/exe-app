@@ -207,3 +207,66 @@ export function ignoreSuggestion(ws: Workspace, ctx: Ctx, fingerprint: string): 
 export function setWorkspaceName(ws: Workspace, ctx: Ctx, name: string): Result {
   return done([settingsWrite(ws, ctx, { workspace_name: trimmed(name).slice(0, 60) })], 'Name saved.');
 }
+
+// ------------------------------------------------------------------ decisions
+const decision = (ws: Workspace, id: string) => ws.decisions.find(d => d.id === id);
+const logRow = (ctx: Ctx, decisionId: string, type: 'created' | 'edited' | 'resolved' | 'reopened', text = ''): Write =>
+  ins('decision_log', { id: ctx.id(), owner_id: ctx.owner, decision_id: decisionId, type, text, at: ctx.now() });
+export const optionsOf = (ws: Workspace, decisionId: string) => ws.decisionOptions.filter(o => o.decision_id === decisionId).sort((a, b) => a.position - b.position || a.created_at.localeCompare(b.created_at));
+
+export function createDecision(ws: Workspace, ctx: Ctx, input: { name: string; description?: string; folderId: string | null }): Result {
+  void ws;
+  const name = trimmed(input.name); if (!name) return fail('Write the question first.');
+  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, sources: [] };
+  return done([ins('decisions', row), logRow(ctx, row.id, 'created')], 'Decision added.');
+}
+export function editDecision(ws: Workspace, ctx: Ctx, id: string, input: { name: string; description: string; folderId: string | null }): Result {
+  const d = decision(ws, id); if (!d) return fail('That decision no longer exists.');
+  const name = trimmed(input.name); if (!name) return fail('Write the question first.');
+  return done([upd('decisions', d, { name, description: trimmed(input.description), folder_id: input.folderId }), logRow(ctx, id, 'edited', 'Question or context updated.')], 'Decision updated.');
+}
+/** Evidence (facts you checked) and notes are kept apart on purpose. */
+export function setDecisionText(ws: Workspace, id: string, field: 'evidence' | 'notes', value: string): Result {
+  const d = decision(ws, id); if (!d) return fail('That decision no longer exists.');
+  return done([upd('decisions', d, { [field]: value })]);
+}
+export function addOption(ws: Workspace, ctx: Ctx, decisionId: string, text: string): Result {
+  const d = decision(ws, decisionId); if (!d) return fail('That decision no longer exists.');
+  const t = trimmed(text); if (!t) return fail('Write the option first.');
+  const mine = optionsOf(ws, decisionId);
+  if (mine.some(o => o.text.trim().toLowerCase() === t.toLowerCase())) return fail('That option already exists.');
+  return done([ins('decision_options', { ...baseRow(ctx), decision_id: decisionId, text: t, position: mine.length })], 'Option added.');
+}
+export function renameOption(ws: Workspace, ctx: Ctx, optionId: string, text: string): Result {
+  const o = ws.decisionOptions.find(x => x.id === optionId); if (!o) return fail('That option no longer exists.');
+  const t = trimmed(text); if (!t) return fail('Write the option first.');
+  if (optionsOf(ws, o.decision_id).some(x => x.id !== optionId && x.text.trim().toLowerCase() === t.toLowerCase())) return fail('That option already exists.');
+  const d = decision(ws, o.decision_id), writes: Write[] = [upd('decision_options', o, { text: t })];
+  if (d && d.chosen_option === o.text) writes.push(upd('decisions', d, { chosen_option: t }));
+  if (t !== o.text) writes.push(logRow(ctx, o.decision_id, 'edited', `Renamed option “${o.text}” to “${t}”.`));
+  return done(writes, 'Option saved.');
+}
+export function removeOption(ws: Workspace, ctx: Ctx, optionId: string): Result {
+  const o = ws.decisionOptions.find(x => x.id === optionId); if (!o) return fail('That option no longer exists.');
+  const d = decision(ws, o.decision_id);
+  if (d && d.status === 'resolved' && d.chosen_option === o.text) return fail('This is the chosen option. Reopen the decision before removing it.');
+  return done([{ table: 'decision_options', op: 'delete', row: { id: optionId } }, logRow(ctx, o.decision_id, 'edited', `Removed option “${o.text}”.`)], 'Option removed.');
+}
+/** Only the user resolves a decision. Resolving records the choice and date; it changes no tasks, blockers or Focus lanes. */
+export function resolveDecision(ws: Workspace, ctx: Ctx, id: string, input: { chosenOption: string; conclusion: string; rationale: string }): Result {
+  const d = decision(ws, id); if (!d) return fail('That decision no longer exists.');
+  if (d.status === 'resolved') return fail('This decision is already resolved.');
+  const conclusion = trimmed(input.conclusion); if (!conclusion) return fail('Record what you decided.');
+  const chosen = trimmed(input.chosenOption);
+  return done([upd('decisions', d, { status: 'resolved', resolved_at: ctx.now(), chosen_option: chosen, conclusion, rationale: trimmed(input.rationale) }),
+    logRow(ctx, id, 'resolved', chosen ? `Chose “${chosen}”. ${conclusion}` : conclusion)], 'Decision recorded. Priorities unchanged.');
+}
+export function reopenDecision(ws: Workspace, ctx: Ctx, id: string): Result {
+  const d = decision(ws, id); if (!d) return fail('That decision no longer exists.');
+  if (d.status !== 'resolved') return fail('This decision is already open.');
+  return done([upd('decisions', d, { status: 'open', resolved_at: null }), logRow(ctx, id, 'reopened')], 'Decision reopened.');
+}
+/** Items a resolved decision was holding up through a confirmed block: shown as a SUGGESTION to review, never applied. */
+export function followUpsOf(ws: Workspace, decisionId: string): string[] {
+  return ws.relationships.filter(r => r.kind === 'blocks' && r.confirmed && r.from_id === decisionId).map(r => r.to_id);
+}

@@ -11,6 +11,7 @@ import { Lanes } from '../screens/Lanes';
 import { Inbox } from '../screens/Inbox';
 import { MapScreen } from '../screens/Map';
 import { Later } from '../screens/Later';
+import { Decisions } from '../screens/Decisions';
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'focus'; };
@@ -24,6 +25,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
   const api = useWorkspace(store);
   const [page, setPage] = useState<Page>(fromHash);
   const [folderSel, setFolderSel] = useState('all');
+  const [decisionSel, setDecisionSel] = useState('');
   const [stack, setStack] = useState<ModalState[]>([]);
   const setModal = useCallback((m: ModalState | null) => setStack(s => (m ? [...s, m] : s.slice(0, -1))), []);
   useEffect(() => { const h = () => setPage(fromHash()); window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h); }, []);
@@ -36,7 +38,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
 
   const ws = api.ws;
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel } : null), [api, ws, page, go, awaiting, where, setModal, folderSel]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
@@ -44,7 +46,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
   const navPage = page === 'lanes' ? 'focus' : page;
   const name = ws.settings?.workspace_name || 'My workspace';
   const save = api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
-  const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : <Later which={page} />;
+  const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : <Later which={page} />;
   const badge = (p: Page) => (p === 'inbox' || p === 'review') && awaiting > 0 ? awaiting : 0;
   const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} awaiting AI Review`}>{n > 99 ? '99+' : n}</span> : null);
 

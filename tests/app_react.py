@@ -92,11 +92,30 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Delete folder').click(); expect(page.locator('#modal-root .helper')).to_contain_text('Nothing is deleted with the folder')
         page.get_by_role('button', name='Delete folder').last.click()
         assert S(page)['folders'] == [] and len(S(page)['outcomes']) == 5
+        # decisions: create, options, evidence, resolve with a chosen option, dated log, reopen; nothing else changes
+        nav(page, 'decisions'); page.get_by_role('button', name='New decision').click(); page.locator('#modal-root input[name=name]').fill('Which CRM?'); page.get_by_role('button', name='Add decision').click()
+        for o in ['HubSpot', 'Pipedrive']:
+            page.get_by_role('button', name='Add option').click(); page.locator('#modal-root input[name=option]').fill(o); page.get_by_role('button', name='Add option').last.click()
+        page.get_by_role('button', name='Add option').click(); page.locator('#modal-root input[name=option]').fill(' hubspot '); page.get_by_role('button', name='Add option').last.click()
+        expect(page.locator('#modal-root .form-error')).to_contain_text('already exists'); page.keyboard.press('Escape')
+        page.get_by_label('Evidence', exact=True).fill('Free tier checked'); page.get_by_label('Research notes').click()
+        tasks_before = json.dumps(S(page)['tasks']); focus_before = json.dumps(S(page)['focus'])
+        page.get_by_role('button', name='Mark resolved').click(); page.locator('#modal-root select').select_option('HubSpot')
+        assert page.locator('#modal-root input[placeholder="What did you decide?"]').input_value() == 'HubSpot'
+        page.get_by_role('button', name='Confirm decision').click()
+        d = S(page); dec = d['decisions'][0]
+        assert dec['status'] == 'resolved' and dec['chosen_option'] == 'HubSpot' and dec['evidence'] == 'Free tier checked' and dec['resolved_at']
+        assert json.dumps(d['tasks']) == tasks_before and json.dumps(d['focus']) == focus_before, 'resolving changes no work and no lanes'
+        page.get_by_role('button', name='Edit option: HubSpot (chosen)').click(); page.get_by_role('button', name='Remove option').click()
+        expect(page.locator('#modal-root .form-error')).to_contain_text('chosen option'); page.keyboard.press('Escape')
+        page.get_by_role('button', name='Reopen decision').click()
+        expect(page.locator('.decision-log li')).to_have_count(3)
+        assert [l['type'] for l in sorted(S(page)['decisionLog'], key=lambda x: x['at'])] == ['created', 'resolved', 'reopened']
         # persistence: a reload keeps everything
         before = S(page); page.reload(); nav(page, 'inbox'); expect(page.locator('.raw-row')).to_have_count(4); assert S(page)['outcomes'] == before['outcomes']
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
-            for r in ['focus', 'inbox', 'map']:
+            for r in ['focus', 'inbox', 'map', 'decisions']:
                 nav(page, r); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
         for r in ['focus', 'inbox', 'review', 'map', 'decisions']:
             nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r)
