@@ -63,7 +63,7 @@ with sync_playwright() as p:
         nav = lambda r: pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()
         shot = lambda name: pg.screenshot(path=str(OUT / f"{'webkit-' if WK else ''}{w}-{name}.png"))
         shot('empty-focus')
-        pg.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); axe('capture dialog'); pg.keyboard.press('Escape')
+        pg.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); pg.locator('.modal-sheet').wait_for(); axe('capture dialog')   # dialogs load on demand now; pg.keyboard.press('Escape')
         pg.keyboard.press('Control+k'); pg.get_by_label('Capture text').fill('Order balloons for the party\nOrder the balloons for party\nBook the caterer'); pg.locator('.modal-sheet button[type=submit]').click()
         nav('map'); pg.get_by_role('button', name='New folder').click(); pg.locator('#modal-root input[name=name]').fill('Home'); axe('folder dialog'); pg.get_by_role('button', name='Create folder').click()
         pg.get_by_role('button', name='Add outcome').click(); pg.locator('#modal-root input[name=name]').fill('Plan the reunion'); axe('outcome dialog'); pg.locator('#modal-root button[type=submit]').click()

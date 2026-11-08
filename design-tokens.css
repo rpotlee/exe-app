@@ -1,7 +1,7 @@
 /* Exe V1: calibrated to the two approved UI references. */
 @font-face {
   font-family: "Exe Inter";
-  src: url("design-master/fonts/InterVariable.ttf") format("truetype");
+  src: url("design-master/fonts/InterVariable-latin.woff2") format("woff2");   /* Latin subset, 66 KB; other scripts fall back to the system font */
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
