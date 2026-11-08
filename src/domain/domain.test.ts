@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { blockedCount, isTaskBlocked, relationshipError, reachesByBlocks } from './blocking';
 import { segmentCapture } from './capture';
 import { applySuggestion, compareFacts, computeSuggestion, rankOutcomes } from './engine';
-import type { Outcome, Relationship, Task, Workspace } from './model';
+import { emptyWorkspace, type Outcome, type Relationship, type Task, type Workspace } from './model';
 import { progressOf } from './progress';
 import { statusParts, statusText } from './status';
 
@@ -11,7 +11,10 @@ const outcome = (id: string, extra: Partial<Outcome> = {}): Outcome => ({ ...bas
 const task = (id: string, outcome_id: string | null, extra: Partial<Task> = {}): Task => ({ ...base, id, outcome_id, name: id, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...extra });
 const rel = (id: string, from: string, to: string, kind: Relationship['kind'] = 'blocks', confirmed = true): Relationship =>
   ({ ...base, id, from_type: 'task', from_id: from, to_type: 'task', to_id: to, kind, description: '', confirmed, source: 'user' });
-const ws = (over: Partial<Workspace> = {}): Workspace => ({ outcomes: [], tasks: [], decisions: [], relationships: [], focus: [], currentFocusOutcomeId: null, ...over });
+const ws = (over: Partial<Workspace> & { currentFocusOutcomeId?: string } = {}): Workspace => {
+  const { currentFocusOutcomeId, ...rest } = over;
+  return { ...emptyWorkspace(), ...rest, settings: currentFocusOutcomeId ? ({ ...base, current_focus_outcome_id: currentFocusOutcomeId, workspace_name: '', priority_dismissed: [], research_opt_in: false } as Workspace['settings']) : null };
+};
 const lanes = (now: string[], next: string[] = []) => [...now.map(o => ({ ...base, id: 'f-' + o, outcome_id: o, lane: 'now', position: 0 })), ...next.map(o => ({ ...base, id: 'f-' + o, outcome_id: o, lane: 'next', position: 0 }))];
 
 describe('progress', () => {

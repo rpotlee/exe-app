@@ -1,7 +1,8 @@
 // Progress comes only from steps the user actually checked. No steps means "Not measured", never 0% (master §8.5).
 import type { Task, Workspace } from './model';
 
-export const stepsOf = (ws: Workspace, outcomeId: string): Task[] => ws.tasks.filter(t => t.outcome_id === outcomeId && t.archived_at === null);
+export const byPosition = (a: Task, b: Task): number => a.position - b.position || a.created_at.localeCompare(b.created_at);
+export const stepsOf = (ws: Workspace, outcomeId: string): Task[] => ws.tasks.filter(t => t.outcome_id === outcomeId && t.archived_at === null).sort(byPosition);
 
 export interface Progress { total: number; done: number; percent: number | null; label: string }
 export function progressOf(ws: Workspace, outcomeId: string): Progress {

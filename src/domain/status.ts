@@ -1,10 +1,10 @@
 // The Mission Status state line (DEC-003): parts that are zero are omitted; "blocked" counts only confirmed blocks.
 import { blockedCount } from './blocking';
-import type { Workspace } from './model';
+import { currentFocusId, type Workspace } from './model';
 
 export interface StatusParts { currentFocus: boolean; awaitingReview: number; blocked: number; empty: boolean }
 export function statusParts(ws: Workspace, awaitingReview: number, captureCount: number): StatusParts {
-  return { currentFocus: ws.currentFocusOutcomeId !== null, awaitingReview, blocked: blockedCount(ws), empty: ws.outcomes.length === 0 && captureCount === 0 };
+  return { currentFocus: currentFocusId(ws) !== null, awaitingReview, blocked: blockedCount(ws), empty: ws.outcomes.length === 0 && captureCount === 0 };
 }
 export function statusText(p: StatusParts): string {
   if (p.empty) return 'Nothing here yet.';

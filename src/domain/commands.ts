@@ -1,0 +1,209 @@
+// Every user action as a pure function: (workspace, context, input) -> writes, or an explanation of why not.
+// Nothing here touches storage. The same writes run against the in-memory workspace, local storage, or Supabase.
+import { relationshipError, entityType } from './blocking';
+import { segmentCapture } from './capture';
+import { activeIds, applySuggestion, type Suggestion } from './engine';
+import { currentFocusId, MAX_NOW, type Lane, type RelationshipKind, type Workspace } from './model';
+import { byPosition, stepsOf } from './progress';
+import { baseRow, type Ctx, type Row, type Table, type Write } from './writes';
+
+export type Result = { ok: true; writes: Write[]; note?: string } | { ok: false; error: string; needsSwap?: boolean };
+const fail = (error: string, extra: { needsSwap?: boolean } = {}): Result => ({ ok: false, error, ...extra });
+const done = (writes: Write[], note?: string): Result => ({ ok: true, writes, ...(note ? { note } : {}) });
+const ins = (table: Table, row: Row): Write => ({ table, op: 'insert', row });
+const upd = (table: Table, existing: { id: string; revision: number }, changes: Row): Write => ({ table, op: 'update', row: { id: existing.id, revision: existing.revision, ...changes } });
+const audit = (ctx: Ctx, action: string, entityType: string | null, entityId: string | null, before: unknown = null, after: unknown = null): Write =>
+  ins('audit_events', { id: ctx.id(), owner_id: ctx.owner, at: ctx.now(), actor: 'user', action, entity_type: entityType, entity_id: entityId, proposal_id: null, before, after, undo_of: null });
+
+/** The settings row is created the first time something needs it. */
+function settingsWrite(ws: Workspace, ctx: Ctx, changes: Row): Write {
+  if (ws.settings) return { table: 'user_settings', op: 'update', row: { owner_id: ctx.owner, revision: ws.settings.revision, ...changes } };
+  return ins('user_settings', { owner_id: ctx.owner, workspace_name: '', current_focus_outcome_id: null, priority_dismissed: [], research_opt_in: false, created_at: ctx.now(), updated_at: ctx.now(), revision: 1, ...changes });
+}
+const trimmed = (s: string): string => s.trim();
+
+// ------------------------------------------------------------------ captures
+export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture'): Result {
+  void ws;
+  const lines = segmentCapture(text);
+  if (!lines.length) return fail('Write something first.');
+  const batch = lines.length > 1 ? ctx.id() : null;
+  return done(lines.map(line => ins('captures', {
+    ...baseRow(ctx), text: line, edited_text: null, source, folder_id: null, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
+    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null })),
+  lines.length === 1 ? 'Saved to Inbox.' : `${lines.length} thoughts saved to Inbox.`);
+}
+const capture = (ws: Workspace, id: string) => ws.captures.find(c => c.id === id);
+/** Raw completion is independent: it never touches tasks, decisions, the Focus board or AI review state. */
+export function setCaptureDone(ws: Workspace, ctx: Ctx, id: string, isDone: boolean): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { completed_at: isDone ? ctx.now() : null })]);
+}
+export function editCapture(ws: Workspace, id: string, text: string): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  const t = trimmed(text); if (!t) return fail('Write something first.');
+  return done([upd('captures', c, { edited_text: t })]);
+}
+export function archiveCapture(ws: Workspace, ctx: Ctx, id: string, archived: boolean): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { archived_at: archived ? ctx.now() : null })]);
+}
+export function fileCapture(ws: Workspace, id: string, folderId: string | null): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { folder_id: folderId })]);
+}
+
+// ------------------------------------------------------------------ folders
+export function createFolder(ws: Workspace, ctx: Ctx, name: string, description = ''): Result {
+  const n = trimmed(name); if (!n) return fail('Give the folder a name.');
+  return done([ins('folders', { ...baseRow(ctx), name: n, description: trimmed(description), icon: 'folder', position: ws.folders.length })]);
+}
+export function renameFolder(ws: Workspace, id: string, name: string, description: string): Result {
+  const f = ws.folders.find(x => x.id === id); if (!f) return fail('That folder no longer exists.');
+  const n = trimmed(name); if (!n) return fail('Give the folder a name.');
+  return done([upd('folders', f, { name: n, description: trimmed(description) })]);
+}
+export const folderContents = (ws: Workspace, id: string) => ({
+  outcomes: ws.outcomes.filter(o => o.folder_id === id), decisions: ws.decisions.filter(d => d.folder_id === id),
+  ideas: ws.ideas.filter(i => i.folder_id === id), captures: ws.captures.filter(c => c.folder_id === id),
+});
+/** Never silent: the caller shows what is inside and where it goes. Nothing inside is deleted; it moves to `moveTo` or becomes unfiled. */
+export function deleteFolder(ws: Workspace, ctx: Ctx, id: string, moveTo: string | null): Result {
+  const f = ws.folders.find(x => x.id === id); if (!f) return fail('That folder no longer exists.');
+  if (moveTo === id || (moveTo && !ws.folders.some(x => x.id === moveTo))) return fail('Choose another folder, or All notes.');
+  const c = folderContents(ws, id), moved = c.outcomes.length + c.decisions.length + c.ideas.length + c.captures.length;
+  const writes: Write[] = [
+    ...c.outcomes.map(o => upd('outcomes', o, { folder_id: moveTo })), ...c.decisions.map(d => upd('decisions', d, { folder_id: moveTo })),
+    ...c.ideas.map(i => upd('ideas', i, { folder_id: moveTo })), ...c.captures.map(x => upd('captures', x, { folder_id: moveTo })),
+    { table: 'folders', op: 'delete', row: { id } }, audit(ctx, 'folder-delete', 'folder', id, { name: f.name, moved }, { moved_to: moveTo }),
+  ];
+  return done(writes, moved ? `Folder deleted. ${moved} ${moved === 1 ? 'item' : 'items'} moved.` : 'Folder deleted.');
+}
+
+// ------------------------------------------------------------------ focus and outcomes
+const assignment = (ws: Workspace, outcomeId: string) => ws.focus.find(f => f.outcome_id === outcomeId);
+const laneWrite = (ws: Workspace, ctx: Ctx, outcomeId: string, lane: Lane): Write => {
+  const a = assignment(ws, outcomeId);
+  return a ? upd('focus_assignments', a, { lane }) : ins('focus_assignments', { ...baseRow(ctx), outcome_id: outcomeId, lane, position: ws.focus.length });
+};
+const focusWrite = (ws: Workspace, ctx: Ctx, outcomeId: string | null): Write => settingsWrite(ws, ctx, { current_focus_outcome_id: outcomeId });
+
+export function addOutcome(ws: Workspace, ctx: Ctx, input: { folderId: string | null; name: string; description?: string }): Result {
+  const name = trimmed(input.name); if (!name) return fail('Say what you want to achieve.');
+  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null };
+  return done([ins('outcomes', row), ins('focus_assignments', { ...baseRow(ctx), outcome_id: row.id, lane: 'later', position: ws.focus.length })], 'Outcome added to Later.');
+}
+export function updateOutcome(ws: Workspace, id: string, input: { name: string; description: string; folderId: string | null; deadline: string | null; effort: string | null }): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o) return fail('That outcome no longer exists.');
+  const name = trimmed(input.name); if (!name) return fail('Say what you want to achieve.');
+  return done([upd('outcomes', o, { name, description: trimmed(input.description), folder_id: input.folderId, deadline: input.deadline || null, effort: trimmed(input.effort ?? '') || null })]);
+}
+export function togglePin(ws: Workspace, id: string): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o) return fail('That outcome no longer exists.');
+  return done([upd('outcomes', o, { pinned: !o.pinned })]);
+}
+/** Asks to swap when Now is full (never exceeds three). Making an outcome Now also makes it the current focus. */
+export function setLane(ws: Workspace, ctx: Ctx, id: string, lane: 'now' | 'next' | 'later'): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o || o.done_at) return fail('That outcome is not available.');
+  const now = activeIds(ws), inNow = now.includes(id);
+  if (lane === 'now' && !inNow && now.length >= MAX_NOW) return fail('Keep focus to three. Choose which active priority to replace.', { needsSwap: true });
+  const writes = [laneWrite(ws, ctx, id, lane)];
+  if (lane === 'now') writes.push(focusWrite(ws, ctx, id));
+  else if (currentFocusId(ws) === id) writes.push(focusWrite(ws, ctx, now.find(x => x !== id) ?? null));
+  return done(writes);
+}
+/** One transaction: the replaced outcome goes to Next and the new one becomes Now and current. */
+export function swapNow(ws: Workspace, ctx: Ctx, replaceId: string, withId: string): Result {
+  const now = activeIds(ws);
+  if (!now.includes(replaceId) || now.includes(withId)) return fail('That swap is out of date.');
+  return done([laneWrite(ws, ctx, replaceId, 'next'), laneWrite(ws, ctx, withId, 'now'), focusWrite(ws, ctx, withId)]);
+}
+export function selectCurrentFocus(ws: Workspace, ctx: Ctx, id: string): Result {
+  if (!activeIds(ws).includes(id)) return fail('The current focus must be one of your active priorities.');
+  return done([focusWrite(ws, ctx, id)]);
+}
+/** Only the user, on confirmation, finishes an outcome. Its Now slot is freed and nothing is moved into it. */
+export function completeOutcome(ws: Workspace, ctx: Ctx, id: string): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o || o.done_at) return fail('That outcome is not available.');
+  const was = assignment(ws, id)?.lane ?? null, writes: Write[] = [upd('outcomes', o, { done_at: ctx.now() }), laneWrite(ws, ctx, id, 'done')];
+  if (currentFocusId(ws) === id) writes.push(focusWrite(ws, ctx, activeIds(ws).find(x => x !== id) ?? null));
+  writes.push(audit(ctx, 'outcome-done', 'outcome', id, { lane: was }));
+  return done(writes, 'Outcome done. Its Now slot is free; nothing was moved in.');
+}
+export function reopenOutcome(ws: Workspace, ctx: Ctx, id: string): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o || !o.done_at) return fail('That outcome is not done.');
+  return done([upd('outcomes', o, { done_at: null }), laneWrite(ws, ctx, id, 'later')], 'Outcome reopened and placed in Later.');
+}
+
+// ------------------------------------------------------------------ steps
+export function addTask(ws: Workspace, ctx: Ctx, outcomeId: string | null, name: string): Result {
+  const n = trimmed(name); if (!n) return fail('Write the step first.');
+  const mates = ws.tasks.filter(t => t.outcome_id === outcomeId), position = mates.reduce((m, t) => Math.max(m, t.position + 1), 0);
+  return done([ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name: n, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources: [] })], 'Step added.');
+}
+/** Checking a step records only the step (and when its outcome was last worked on). It never finishes the outcome. */
+export function setTaskDone(ws: Workspace, ctx: Ctx, id: string, isDone: boolean): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  const writes = [upd('tasks', t, { done_at: isDone ? ctx.now() : null })], o = ws.outcomes.find(x => x.id === t.outcome_id);
+  if (isDone && o) writes.push(upd('outcomes', o, { last_worked_at: ctx.now() }));
+  return done(writes);
+}
+/** True when every step of the outcome is done, so the app can ASK whether the outcome is done (it never decides). */
+export const allStepsDone = (ws: Workspace, outcomeId: string): boolean => {
+  const steps = stepsOf(ws, outcomeId), o = ws.outcomes.find(x => x.id === outcomeId);
+  return !!o && !o.done_at && steps.length > 0 && steps.every(t => t.done_at !== null);
+};
+export function editTask(ws: Workspace, id: string, input: { name: string; outcomeId: string | null }): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  const n = trimmed(input.name); if (!n) return fail('Write the step first.');
+  const changes: Row = { name: n };
+  if (input.outcomeId !== t.outcome_id) {
+    if (input.outcomeId && ws.relationships.some(r => (r.from_id === id && r.to_id === input.outcomeId) || (r.to_id === id && r.from_id === input.outcomeId)))
+      return fail('This step has a relationship with that outcome. Remove the relationship first.');
+    changes.outcome_id = input.outcomeId;
+    changes.position = ws.tasks.filter(x => x.outcome_id === input.outcomeId).reduce((m, x) => Math.max(m, x.position + 1), 0);
+  }
+  return done([upd('tasks', t, changes)]);
+}
+export function moveTask(ws: Workspace, id: string, dir: 'up' | 'down'): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  const mates = ws.tasks.filter(x => x.outcome_id === t.outcome_id && !x.archived_at).sort(byPosition), i = mates.findIndex(x => x.id === id), j = i + (dir === 'up' ? -1 : 1);
+  if (j < 0 || j >= mates.length) return fail('It is already at the end.');
+  [mates[i], mates[j]] = [mates[j] as typeof t, mates[i] as typeof t];
+  return done(mates.flatMap((m, p) => (m.position === p ? [] : [upd('tasks', m, { position: p })])));
+}
+export function archiveTask(ws: Workspace, ctx: Ctx, id: string, archived: boolean): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  return done([upd('tasks', t, { archived_at: archived ? ctx.now() : null })], archived ? 'Step archived. Restore it from the outcome.' : 'Step restored.');
+}
+
+// ------------------------------------------------------------------ relationships
+export function addRelationship(ws: Workspace, ctx: Ctx, input: { from: string; to: string; kind: RelationshipKind; description?: string; confirmed: boolean }): Result {
+  const err = relationshipError(ws, input); if (err) return fail(err);
+  return done([ins('relationships', { ...baseRow(ctx), from_type: entityType(ws, input.from), from_id: input.from, to_type: entityType(ws, input.to), to_id: input.to, kind: input.kind, description: trimmed(input.description ?? ''), confirmed: input.confirmed, source: 'user' })], 'Relationship added.');
+}
+export function confirmRelationship(ws: Workspace, id: string): Result {
+  const r = ws.relationships.find(x => x.id === id); if (!r) return fail('That relationship no longer exists.');
+  return done([upd('relationships', r, { confirmed: true })], 'Relationship confirmed.');
+}
+export function removeRelationship(ws: Workspace, id: string): Result {
+  if (!ws.relationships.some(x => x.id === id)) return fail('That relationship no longer exists.');
+  return done([{ table: 'relationships', op: 'delete', row: { id } }], 'Relationship removed. No tasks or outcomes were changed.');
+}
+
+// ------------------------------------------------------------------ Priority Engine: the user applies or ignores
+export function applyPriority(ws: Workspace, ctx: Ctx, s: Suggestion): Result {
+  const r = applySuggestion(ws, s); if (!r) return fail('That suggestion is out of date. Nothing was changed.');
+  const before = activeIds(ws), writes: Write[] = [...r.demoted.map(id => laneWrite(ws, ctx, id, 'next')), ...s.changes.map(c => laneWrite(ws, ctx, c.add, 'now'))];
+  const focus = currentFocusId(ws);
+  if (!focus || !r.now.includes(focus)) writes.push(focusWrite(ws, ctx, r.now[0] ?? null));
+  writes.push(audit(ctx, 'priority-apply', null, null, { now: before }, { now: r.now, why: s.changes.map(c => c.why) }));
+  return done(writes, 'Priorities updated. Recorded in history.');
+}
+export function ignoreSuggestion(ws: Workspace, ctx: Ctx, fingerprint: string): Result {
+  const dismissed = ws.settings?.priority_dismissed ?? [];
+  return done([settingsWrite(ws, ctx, { priority_dismissed: [...dismissed, fingerprint] })], 'Ignored. It will not come back unless the facts change.');
+}
+export function setWorkspaceName(ws: Workspace, ctx: Ctx, name: string): Result {
+  return done([settingsWrite(ws, ctx, { workspace_name: trimmed(name).slice(0, 60) })], 'Name saved.');
+}
