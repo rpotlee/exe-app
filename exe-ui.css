@@ -757,6 +757,30 @@ body::before {
 .confirm-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 15px; line-height: 20px; }
 @media (max-width: 520px) { .confirm-grid { grid-template-columns: 1fr; } }
 
+/* Map relationships, outcome meta, decision detail additions */
+.rel-list { gap: 10px; }
+.rel-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 10px 0; background: var(--hairline) top / 100% 1px no-repeat; }
+.rel-row:first-child { background: none; }
+.rel-copy { display: grid; gap: 2px; min-width: 0; font-size: 15px; line-height: 20px; }
+.rel-copy small { color: var(--secondary); font-size: 13.5px; line-height: 18px; }
+.rel-verb { font-style: normal; font-weight: 700; color: var(--exe-accent-ink); }
+.rel-row.is-suggestion .rel-verb { color: var(--secondary); }
+.rel-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+@media (min-width: 761px) { .rel-row { grid-template-columns: auto minmax(0, 1fr) auto auto; } .rel-actions { grid-column: auto; } }
+.outcome-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.meta-chip { font-size: 12.5px; line-height: 18px; color: var(--secondary); padding: 0 8px; border-radius: 999px; background: var(--chip-bg); }
+.form-error { margin: 8px 0 0; font-size: 14px; line-height: 19px; color: var(--red); }
+.suggestion-toggle { margin-top: 4px; }
+.option-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.option-edit { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; }
+.option-edit svg { width: 14px; height: 14px; }
+.option-edit.chosen { color: var(--exe-accent-ink); font-weight: 600; }
+.followup { margin-top: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--chip-bg); }
+.followup p { margin: 4px 0 0; }
+.link-button { background: none; border: 0; padding: 0; color: var(--exe-accent-ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.decision-log { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px; line-height: 20px; }
+.log-time { color: var(--secondary); font-size: 13px; }
+
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }
 .inbox-filters button[aria-pressed="true"] { background: var(--accent-fill); border-color: transparent; box-shadow: none; color: #fff; font-weight: 600; }
