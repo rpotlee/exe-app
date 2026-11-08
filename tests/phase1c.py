@@ -26,10 +26,10 @@ with sync_playwright() as p:
         # ---- empty first run: nothing the owner tested with is shown to a regular user
         d = S(page); assert d['example'] is False and all(not d[k] for k in ['workstreams', 'outcomes', 'tasks', 'decisions', 'ideas', 'captures', 'relationships', 'focusAssignments'])
         assert ' '.join(page.locator('#status-line').inner_text().split()) == 'Nothing here yet.'
-        assert 'Altr' not in page.locator('body').inner_text() and 'Altr' not in page.content().split('<script src')[0].split('</head>')[-1]
+        assert 'Acme' not in page.locator('body').inner_text() and 'Acme' not in page.content().split('<script src')[0].split('</head>')[-1]
         assert page.locator('.empty-state h2').inner_text() == 'Nothing here yet'
         for r in ['inbox', 'review', 'map', 'decisions', 'focus']:
-            nav(page, r); assert 'Altr' not in page.locator('#view').inner_text() and page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+            nav(page, r); assert 'Acme' not in page.locator('#view').inner_text() and page.evaluate('document.documentElement.scrollWidth <= innerWidth')
         nav(page, 'inbox'); assert 'Nothing captured yet' in page.locator('.raw-list').inner_text()
         nav(page, 'map'); assert page.locator('[data-stream]').count() == 1 and 'No outcomes here yet' in page.locator('.map-detail').inner_text()
         if os.environ.get('AXE_PATH'):
@@ -78,12 +78,12 @@ with sync_playwright() as p:
         o = S(page)['outcomes'][0]; assert o['name'] == 'Plan the reunion' and o['stream'] == gid and o['description'] == 'Venue, date and invites are settled'
         # ---- workspace name comes from the user; no example reset for a regular user
         if w > 760:
-            page.locator('.workspace-switch').filter(visible=True).click(); assert page.get_by_role('button', name='Reset to initial Altr example').count() == 0
+            page.locator('.workspace-switch').filter(visible=True).click(); assert page.get_by_role('button', name='Reset to initial Acme example').count() == 0
             page.locator('#workspace-name-form [name=name]').fill('Taylor home'); page.get_by_role('button', name='Save name').click()
             assert S(page)['workspaceName'] == 'Taylor home' and page.locator('.workspace-switch strong').inner_text() == 'Taylor home'; page.keyboard.press('Escape')
         # ---- ?example=1 never overwrites real data, and fills an empty workspace
         page.goto('http://127.0.0.1:8000/?example=1'); assert len(S(page)['captures']) >= 2 and S(page)['example'] is False
-        page.evaluate('localStorage.clear()'); page.reload(); d = S(page); assert d['example'] is True and len(d['captures']) == 18 and d['workspaceName'] == 'Altr Workspace'
+        page.evaluate('localStorage.clear()'); page.reload(); d = S(page); assert d['example'] is True and len(d['captures']) == 18 and d['workspaceName'] == 'Acme Workspace'
         assert not errors, errors
         ctx.close(); print(f'PASS {w}px: empty first run, folders (create/rename/delete/move), All notes, filing, loose steps, outcome edit, workspace name, ?example=1')
     b.close()

@@ -84,7 +84,7 @@
     {
       "id": "seo",
       "stream": "growth",
-      "name": "Optimize Altr website SEO",
+      "name": "Optimize Acme website SEO",
       "description": "Foundational SEO with descriptive images and useful location content."
     },
     {
@@ -100,9 +100,9 @@
       "description": "Use authentic, permissioned customer testimonials when available."
     },
     {
-      "id": "thumbtack",
+      "id": "marketplace",
       "stream": "growth",
-      "name": "Evaluate Thumbtack Pro",
+      "name": "Evaluate a lead marketplace",
       "description": "Consider lead costs when the business is able to fulfill bookings."
     }
   ],
@@ -170,7 +170,7 @@
     {
       "id": "insurance-research",
       "outcome": "insurance",
-      "name": "Research coverage relevant to Altr\u2019s operating model",
+      "name": "Research coverage relevant to Acme\u2019s operating model",
       "done": false
     },
     {
@@ -246,9 +246,9 @@
       "done": false
     },
     {
-      "id": "thumbtack-eval",
-      "outcome": "thumbtack",
-      "name": "Evaluate Thumbtack Pro costs and lead quality before signup",
+      "id": "marketplace-eval",
+      "outcome": "marketplace",
+      "name": "Evaluate a lead marketplace costs and lead quality before signup",
       "done": false
     }
   ],
@@ -256,7 +256,7 @@
     {
       "id": "decision-market",
       "stream": "market",
-      "name": "Which New York service area should Altr launch in first?",
+      "name": "Which New York service area should Acme launch in first?",
       "status": "open",
       "description": "Compare demand, provider availability, competition and potential net profit.",
       "options": [
@@ -297,7 +297,7 @@
     {
       "id": "decision-phone",
       "stream": "technology",
-      "name": "Does Altr need Twilio or a simpler phone system?",
+      "name": "Does Acme need Twilio or a simpler phone system?",
       "status": "open",
       "description": "Define calls, SMS dispatch, notifications, tracking and support needs before choosing technology.",
       "options": [
@@ -372,129 +372,129 @@
   "captures": [
     {
       "id": "original-1",
-      "text": "Have Claude optimize Altr\u2019s site for SEO. Example: Rename images and alt captions",
+      "text": "Have Claude optimize Acme\u2019s site for SEO. Example: Rename images and alt captions",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-2",
       "text": "Register the business in NYC",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-3",
       "text": "Understand nyc publication requirements and how long I have to do get this done. Is it immediate?",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-4",
       "text": "SEO optimization",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-5",
       "text": "Look into insurance coverage for business",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-6",
       "text": "Figure out the phone system. Do I need twilio",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-7",
       "text": "Perform a full code scan on the entire app",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-8",
       "text": "Create a reviews section.",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-9",
       "text": "Figure out the area in ny that will be our first service area.",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-10",
       "text": "Create a list of competitor pricing",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-11",
       "text": "Finalize pricing / pricing strategy",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-12",
       "text": "Design hiring process",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-13",
       "text": "Design and create backend component that will support hiring process",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-14",
-      "text": "Sign up for thumbtack pro",
+      "text": "Sign up for a lead marketplace",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-15",
       "text": "What should the most basic version of our backend do right now?",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-16",
       "text": "Add service locations to website",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-17",
       "text": "Think of creative ways to incentivize partners.",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     },
     {
       "id": "original-18",
       "text": "It may be worthwhile to provide Spanish-language recruitment materials and onboarding support, alongside English-language options.",
       "status": "organized",
       "createdAt": "Imported example",
-      "source": "Altr brain dump"
+      "source": "Acme brain dump"
     }
   ],
   "focusAssignments": [
@@ -543,7 +543,7 @@
       "lane": "later"
     },
     {
-      "outcome": "thumbtack",
+      "outcome": "marketplace",
       "lane": "later"
     }
   ],

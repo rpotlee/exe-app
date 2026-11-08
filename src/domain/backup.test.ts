@@ -17,7 +17,7 @@ describe('parseBackup', () => {
     expect(p.kind).toBe('prototype');
     expect(p.counts).toMatchObject({ folders: 5, outcomes: 12, steps: 23, captures: 18, decisions: 5, ideas: 2 });
     expect(p.ws.focus.filter(f => f.lane === 'now')).toHaveLength(3);
-    expect(p.ws.captures.map(c => c.text)[0]).toMatch(/optimize Altr/);          // original wording kept
+    expect(p.ws.captures.map(c => c.text)[0]).toMatch(/optimize Acme/);          // original wording kept
     expect(p.ws.relationships.length).toBeGreaterThanOrEqual(5);                   // relationships (including old blockedBy ones) kept
     expect(p.ws.tasks.every(t => t.done_at === null)).toBe(true);                 // no invented progress
   });

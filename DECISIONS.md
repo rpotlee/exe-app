@@ -3,13 +3,13 @@
 Owner-approved product decisions. Each entry names the blueprint gap it resolves (`PRODUCT-BLUEPRINT.md` §9) and what it changes. `V1-LOCKED-SPEC.md` is not edited; entries here are the approved amendments until the owner chooses to fold them into the spec.
 
 ## DEC-001 — Folders, starting data and "All notes" (2026-11-08)
-**Resolves:** P-02, P-03, P-23 (partly P-10, P-16). **Amends:** spec wording "preserve the five original Altr workstreams" [S§0, S§3 Map, S§5].
+**Resolves:** P-02, P-03, P-23 (partly P-10, P-16). **Amends:** spec wording "preserve the five original Acme workstreams" [S§0, S§3 Map, S§5].
 
 1. **Folders.** The existing Workstream entity is presented to users as a **Folder**. Users can create, rename and delete folders (e.g. Home, Work, Family Reunion). No ninth entity is added.
 2. **Filing.** Captures, tasks, outcomes, decisions and ideas can all be filed into a folder.
 3. **All notes.** One view shows everything across all folders plus anything not yet filed.
 4. **Inbox.** New captures start unfiled. The user files them, or AI Review suggests a folder that the user approves.
-5. **Sample data.** *(Amended 2026-11-08, see DEC-002.)* Regular users start with a completely empty app: no example folders or captures. The Altr folders and the 18 original captures are the owner's own test data and are not shown to regular users. No "Remove example data" action is needed for regular users.
+5. **Sample data.** *(Amended 2026-11-08, see DEC-002.)* Regular users start with a completely empty app: no example folders or captures. The Acme folders and the 18 original captures are the owner's own test data and are not shown to regular users. No "Remove example data" action is needed for regular users.
 6. **Deleting a folder.** Never silent. A folder that contains items asks whether to move them to another folder or to All notes first.
 
 **Closed by DEC-002:** the earlier open points (example captures starting "pending", links to removed example records) no longer apply, because regular users never see example data.
@@ -23,7 +23,7 @@ Owner-approved product decisions. Each entry names the blueprint gap it resolves
 4. **One capture, several items:** allowed only with the user's approval; the original capture stays whole.
 5. **"Unsorted work":** never created silently. If no outcome fits, the app asks: create one, pick an existing one, or leave the task loose.
 6. A suggestion may also be "just a note" (kept as a note, not a task).
-7. **Regular users start empty.** The Altr folders and 18 captures are the owner's test data only.
+7. **Regular users start empty.** The Acme folders and 18 captures are the owner's test data only.
 
 ## DEC-003 — Delegated product decisions (2026-11-08)
 **Resolves:** P-01, P-04, P-05, P-06, P-07, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20, P-21, P-22, P-24; D-04, D-05, D-06, D-07, D-09, D-10, D-11, D-12; T-01, T-02. **Source:** the owner delegated these decisions ("make the smartest decisions with the strongest rationale") on 2026-11-08. Each is a recommendation made by Claude, not a statement from the owner; the owner may overrule any line and the log will be amended. Where a line follows EXE_MASTER_PRODUCT_AND_BUILD_SPEC it cites the section; anything else is an inference.
@@ -32,7 +32,7 @@ Owner-approved product decisions. Each entry names the blueprint gap it resolves
 
 ### Product scope
 - **P-01 Target user:** one individual with many parallel projects (founder/operator). Personal, not team. *Why:* spec §1.3; every team feature (sharing, roles) multiplies scope and delays shipping.
-- **P-20 Accounts:** one private workspace per user, no sharing in V1; the name comes from the user, not "Altr Workspace". *Why:* spec §1.3, §15.4; simplest secure data model (every row has one owner).
+- **P-20 Accounts:** one private workspace per user, no sharing in V1; the name comes from the user, not "Acme Workspace". *Why:* spec §1.3, §15.4; simplest secure data model (every row has one owner).
 
 ### Priority Engine (P-07)
 Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule that separates two outcomes wins, and the winning rule is shown in plain words:
@@ -152,7 +152,7 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Inbox order (DEC-003 P-15) — built.** Newest first; in Done, most recently completed first. Seed captures carry no real dates, so their order follows the order they were stored.
 - **Light theme only (DEC-003 D-04) — built.** The app always loads light and ignores `?theme=dark` and any saved dark choice. The unused dark CSS stays for now and is removed in a later cleanup so this change cannot alter the light look. *Why:* removing a few hundred lines of CSS and the visual diff risk can be done separately.
 - **"Blocked" in the state line.** Keep one combined number (blocked tasks plus blocked outcomes). *Why:* it is the simplest honest count and the owner has not asked for a split.
-- **Empty first run (DEC-002) and Folders (DEC-001) ship together — built.** The owner's Altr data stays available at `?example=1`; a normal visit starts empty. *Why:* an empty app is a dead end unless users can create folders and outcomes, so the two cannot be built apart. Folders keep the existing Workstream entity (no ninth entity).
+- **Empty first run (DEC-002) and Folders (DEC-001) ship together — built.** The owner's Acme data stays available at `?example=1`; a normal visit starts empty. *Why:* an empty app is a dead end unless users can create folders and outcomes, so the two cannot be built apart. Folders keep the existing Workstream entity (no ninth entity).
 - **AI Review actions (DEC-002) — built (as simulation).** Reject, defer-with-memory, merge preview and undo are built on the prototype as clearly labeled simulation, because they need stored proposal records that the folder slice also touches. Real AI waits for the backend (DEC-005).
 - **Review route.** Phase 1b goes to the owner as a draft pull request with real screenshots; it is not merged without the owner. *Why:* AGENTS.md requires a PR per phase and owner review of visual changes, and a draft PR is that review.
 - **Real iPhone Safari.** Claude cannot run a physical device. The check stays on the release list and is done by a person with the PR branch served over the local network; nothing is deployed for it without the owner's approval.
