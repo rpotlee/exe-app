@@ -40,7 +40,7 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 | DEC-001 folders, DEC-002 empty start | Seed is the owner's Altr test data for everyone. | Not built | Folders, All notes view, empty first run. | `workstreams` (as folders) | — | 1 / 2 |
 
 ## Open items that need the owner
-- Which AI providers to support first, and the search provider for Phase 4 (DEC-005). AI is bring-your-own-key and needs the Phase 2 backend; nothing AI-related can ship on the prototype.
+- The search provider for Phase 4 (DEC-005). AI providers are decided: Anthropic, OpenAI and Google Gemini. AI is bring-your-own-key and needs the Phase 2 backend; nothing AI-related can ship on the prototype.
 - Whether the "blocked" count in the state line should count tasks and outcomes separately (currently one number).
 - Dark theme removal, folders and the empty first run are decided (DEC-001/002/003) but not part of the Phase 1b build order given.
 - `tests/visual_conformance.py` and `tests/visual_compare.py` were not re-run; they compare against the old icon-only dock.

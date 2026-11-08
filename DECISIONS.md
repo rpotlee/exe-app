@@ -110,7 +110,7 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 
 ### AI is bring-your-own-key (supersedes any plan for the app to supply or pay for a model)
 - **Users connect their own AI provider, key and model in Settings and pay the provider directly.** The app has no AI bill. *Why:* the owner will not fund AI; this also keeps cost and provider choice with the person whose captures are being sent.
-- **The AI layer is provider-agnostic:** one internal interface with a small adapter per provider. **No model name is hard-coded** (the user picks or types the model). Support one or two providers first. *Why:* providers and models change quickly; an adapter is cheap to add, a hard-coded model is not.
+- **The AI layer is provider-agnostic:** one internal interface with a small adapter per provider. **No model name is hard-coded** (the user picks or types the model). **Providers supported first: Anthropic, OpenAI and Google Gemini** (owner decision, 2026-11-08; one adapter each). Adding another later is one new adapter. *Why:* providers and models change quickly; an adapter is cheap to add, a hard-coded model is not.
 - **User keys are stored encrypted on the server only and never reach the browser** (DEC-003 P-18). AI calls run in server functions. *Why:* a key in the browser can be copied by any script on the page. **This still requires a backend**, so AI cannot ship before Phase 2.
 - **Model output is validated against a strict schema** (master §7.6, §16.5). Invalid output is dropped and the user falls back to manual organizing. Every valid result is stored as a **proposal** that needs approval; AI can never delete or complete anything.
 - **Before the first AI call, show a plain disclosure** that capture text goes to the provider the user chose, and what is sent (master §13.3). No call is made until the user has seen it and agreed.
@@ -133,6 +133,8 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Only confirmed `blocks`** relationships count as blocking; an unconfirmed (suggested) one never does.
 - **AI can never delete or complete anything.** AI-originated writes can only create proposals; completing a task, resolving a decision, deleting, moving a lane and confirming a blocker require a user-authorized write. *Why:* this makes "AI suggests, user decides" (master §2.4) impossible to bypass from a bug or a bad model response.
 
+### Decided by the owner
+- **AI providers to support first: Anthropic, OpenAI, Google Gemini.** Each adapter must verify against that provider's current API before it is built; nothing was checked here.
+
 ### Still open (needs the owner)
-- **Which AI providers to support first** (one or two adapters).
 - **The search provider for Phase 4** research. It also needs verified capability and cost (master §26); under the bring-your-own-key model, whether search is also user-supplied is part of this question.
