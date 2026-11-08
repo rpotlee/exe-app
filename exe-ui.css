@@ -387,7 +387,7 @@ body::before {
 .check-row input:active, .raw-check input:active { transform: scale(.92); }
 .check-row input:checked, .raw-check input:checked { background: var(--accent-fill); border-color: transparent; box-shadow: var(--accent-gloss), 0 5px 12px -5px rgba(47, 84, 235, .6); }
 /* finished work gracefully dims */
-.check-row:has(input:checked), .raw-row.is-complete .raw-check { opacity: .4; }
+.check-row:has(input:checked) > span:not(.pill), .raw-row.is-complete .raw-text { color: var(--muted); }  /* completed: struck through and quieter, but still above 4.5:1 */
 .check-row input:checked::after, .raw-check input:checked::after { width: 9px; height: 5px; }
 .check-row span, .raw-check span { line-height: 1.45; }
 
@@ -782,6 +782,12 @@ body::before {
 .link-button { background: none; border: 0; padding: 0; color: var(--exe-accent-ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
 .decision-log { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px; line-height: 20px; }
 .log-time { color: var(--secondary); font-size: 13px; }
+
+.task-line { display: flex; align-items: center; gap: 4px; }
+.task-line .check-row { flex: 1; min-width: 0; }
+.task-edit { flex: none; color: var(--secondary); }
+.archived-steps { margin-top: 10px; display: grid; gap: 6px; }
+.archived-step { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--secondary); }
 
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }

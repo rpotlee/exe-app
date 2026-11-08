@@ -9,7 +9,7 @@ with sync_playwright() as p:
         if width<761:
             session=page.context.new_cdp_session(page)
             session.send('Emulation.setSafeAreaInsetsOverride',{'insets':{'top':20,'bottom':34,'left':0,'right':0}})
-            assert float(page.locator('.mobile-dock').evaluate('e=>parseFloat(getComputedStyle(e).bottom)'))==48
+            assert float(page.locator('.mobile-dock').evaluate('e=>parseFloat(getComputedStyle(e).bottom)'))==46  # dock-bottom 12 + safe-area 34
         for route in ['focus','inbox','review','map','decisions']:
             page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
             if os.environ.get('AXE_PATH'):

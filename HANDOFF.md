@@ -35,3 +35,5 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 ## Progress log
 - 2026-11-08: decisions DEC-001 to DEC-004 logged. No feature code yet.
 - 2026-11-08: Phase 1 items 1-5 and decision fields built and pushed (Next & Later screen, status line, Inbox badge, labeled dock + separate "+", Priority Engine card, Relationship authority with cycle checks, decision evidence/chosen option/log, outcome pin/deadline/effort). DEC-005 logged. Existing tests repaired for phones (collapsed pickers, overflow at 768px). Remaining: outcome completion flow, task edit, new tests, screenshots, requirements matrix.
+- 2026-11-08: Outcome completion (user confirmation only; prompts when all steps are done; frees the Now slot, nothing auto-fills) and task edit (rename, move, reorder, archive/restore) built. New tests: `tests/phase1b.py` (8 widths), `tests/accessibility_phase1b.py`. Fixed: completed-row contrast, option-edit form attribute clash. All suites except `visual_conformance.py` / `visual_compare.py` (not re-run; they compare against the old icon-only dock) pass. Remaining: real screenshots, `docs/REQUIREMENTS-MATRIX.md`, test/PR docs.
+

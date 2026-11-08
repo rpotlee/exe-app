@@ -42,8 +42,9 @@ with sync_playwright() as p:
             for fraction in [0,.5,1]:
                 page.locator('#view').evaluate('(e,f)=>e.scrollTop=(e.scrollHeight-e.clientHeight)*f',fraction)
                 view=page.locator('#view').bounding_box();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
-                assert dock['x']<=plus['x'] and plus['x']+plus['width']<=dock['x']+dock['width']
+                assert plus['y']+plus['height']<=dock['y']  # separate button above the dock
             # Last checkbox, disclosure and actions can all be scrolled into the clear region.
+            page.evaluate('window.scrollTo(0,document.documentElement.scrollHeight)')  # end of list: the clearance leaves it above the + button
             for selector in ['[data-capture-check]','[data-row-more]','[data-edit-capture]','[data-archive-capture]']:
                 control=row.locator(selector);control.scroll_into_view_if_needed();box=control.bounding_box()
                 assert box['y']+box['height']<=plus['y']
