@@ -1,11 +1,12 @@
 """Existing workflow regression checks; run with python3 tests/baseline.py."""
+import os
 import json
 import sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 with sync_playwright() as p:
-    browser = p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'])
+    browser = p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'), args=['--no-sandbox'])
     for width, name in [(1280, 'desktop'), (390, 'mobile')]:
         context = browser.new_context(viewport={'width': width, 'height': 900})
         page = context.new_page()

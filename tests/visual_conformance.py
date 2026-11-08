@@ -1,4 +1,5 @@
 """Render real UI evidence and record measurable geometry; no synthetic progress."""
+import os
 import argparse,json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -7,7 +8,7 @@ parser=argparse.ArgumentParser();parser.add_argument('--pass-name',default='pass
 out=ROOT/'docs/visual-conformance'/args.pass_name;out.mkdir(parents=True,exist_ok=True)
 metrics=[]
 with sync_playwright() as p:
- b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+ b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
  for width in [320,375,390,430,1280,1440]:
   page=b.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
   page.goto('http://127.0.0.1:8000')

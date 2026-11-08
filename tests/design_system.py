@@ -1,4 +1,5 @@
 """Enforce the shared visual contracts independently of workflow regressions."""
+import os
 import re
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -8,7 +9,7 @@ refs=set(re.findall(r'var\((--[\w-]+)',source));declared=set(re.findall(r'(--[\w
 assert refs-declared<={'--keyboard-inset','--visual-top','--visual-height'},refs-declared
 assert 'Manrope' not in source and 'phase1-refinement.css' not in (ROOT/'index.html').read_text()
 with sync_playwright() as p:
-    b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+    b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
     for width in [320,375,390,430,1280,1440]:
         page=b.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
         page.goto('http://127.0.0.1:8000')

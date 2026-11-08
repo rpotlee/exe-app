@@ -2,7 +2,7 @@
 import os
 from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
-    browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+    browser=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
     for width in [320,390,430,1280]:
         page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
         page.goto('http://127.0.0.1:8000')

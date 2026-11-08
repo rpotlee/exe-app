@@ -1,4 +1,5 @@
 """Build labeled UI-only side-by-side evidence, without device/frame comparison."""
+import os
 from pathlib import Path
 from PIL import Image
 from playwright.sync_api import sync_playwright
@@ -13,7 +14,7 @@ crops={
 for name,(file,box) in crops.items():
  Image.open(ROOT/'assets/design-reference'/file).crop(box).save(out/f'{name}-reference.png')
 with sync_playwright() as p:
- b=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+ b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
  for name in ['floating-focus','glass-focus','glass-inbox']:
   reference=Image.open(out/f'{name}-reference.png');height=round(reference.height/reference.width*390)
   page=b.new_page(viewport={'width':390,'height':height},reduced_motion='reduce');page.goto('http://127.0.0.1:8000')

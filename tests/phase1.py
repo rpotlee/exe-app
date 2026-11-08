@@ -1,4 +1,5 @@
 """Phase 1 browser regressions. Start the static server, then run this file."""
+import os
 import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -13,7 +14,7 @@ def capture(page):
     page.get_by_label('Capture text').fill('First interruption\nSecond interruption')
     page.locator('#capture-form button[type=submit]').click()
 with sync_playwright() as p:
-    browser = p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'])
+    browser = p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'), args=['--no-sandbox'])
     for width in [320,375,390,430,768,1024,1280,1440]:
         context = browser.new_context(viewport={'width':width,'height':900}, reduced_motion='reduce')
         page = context.new_page(); errors=[]
