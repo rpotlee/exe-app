@@ -1,3 +1,7 @@
+Latest navigation correction: narrower selected pill, reference-scaled icons/labels, wider and lower-profile glass capsule, larger dimensional capture circle, corrected Safari blur and sidebar scale. All five destinations and capture behavior are retained.
+
+**[Same-state reference / before / after close-up](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/navigation-correction/comparison.png)** · [Exact corrections and verification](https://github.com/rpotlee/exe-app/blob/feat/phase-1-inbox-mobile-parity/docs/navigation-correction/README.md)
+
 Implemented the approved visual treatment in the **actual Exe application**, preserving all Phase 1 workflows and data. This is not a standalone design-master update.
 
 - Predominantly white canvas with localized lavender/cool-blue illumination and authored flowing background paths.

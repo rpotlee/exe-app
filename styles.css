@@ -121,7 +121,7 @@ a {
   font-weight: 650;
   text-align: left;
   transition: background var(--duration), color var(--duration);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   border-radius: var(--radius-sm);
 }
 .nav-link:hover {
@@ -132,8 +132,8 @@ a {
   color: var(--blue-dark);
 }
 .nav-link svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   stroke-width: 1.8;
 }
 .nav-count {
@@ -1795,6 +1795,8 @@ body::before {
 }
 .dock-item {
   color: var(--ink);
+  isolation: isolate;
+  z-index: 0;
 }
 @media (max-width: 1150px) {
 .desktop-topbar {
@@ -2289,17 +2291,18 @@ html, body {
   display: flex;
   position: fixed;
   align-items: flex-end;
-  left: 12px;
-  right: 12px;
+  left: var(--dock-inset);
+  right: var(--dock-inset);
   bottom: var(--floating-inset);
   height: var(--dock-height);
   padding: 0px var(--space-1) 5px;
   border: 1px solid var(--glass-edge);
   border-radius: var(--radius-dock);
-  background: rgba(255, 255, 255, var(--glass-alpha));
+  background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(232,234,255,.08)), rgba(255,255,255,var(--glass-alpha));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
   box-shadow: var(--glass-shadow);
   z-index: 75;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }
 .dock-item {
   display: flex;
@@ -2312,25 +2315,27 @@ html, body {
   gap: var(--space-1);
   border-radius: var(--radius-md);
   position: relative;
-  color: var(--secondary);
+  color: var(--ink);
   background: transparent;
 }
 .dock-item svg {
-  width: 21px;
-  height: 21px;
-  stroke-width: 1.8;
+  width: var(--dock-icon-size);
+  height: var(--dock-icon-size);
+  stroke-width: 1.65;
 }
 .dock-item small {
-  font-size: 10px;
-  font-weight: var(--weight-strong);
+  font-size: var(--dock-label-size);
+  font-weight: 600;
   white-space: nowrap;
+  line-height: 14px;
+  letter-spacing: -.2px;
 }
 .dock-item.active {
   color: var(--blue-dark);
-  background: var(--blue-light);
+  background: transparent;
 }
 .dock-item:hover {
-  background: var(--surface-blue);
+  background: transparent;
 }
 .dock-bubble {
   position: absolute;
@@ -2352,16 +2357,17 @@ html, body {
   bottom: calc(var(--floating-inset) + var(--dock-height) - var(--capture-overlap));
   width: var(--capture-size);
   height: var(--capture-size);
-  border: 3px solid var(--surface);
+  border: 2px solid rgba(255,255,255,.95);
   border-radius: 50%;
   color: var(--on-accent);
   background: linear-gradient(180deg, var(--blue), var(--blue-dark));
-  box-shadow: var(--shadow-accent);
+  box-shadow: var(--capture-shadow);
   z-index: 76;
 }
 .mobile-capture svg {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.6;
 }
 .mobile-capture:hover {
   background: var(--blue-dark);
@@ -2427,3 +2433,10 @@ body::before {
 }
 
 .hero-bottom .primary-button svg { width: 22px; height: 22px; }
+
+@media (max-width:760px) {
+.dock-item::before { content: ''; position: absolute; width: var(--dock-selection-width); height: var(--dock-target-height); left: 50%; top: 0; transform: translateX(-50%); border-radius: var(--dock-selection-radius); background: transparent; z-index: -1; pointer-events: none; }
+.dock-item.active::before { background: linear-gradient(180deg, #e8e5ff, #efedff); box-shadow: inset 0 1px 0 rgba(255,255,255,.55); }
+.dock-item:hover::before { background-color: var(--surface-blue); }
+.dock-item.active small { font-weight: 700; }
+}

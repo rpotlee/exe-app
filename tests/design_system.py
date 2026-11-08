@@ -26,7 +26,7 @@ with sync_playwright() as p:
             assert page.locator('.priority-hero').bounding_box()['width']==500
         else:
             targets=page.locator('.dock-item').all();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
-            assert abs(plus['y']+plus['height']-dock['y']-26)<1
+            assert abs(plus['y']+plus['height']-dock['y']-18)<1
             for target in targets:
                 r=target.bounding_box();assert r['width']>=44 and r['height']>=44
                 assert plus['y']+plus['height']<=r['y']

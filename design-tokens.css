@@ -46,7 +46,7 @@
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
-  --radius-dock: 22px;
+  --radius-dock: 24px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -65,6 +65,11 @@
   --shadow: var(--shadow-2);
   --shadow-up: var(--shadow-3);
   --radius: var(--radius-lg);
+  --dock-selection-width: 50px;
+  --dock-selection-radius: 12px;
+  --dock-icon-size: 24px;
+  --dock-label-size: 11px;
+  --capture-shadow: 0 5px 14px rgba(27, 43, 190, .24), 0 0 0 5px rgba(255,255,255,.38), inset 0 1px 0 rgba(255,255,255,.4);
   --glass-alpha: .82;
   --glass-blur: 18px;
   --glass-saturation: 1.2;
@@ -80,11 +85,12 @@
   --content-inset: 32px;
   --focus-width: 500px;
   --mobile-inset: 14px;
-  --dock-height: 90px;
-  --dock-bottom: 14px;
-  --dock-target-height: 56px;
-  --capture-size: 64px;
-  --capture-overlap: 26px;
+  --dock-inset: 4px;
+  --dock-height: 84px;
+  --dock-bottom: 8px;
+  --dock-target-height: 54px;
+  --capture-size: 68px;
+  --capture-overlap: 18px;
   --dock-assembly-height: calc(var(--dock-height) + var(--capture-size) - var(--capture-overlap));
   --floating-inset: calc(var(--dock-bottom) + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px));
   --mobile-clearance: calc(var(--dock-bottom) + var(--dock-assembly-height) + 12px + env(safe-area-inset-bottom));
