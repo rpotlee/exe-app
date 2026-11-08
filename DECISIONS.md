@@ -136,5 +136,11 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 ### Decided by the owner
 - **AI providers to support first: Anthropic, OpenAI, Google Gemini.** Each adapter must verify against that provider's current API before it is built; nothing was checked here.
 
+### Research uses the AI provider's own web search (delegated recommendation)
+- **Research (Quick Answer, Guided Research, master §13) runs through the user's AI provider with that provider's built-in web search tool turned on**, using the user's own key. No separate search service is planned. *Why:* a model without a search tool can only answer from memory, which produces invented sources; with the tool, the AI fetches and cites real pages, and the user already pays the provider directly.
+- **Fallback:** a separate search service is added only if a supported provider has no usable search tool. Research is offered only for providers that have one; otherwise the app says so honestly and everything else keeps working.
+- **Citations are checked, not trusted:** every claim must carry a real source URL and retrieval date from the tool's results, and the app drops or flags any answer that lacks them (master §13.5, §13.9).
+- **Before Phase 4, verify** what Anthropic, OpenAI and Gemini each offer for web search and how it is billed. Nothing was checked here.
+
 ### Still open (needs the owner)
-- **The search provider for Phase 4** research. It also needs verified capability and cost (master §26); under the bring-your-own-key model, whether search is also user-supplied is part of this question.
+- Nothing blocking. The Phase 4 search question depends on the verification above.
