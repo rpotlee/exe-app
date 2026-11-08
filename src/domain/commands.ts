@@ -5,6 +5,7 @@ import { segmentCapture } from './capture';
 import { activeIds, applySuggestion, type Suggestion } from './engine';
 import { currentFocusId, MAX_NOW, type Lane, type RelationshipKind, type Workspace } from './model';
 import { byPosition, stepsOf } from './progress';
+import { type Proposal } from './review';
 import { baseRow, type Ctx, type Row, type Table, type Write } from './writes';
 
 export type Result = { ok: true; writes: Write[]; note?: string } | { ok: false; error: string; needsSwap?: boolean };
@@ -90,7 +91,7 @@ const focusWrite = (ws: Workspace, ctx: Ctx, outcomeId: string | null): Write =>
 
 export function addOutcome(ws: Workspace, ctx: Ctx, input: { folderId: string | null; name: string; description?: string }): Result {
   const name = trimmed(input.name); if (!name) return fail('Say what you want to achieve.');
-  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null };
+  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [] };
   return done([ins('outcomes', row), ins('focus_assignments', { ...baseRow(ctx), outcome_id: row.id, lane: 'later', position: ws.focus.length })], 'Outcome added to Later.');
 }
 export function updateOutcome(ws: Workspace, id: string, input: { name: string; description: string; folderId: string | null; deadline: string | null; effort: string | null }): Result {
@@ -269,4 +270,81 @@ export function reopenDecision(ws: Workspace, ctx: Ctx, id: string): Result {
 /** Items a resolved decision was holding up through a confirmed block: shown as a SUGGESTION to review, never applied. */
 export function followUpsOf(ws: Workspace, decisionId: string): string[] {
   return ws.relationships.filter(r => r.kind === 'blocks' && r.confirmed && r.from_id === decisionId).map(r => r.to_id);
+}
+
+// ------------------------------------------------------------------ AI Review actions (simulation; DEC-002)
+export interface Approval { type: Proposal['type']; folderId: string | null; outcomeId: string | null; newOutcomeName?: string; title: string }
+function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: string | null; revision: number }, a: Approval, mergedWith: string[] = []): { writes: Write[]; itemId: string | null } {
+  const writes: Write[] = [], sources = [c.id, ...mergedWith], at = ctx.now();
+  let itemId: string | null = null, taskId: string | null = null, outcomeId = a.outcomeId;
+  if (a.type === 'Task') {
+    if (a.newOutcomeName) {
+      const oid = ctx.id(); outcomeId = oid;
+      writes.push(ins('outcomes', { ...baseRow(ctx), id: oid, folder_id: a.folderId, name: trimmed(a.newOutcomeName), description: 'Created from an approved capture.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
+      writes.push(ins('focus_assignments', { ...baseRow(ctx), outcome_id: oid, lane: 'later', position: ws.focus.length }));
+    }
+    taskId = itemId = ctx.id();
+    const position = ws.tasks.filter(t => t.outcome_id === outcomeId).reduce((m, t) => Math.max(m, t.position + 1), 0);
+    writes.push(ins('tasks', { ...baseRow(ctx), id: itemId, outcome_id: outcomeId ?? null, name: trimmed(a.title), notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources }));
+  } else if (a.type === 'Outcome') {
+    itemId = ctx.id();
+    writes.push(ins('outcomes', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Created from an approved capture.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
+    writes.push(ins('focus_assignments', { ...baseRow(ctx), outcome_id: itemId, lane: 'later', position: ws.focus.length }));
+  } else if (a.type === 'Decision') {
+    itemId = ctx.id();
+    writes.push(ins('decisions', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Newly captured decision; add evidence and options.', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, sources }), logRow(ctx, itemId, 'created', 'Approved from a capture.'));
+  } else if (a.type === 'Idea') {
+    itemId = ctx.id();
+    writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the Inbox.', archived_at: null, sources }));
+  }
+  writes.push({ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'organized', organized_as: a.type, task_id: taskId, review_state: null, review_at: null, folder_id: c.folder_id ?? a.folderId } });
+  void at;
+  return { writes, itemId };
+}
+export function approveCapture(ws: Workspace, ctx: Ctx, captureId: string, a: Approval): Result {
+  const c = capture(ws, captureId); if (!c || c.status !== 'pending') return fail('That capture is not waiting for review.');
+  if (!trimmed(a.title)) return fail('The capture has no text.');
+  if (a.newOutcomeName !== undefined && !trimmed(a.newOutcomeName)) return fail('Name the new outcome, or choose another option.');
+  return done(approveWrites(ws, ctx, c, a).writes, 'Capture organized. Original preserved.');
+}
+/** Merge two look-alike captures: one item, both captures kept and linked to it, undoable. Proposed first; the user confirms. */
+export function mergeCaptures(ws: Workspace, ctx: Ctx, primaryId: string, otherId: string, a: Approval): Result {
+  const p = capture(ws, primaryId), o = capture(ws, otherId);
+  if (!p || !o || p.status !== 'pending' || o.status !== 'pending') return fail('Both captures must still be waiting for review.');
+  const r = approveWrites(ws, ctx, p, a, [o.id]);
+  return done([...r.writes, upd('captures', o, { status: 'organized', organized_as: 'Merged', merged_into: p.id, review_state: null, review_at: null })], 'Merged. Both captures are kept and linked. You can undo this.');
+}
+export function deferCapture(ws: Workspace, ctx: Ctx, id: string): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { review_state: 'deferred', review_at: ctx.now() })], 'Set aside. Find it under Set aside whenever you want.');
+}
+export function rejectCapture(ws: Workspace, ctx: Ctx, id: string, fingerprint: string): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { review_state: 'rejected', review_at: ctx.now(), rejected_fingerprints: [...c.rejected_fingerprints, fingerprint] })], 'Rejected. Your capture is untouched and the same suggestion will not be repeated.');
+}
+export function reviewAgain(ws: Workspace, id: string): Result {
+  const c = capture(ws, id); if (!c) return fail('That capture no longer exists.');
+  return done([upd('captures', c, { review_state: null, review_at: null })], 'Back in the review list.');
+}
+/** Undo removes only what the approval created, and only while it is still untouched. The original capture always stays. */
+export function undoApproval(ws: Workspace, ctx: Ctx, captureId: string): Result {
+  const c = capture(ws, captureId); if (!c || c.status !== 'organized' || !c.organized_as || c.merged_into) return fail('Nothing to undo.');
+  const type = c.organized_as, mine = (s: string[]) => s.includes(c.id);
+  const related = (id: string) => ws.relationships.some(r => r.from_id === id || r.to_id === id);
+  let removeTable: Table | null = null, removeId: string | null = null;
+  if (type === 'Task' && c.task_id) { const t = ws.tasks.find(x => x.id === c.task_id); if (t) { if (t.done_at || related(t.id)) return fail('You have worked on that step since, so it was not removed.'); removeTable = 'tasks'; removeId = t.id; } }
+  // a Task approval that also created an outcome takes that outcome back too, but only while nothing else is in it
+  let alsoOutcome: string | null = null;
+  if (type === 'Task') { const o = ws.outcomes.find(x => mine(x.sources)); if (o && !o.done_at && !o.pinned && !o.deadline && !related(o.id) && ws.tasks.filter(t => t.outcome_id === o.id && t.id !== c.task_id).length === 0) alsoOutcome = o.id; }
+  if (type === 'Outcome') { const o = ws.outcomes.find(x => mine(x.sources)); if (o) { if (ws.tasks.some(t => t.outcome_id === o.id) || related(o.id) || o.done_at || o.pinned || o.deadline) return fail('You have worked on that outcome since, so it was not removed.'); removeTable = 'outcomes'; removeId = o.id; } }
+  if (type === 'Decision') { const d = ws.decisions.find(x => mine(x.sources)); if (d) { if (d.status !== 'open' || d.evidence || d.notes || related(d.id) || ws.decisionOptions.some(o => o.decision_id === d.id) || ws.decisionLog.filter(l => l.decision_id === d.id).length > 1) return fail('You have worked on that decision since, so it was not removed.'); removeTable = 'decisions'; removeId = d.id; } }
+  if (type === 'Idea') { const i = ws.ideas.find(x => mine(x.sources)); if (i) { removeTable = 'ideas'; removeId = i.id; } }
+  const back = [c, ...ws.captures.filter(x => x.merged_into === c.id)];
+  const writes: Write[] = [];
+  // captures first: deleting the item makes the database edit capture.task_id itself, which would make a later write look stale
+  for (const x of back) writes.push({ table: 'captures', op: 'update', row: { id: x.id, revision: x.revision, status: 'pending', organized_as: null, task_id: null, merged_into: null, review_state: null, review_at: null } });
+  if (removeTable && removeId) writes.push({ table: removeTable, op: 'delete', row: { id: removeId } });
+  if (alsoOutcome) writes.push({ table: 'outcomes', op: 'delete', row: { id: alsoOutcome } });
+  writes.push(audit(ctx, 'approval-undo', 'capture', c.id, { type }));
+  return done(writes, 'Approval undone. The capture is back in the review list.');
 }

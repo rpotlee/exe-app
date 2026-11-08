@@ -451,6 +451,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           revision: number;
+          sources: string[];
         };
         Insert: {
           id?: string;
@@ -466,6 +467,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          sources?: string[];
         };
         Update: {
           id?: string;
@@ -481,6 +483,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          sources?: string[];
         };
         Relationships: [];
       };
