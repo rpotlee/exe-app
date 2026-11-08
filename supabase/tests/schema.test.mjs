@@ -263,3 +263,22 @@ test('exe_apply_writes: all-or-nothing, rejects stale writes, unknown tables and
   assert.match(await fails(db.query(`select exe_apply_writes('[]'::jsonb)`)), /permission denied/);
   await db.exec('reset role');
 });
+
+test('exe_apply_writes_once: a retried key never applies twice, and a failed attempt can be retried', async () => {
+  const db = await freshDb();
+  const once = (d, key, writes) => d.query('select exe_apply_writes_once($1, $2::jsonb) as applied', [key, JSON.stringify(writes)]);
+  const folder = (id, name) => ({ table: 'folders', op: 'insert', row: { id, owner_id: A, name, description: '', icon: 'folder', position: 0, created_at: '2027-01-01T00:00:00Z', updated_at: '2027-01-01T00:00:00Z', revision: 1 } });
+  const F1 = '30000000-0000-4000-8000-000000000001', F2 = '30000000-0000-4000-8000-000000000002', KEY = 'aaaaaaaa-0000-4000-8000-000000000001';
+  await asUser(db, A, async d => {
+    assert.equal((await once(d, KEY, [folder(F1, 'one')])).rows[0].applied, true);
+    assert.equal((await once(d, KEY, [folder(F1, 'one')])).rows[0].applied, false);                  // the retry is a no-op
+    assert.equal((await one(d, 'select count(*)::int n from folders')).n, 1);
+    assert.match(await fails(once(d, KEY, [folder(F2, 'different')])), /reused with different writes/);
+    // a failing attempt does not consume its key, so it can be retried once fixed
+    const K2 = 'aaaaaaaa-0000-4000-8000-000000000002';
+    assert.match(await fails(once(d, K2, [folder(F2, ''), ])), /check|violates/);
+    assert.equal((await one(d, 'select count(*)::int n from idempotency_keys')).n, 1);
+    assert.equal((await once(d, K2, [folder(F2, 'two')])).rows[0].applied, true);
+  });
+  await asUser(db, B, async d => { const f = folder('30000000-0000-4000-8000-000000000009', 'b'); f.row.owner_id = B; assert.equal((await once(d, KEY, [f])).rows[0].applied, true); });   // keys are per user
+});

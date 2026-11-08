@@ -682,6 +682,7 @@ export interface Database {
     };
     Functions: {
       exe_apply_writes: { Args: { p_writes: Json }; Returns: undefined };
+      exe_apply_writes_once: { Args: { p_key: string; p_writes: Json }; Returns: boolean };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };

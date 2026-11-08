@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { currentFocusId } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
+import { QueuedStore, type QueueState } from '../../src/store/queued';
+import { Modal } from '../ui/Modal';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
@@ -38,6 +40,14 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   }, [setModal]);
 
+  const queue = store instanceof QueuedStore ? store : null;
+  const [qs, setQs] = useState<QueueState | null>(queue ? queue.state() : null);
+  useEffect(() => {
+    if (!queue) return;
+    const off = queue.subscribe(() => setQs(queue.state())), on = () => void queue.flush().catch(() => undefined);
+    window.addEventListener('online', on); void queue.flush().catch(() => undefined);
+    return () => { off(); window.removeEventListener('online', on); };
+  }, [queue]);
   const ws = api.ws;
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
   const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel]);
@@ -47,7 +57,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
 
   const navPage = page === 'lanes' ? 'focus' : page;
   const name = ws.settings?.workspace_name || 'My workspace';
-  const save = api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
+  const save = qs?.conflict ? 'Needs your attention' : qs && qs.pending > 0 ? (qs.offline ? 'Saved on this device, not synced' : 'Saving…') : api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
   const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Review /> : <Later which={page} />;
   const badge = (p: Page) => (p === 'inbox' || p === 'review') && awaiting > 0 ? awaiting : 0;
   const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} awaiting AI Review`}>{n > 99 ? '99+' : n}</span> : null);
@@ -89,7 +99,22 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
       </div>
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
       {stack.map((m, i) => <Dialogs key={i} m={m} />)}
+      {queue && qs?.conflict && <ConflictDialog queue={queue} entries={qs.conflict} reload={api.reload} />}
     </Ctx.Provider>
   );
 }
 export { currentFocusId };
+
+/** Another device changed the same thing. Nothing was overwritten; the unsent changes are kept and can be downloaded. */
+function ConflictDialog({ queue, entries, reload }: { queue: QueuedStore; entries: { writes: unknown[] }[]; reload: () => Promise<void> }) {
+  const download = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' })); a.download = 'exe-unsent-changes.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 800); };
+  const n = entries.reduce((s, e) => s + e.writes.length, 0);
+  return (
+    <Modal title="This changed on another device" onClose={() => undefined}>
+      <p className="helper">Something you changed was also changed somewhere else. To protect your work, <strong>nothing was overwritten</strong>. {n} unsent {n === 1 ? 'change was' : 'changes were'} set aside, and newer changes on this device are waiting.</p>
+      <p className="small-note">Download your unsent changes if you want to keep a copy, then use the latest version. You can redo anything you still want.</p>
+      <div className="capture-foot"><button className="quiet-button" onClick={download}>Download my unsent changes</button>
+        <button className="primary-button" onClick={() => { queue.resolveConflict(); void reload(); }}>Use the latest version</button></div>
+    </Modal>
+  );
+}
