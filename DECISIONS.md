@@ -164,3 +164,71 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - Active tab = lighter cobalt (`#9fb3ff`) so it reads on the dark bar; inactive labels are white at about 72% for contrast.
 - Everything else in DEC-004 (canvas, borders, accent, no dark theme) is unchanged.
 
+## DEC-008 — Database design choices (2026-11-08)
+**Source:** delegated to Claude; recommendations the owner can overrule. Implements DEC-005. Built and tested in `supabase/`.
+
+- **IDs are database UUIDs** instead of the prototype's text ids; the importer maps old ids to new ones and keeps a link back. *Why:* UUIDs are safe to create offline and cannot collide across devices.
+- **One private workspace per user; no workspace table.** Every row has `owner_id`; every foreign key includes the owner, so one user's row can never point at another's. *Why:* DEC-003 P-20; simplest model that row-level security can fully protect.
+- **The current focus is one column on the user's settings row**, not a flag on many rows. *Why:* "exactly one" is then true by construction; a trigger makes it a Now outcome and clears it when the outcome leaves Now.
+- **"AI cannot delete or complete" is a database role, not a promise.** Server-side AI uses a role that can read the owner's rows and add pending proposals and nothing more. A suggested relationship can never be saved as confirmed. *Why:* the guarantee holds even if the AI code or a model response is wrong.
+- **Relationships are one table covering outcomes, tasks and decisions**, with the cycle and self-block checks in the database.
+- **The original capture text is immutable**; edits are stored beside it. The audit history and decision log are append-only.
+- **Deleting a folder or outcome never deletes the work inside it**; items become unfiled or loose, matching DEC-001 and DEC-002.
+- **Writes are guarded by revision numbers** (`update … where revision = <known>`); a stale write matches nothing and the app shows the conflict (DEC-003 P-17).
+- **TypeScript types are generated from the migrations**, and a test fails if they drift (DEC-005).
+- **The AI key is stored encrypted by a server function and the browser role cannot read it.** Only Anthropic, OpenAI and Gemini are allowed as providers (owner decision); the model name is a free-text field the user fills in.
+- **Testing without Docker:** the schema is verified in an in-process Postgres (PGlite) with the same roles Supabase has. Run it against a real Supabase project before relying on it.
+
+## DEC-009 — Supabase free-tier facts checked, and what they mean for Exe (2026-11-08)
+**Source:** Claude read the [Supabase pricing page](https://supabase.com/pricing) and the [project pausing docs](https://supabase.com/docs/guides/platform/project-pausing) on 2026-11-08. Limits change; recheck before signing up. Completes the "verify the free-tier limits" condition in DEC-005. Whether to stay on Supabase is a delegated recommendation: **yes, keep it.**
+
+**Free plan, as published:** 500 MB database, 1 GB file storage, 50,000 monthly active users, 5 GB egress, 500,000 edge-function calls a month, 2 active projects, **no automatic backups**, and **projects are paused after 1 week of inactivity** (restorable for up to a year from the dashboard; a few requests a day keep it awake). Pro starts at $25 a month, is never paused, and keeps 7 days of backups.
+
+**What this means for Exe (one person's notes and tasks, not media):**
+- Size and user limits are far above what a personal workspace needs. Not a concern.
+- **No automatic backups on Free.** The app's JSON export/import (master §15.3) is therefore the backup, and the app should remind the user to export. Keep that feature, and test the restore.
+- **Pausing:** a free project the owner has not opened for a week goes to sleep and the app stops working until someone clicks Resume. Fine for a personal tool that is opened most weeks; upgrade to Pro ($25 a month) if that becomes a problem. The owner decides when.
+- **AI costs nothing to the app** (bring-your-own-key, DEC-005). AI calls run in edge functions; 500,000 a month is more than enough.
+
+## DEC-010 — Schema installed on the real Supabase project; two fixes it exposed (2026-11-08)
+**Source:** Claude, after the owner created the project ("exe", us-east-1) and approved the Supabase sign-in. Facts, not recommendations.
+
+- The three migrations are applied to the project. A rule check run **on the real database** (`scripts/smoke-remote.sql`, rolled back, saves nothing) passes: Now cap, current focus, dependency loops, self-block, immutable capture text, hidden AI key, append-only audit, and the AI role unable to complete or delete.
+- **Finding 1:** the AI server role needs `postgres` to be allowed to switch into it. Fixed in migration 2.
+- **Finding 2:** Supabase gives every new table in `public` to signed-in and signed-out users by default. That had undone two locks (the AI key was readable and the audit history editable by a signed-in user). Migration 3 takes those privileges back and grants only what is intended. Neither bug could be seen in the first test copy, because it lacked Supabase's default grants.
+- **Process change:** the local database tests now emulate Supabase's default grants, and the rule check should be rerun against the real project after every migration (`npx supabase db push`, then `supabase db query --linked -f scripts/smoke-remote.sql`).
+- The project's public URL and anon key are in the untracked `.env`. The secret service-role key was never written anywhere.
+
+## DEC-011 — Bring-your-own-key AI: how it is built, and what is not yet live (2026-11-08)
+**Source:** Claude, implementing DEC-005. Facts about the build; the deploy question is open for the owner.
+
+- **Built and tested locally:** a provider-agnostic module (`supabase/functions/_shared/ai.ts`) with one adapter each for Anthropic, OpenAI and Gemini. No model name is hard-coded (the user types it). Model output is untrusted: strict schema, unknown ids become null, extra fields ignored, anything unusable is dropped and the user organizes by hand. Captures are sent as delimited data with an instruction not to follow text inside them. Keys are encrypted with AES-256-GCM (a server-only secret) and the browser can never read them back. Two server functions (`ai-settings`, `ai-review`) and the Settings and AI Review screens exist. 9 unit tests cover the adapters, the schema checks and the encryption.
+- **Not verified live:** nobody has run a real request to any provider, because no key was available. The request addresses and headers are the long-standing public ones (Anthropic `api.anthropic.com/v1/messages` with `x-api-key`; OpenAI `api.openai.com/v1/chat/completions` with a bearer token; Gemini `generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` with `x-goog-api-key`). Fetching the providers' documentation pages returned summaries with inconsistent hosts, so they were not trusted. The **Test connection** button in Settings is how a wrong detail will show up. Provider error text is never passed through to the screen (it can echo part of a key).
+- **Not deployed:** publishing the two functions and storing the server secret (`EXE_KEY_SECRET`) changes the owner's live Supabase project, so it needs the owner's explicit go-ahead (an automated safety check blocked Claude from doing it). Until then the AI screens say plainly that AI is not set up on the server, and nothing is sent anywhere. To deploy: `supabase secrets set EXE_KEY_SECRET="$(openssl rand -base64 32)"` then `supabase functions deploy ai-settings ai-review --use-api`.
+- **Safety properties, by design:** the functions never write to the workspace; AI output only fills the proposal fields of a card; the person still approves everything; AI is off until the person accepts the notice that capture text goes to their chosen provider; the app works fully without it.
+
+## DEC-012 — Offline saving and conflicts (2026-11-08)
+**Source:** Claude, implementing DEC-003 P-17. Each action is saved to a queue on the device first, then sent with a unique key (migration 7), so a retry never applies twice. If another device changed the same thing, nothing is overwritten: the unsent changes are set aside, newer changes wait, and the person can download them and then use the latest version. Tested with a fake server (offline, lost responses, conflicts, reloads) and against the real schema (repeat keys). Not tested with two real devices.
+
+## DEC-013 — Step suggestions, "I have N minutes", change prompts, weekly review and ideas (2026-11-08)
+**Source:** the owner asked for these three groups of features. The rules below are Claude's recommendations (master §10.5, §12.3, §14); the owner can overrule them.
+
+- **Break it down (step suggestions).** Typing or pasting one step per line always works and needs no AI. With AI turned on, a button fills the same box with *editable* suggestions (3 to 6, strict format, repeats removed). Nothing is created until the person presses Add. There are deliberately **no fake "AI" suggestions without AI**.
+- **"I have N minutes".** One step, chosen only from steps that are ready (nothing confirmed blocks them) and whose own estimate, if any, fits. Steps with no estimate are allowed but labeled as "may not fit"; the app never invents an estimate and never assumes a calendar. It changes no lane: a blocked important outcome stays Now while a smaller step elsewhere is suggested. Estimates are free text ("20 min", "about 3 hours"), entered on each step.
+- **Prompts after changes.** Shown on Focus, at most three, derived from real state: a resolved decision that was holding things up; finishing a step that cleared the way for another; all steps done (asks, never decides). Each has Review and Later; Later is remembered by id (stored in the existing dismissed list) so it does not come back. Prompts never apply anything.
+- **Weekly review.** Optional. A card once per week with Open or Skip; the summary uses only real dates from the last 7 days (steps done per outcome, outcomes finished, decisions resolved, thoughts captured) plus what is still open. No streaks, scores or engagement metrics.
+- **Ideas.** Create, edit, file, archive, restore and **promote**. Promoting is always the person's explicit confirmation; it creates an outcome in **Later** (never Now), links back to the idea, and keeps the idea archived. Ideas stay outside the Priority Engine.
+- **Not yet live:** "Suggest steps with AI" needs the updated `ai-review` function to be published to the owner's Supabase project, and an automated safety check blocked Claude from doing that. Until it is published, the button reports that AI is not ready and typing steps still works. Publishing command: `supabase functions deploy ai-review --use-api`.
+
+## DEC-014 — The remaining buildable features, and the one left out (2026-11-08)
+**Source:** the owner asked to build the rest of the app. The rules are Claude's recommendations (master §9, §11, §7.3, §14); the owner can overrule them.
+
+- **"Why this?" and the blocked state on the home card.** Reasons come only from the same facts the Priority Engine uses (active, pinned, a deadline you entered, items it would unlock, a ready step, when you last worked on it). If nothing special applies it says only that you chose it. **Red is used only for a block you confirmed**, with the name of the blocker and a link to open it (the decision, or the Map). A suggested relationship never turns the card red.
+- **Decisions ranked by verified impact.** Open decisions first, ordered by how much confirmed, unfinished work each is holding up, then the earliest deadline you entered on that work, then newest. Never by how persuasive its text is. Each row says "holding up N".
+- **Comparing options.** You write what is good and not so good about each option, plus the criteria you care about. The app lays your own words side by side. It **never scores or ranks options for you.**
+- **History.** A plain-words list of what you approved, applied or undid (stored in the existing append-only audit table). Reachable from Settings.
+- **Approve a chosen group, with a preview.** Tick captures in AI Review, see exactly what will be created, then confirm. Anything you rejected before is skipped, and steps with no matching outcome stay loose.
+- **Split one capture into several items.** Only on the person's approval. The original capture stays whole and is marked "Split"; each item records it as its source; undo removes the items while they are all untouched and refuses (all or nothing) if any was worked on.
+- **Migration 8** added the comparison text columns and the "Split" marker (applied to the owner's project).
+- **Left out: research with real sources (master §13).** Quick Answers and Guided Research need each AI provider's web-search tool, whose request formats were not verified, cannot be tested without the owner's key, and would need the AI function published again (blocked for Claude). Building it blind would risk invented sources, which the spec forbids. It should be built after one live AI call succeeds and the three providers' search tools are checked.
+

@@ -23,6 +23,7 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 | §8.5 progress | `progress()`/`laneProgress()` from real checked steps; archived steps excluded; no steps → "Not measured". | Built | — | pure function, unchanged | P1b, A11Y | 1 |
 | §8.4 / DEC-003 outcome completion | Done only after user confirms the definition of done; prompted when all steps are done and on leaving Focus Mode; frees the Now slot, never auto-fills; reopen goes to Later. | Built | Definition of done is the outcome description (no separate field). | `outcomes.done_at`; Now-cap trigger | P1b | 1 |
 | §9 Decisions | Create/edit decisions and options, Evidence (separate from notes), chosen option, rationale, dated log, reopen; resolving only *suggests* follow-up for items it blocks. | Built | Sorting by verified impact, linked outcome display, comparison criteria, unknowns, research findings. | `decisions` (+ `decision_options`, `decision_log`) | P1b | 1 / 3 |
+| §10 Priority Engine (typed port) | `src/domain/engine.ts`, `blocking.ts`, `progress.ts`, `capture.ts`, `status.ts`: the same rules as pure TypeScript with 20 unit tests; not yet wired to a screen. | Partial | UI port pending. | same pure functions | `npm run test:unit` | 2 |
 | §10 Priority Engine | `compareFacts`, `rankOutcomes`, `computeSuggestion` — pure, rule order from DEC-003, explanation text, no scores. Card with Apply (confirm with before/after) / Ignore (fingerprint) / Defer. Runs on task done, decision resolve/reopen, deadline/pin, relationship change, and "Review priorities"; never on capture. | Built | Effort is stored but not a rule (per DEC-003). Immediate-action ("I have 20 minutes", §10.5) not built. Pins/deadlines are entered on Map. | `priority_recommendations`; same pure functions | P1b, A11Y | 1 / 2 |
 | §10.4 / §16.6 Now cap | UI refuses a 4th Now (swap dialog); engine Apply checks the result ≤ 3. | Partial | Client-side only. | DB constraint/transaction: ≤3 Now, one current focus | P1, P1b | 1 (UI) / 2 (DB) |
 | §11 Focus / Mission Status | Heading, state line (`statusLine`), one current priority + other active priorities, Priority suggestion card, Next & Later row opening its own screen. | Built | Red blocked state on the current-priority card; "Why this?"; "Suggested next action". Blocked tasks do show a Blocked pill in checklists. | — | P1b, DS | 1 |
@@ -33,7 +34,7 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 | §15.1 search | Outcomes, tasks, decisions, original captures (incl. archived). | Partial | Ideas, folders, research findings; best-match ordering. | Postgres full-text | P1 | 2 |
 | §15.2–15.3 settings / backup | JSON export/import with version and shape check; imports run through `migrate()`; reset example. | Partial | Restore preview with counts and conflicts, size limits, rollback. No account, research or privacy settings. | `/workspace/export, import-preview, import-commit` | P1 | 2 |
 | §15.4 auth / sync | — | Not built | Auth, per-user storage, sync, conflict screen, offline queue (DEC-005 order: after the port). | Supabase Auth + RLS; `sync_mutations` | — | 2 |
-| §16.6 DB invariants | Client-side checks for Now cap, cycles, self-block, confirmed-only blocks. | Partial | None enforced by a database; AI-never-deletes/completes needs server rules (DEC-005). | constraints, triggers, RLS | P1b (client) | 2 |
+| §16.6 DB invariants | Prototype: client-side checks. **Phase 2 schema (not yet connected to the app):** Now cap, one current focus, no cycles/self-blocks, confirmed-only blocks, AI role cannot delete/complete, immutable capture text, append-only audit — all in `supabase/migrations`, 16 tests in `supabase/tests`. | Partial | The app does not use the database yet; not tested on a real Supabase project. | constraints, triggers, RLS (built) | `npm run test:db` | 2 |
 | §17 API | — | Not built | No backend. | `/captures`, `/ai-review/...`, `/focus/assignments`, `/priority/recommendations`, … | — | 2 |
 | §19 design system | Tokens in `exe-ui.css`; light default; dark graphite labeled dock (DEC-007). | Built | App always loads light; the unused dark CSS is still in `exe-ui.css` (cleanup planned, DEC-006). | — | DS, A11Y, RF | 1 |
 | §19.4 / §23.4 devices | Checked headless Chromium at 320/375/390/430/768/1024/1280/1440. | Partial | Not tested on real iOS Safari or with a real virtual keyboard; Chromium only. | — | P1, P1b, RF | 1 (open) |
@@ -44,3 +45,23 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 - Phase 4 research is planned through each AI provider's own web search tool, with a separate search service only as a fallback; verify what each provider offers first (DEC-005). AI providers are decided: Anthropic, OpenAI and Google Gemini. AI is bring-your-own-key and needs the Phase 2 backend; nothing AI-related can ship on the prototype.
 - Whether the "blocked" count in the state line should count tasks and outcomes separately (currently one number).
 - `tests/visual_conformance.py` and `tests/visual_compare.py` were not re-run; they compare against the old icon-only dock.
+
+## Added 2026-11-08 (DEC-013)
+| Spec § | Status | Where | Test |
+|---|---|---|---|
+| §12.3 make a vague step actionable | Built (typed/pasted steps); AI suggestions built but not live until the updated function is published | `StepsDialog`, `parseSteps` | `tests/app_react.py`, `ai.test.ts` |
+| §10.5 "I have 20 minutes" | Built | `src/domain/next.ts` `quickWin` | `next.test.ts`, `tests/app_react.py` |
+| §14.1–14.2 prompts after changes | Built (3 kinds) | `prompts()` | `next.test.ts`, `tests/app_react.py` |
+| §14.3 weekly review | Built (optional, real data only) | `src/domain/weekly.ts` | `next.test.ts`, `tests/app_react.py` |
+| §2.1 Ideas (create, edit, archive, promote) | Built | `createIdea` … `promoteIdea` | `commands.test.ts` (real schema), `tests/app_react.py` |
+
+## Added 2026-11-08 (DEC-014)
+| Spec § | Status | Test |
+|---|---|---|
+| §11.2/§11.4 "Why this?" and red blocked state with an unblock action | Built | `insight.test.ts`, `tests/app_react.py` |
+| §9.2 Decision queue sorted by verified impact | Built | `insight.test.ts`, `tests/app_react.py` |
+| §9.3 options with criteria and side-by-side notes (no scores) | Built | `review.test.ts` (real schema), `tests/app_react.py` |
+| §7.7 history / audit view | Built (Settings, History) | `insight.test.ts`, `tests/app_react.py` |
+| §7.3 selective batch approve with preview | Built | `tests/app_react.py` |
+| §7 / DEC-002 split one capture into several, undoable | Built | `review.test.ts` (real schema), `tests/app_react.py` |
+| §13 Research (Quick Answer, Guided Research, citations) | **Not built** (see DEC-014) | none |

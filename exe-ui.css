@@ -319,31 +319,67 @@ body::before {
 /* light theme: light sits behind the upper-right of the pane. It edge-lights the rim on that side, scatters inward
    across the frosted face, blooms slightly past the edge and throws a tinted shadow away from itself. */
 :root[data-theme="light"] .hero-stack { position: relative; isolation: isolate; }
+/* Current Priority card, light theme: pearl optical glass. A nearly opaque, neutral surface; soft layered neutral shadows;
+   a narrow masked silver-white rim; and a restrained accent light on the left edge only (a thin reflection, a faint bloom
+   inward, and a hint on the curved perimeter). The accent is --exe-priority-accent. syncPriorityGlassAccent() sets it from
+   the priority icon's rendered color, so the light follows the icon; until it runs it is the app's own accent token. */
 :root[data-theme="light"] .priority-hero {
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
-  backdrop-filter: blur(20px) saturate(170%);
+  --exe-priority-accent: var(--exe-accent);
+  --glass-light: color-mix(in srgb, var(--exe-priority-accent) 10%, transparent);
+  --glass-reflection: color-mix(in srgb, var(--exe-priority-accent) 58%, transparent);
+  --glass-rim-tint: color-mix(in srgb, var(--exe-priority-accent) 36%, transparent);
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(190, 197, 209, .34);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background:
+    radial-gradient(ellipse 200px 230px at -12% 48%, var(--glass-light) 0%, transparent 79%),
+    linear-gradient(153deg, #ffffff 0%, #fdfdfe 35%, #fafafb 75%, #f8f9fa 100%);
+  box-shadow:
+    0 25px 42px -26px rgba(47, 53, 72, .26),
+    0 9px 18px -11px rgba(45, 52, 76, .14),
+    0 2px 5px rgba(45, 52, 76, .025),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -2px 2px rgba(255, 255, 255, .88);
 }
-:root[data-theme="light"] .priority-hero::before { padding: 1.5px; }
+/* the optical rim: a masked 1.5px ring, neutral silver and white, with the accent confined to the left-hand curve */
+:root[data-theme="light"] .priority-hero::before {
+  inset: 0;
+  z-index: 1;
+  padding: 1.5px;
+  background:
+    radial-gradient(ellipse 130px 58% at 0% 50%, var(--glass-rim-tint) 0%, transparent 100%),
+    linear-gradient(137deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, .95) 19%, rgba(207, 215, 226, .39) 43%, rgba(255, 255, 255, .97) 70%, rgba(210, 219, 233, .58) 88%, rgba(255, 255, 255, 1) 100%);
+}
+/* the colored reflection: a thin line of light along part of the left edge */
 :root[data-theme="light"] .priority-hero::after {
   display: block;
-  background:
-    radial-gradient(70% 40% at 0% 0%, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, 0) 60%),
-    linear-gradient(112deg, rgba(255, 255, 255, 0) 24%, rgba(255, 255, 255, .5) 30%, rgba(255, 255, 255, 0) 36%),
-    linear-gradient(112deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .22) 43%, rgba(255, 255, 255, 0) 46%);
+  inset: auto;
+  left: 0;
+  top: 16%;
+  bottom: 10%;
+  width: 2px;
+  z-index: 1;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--exe-priority-accent) 28%, transparent) 19%, var(--glass-reflection) 49%, color-mix(in srgb, var(--exe-priority-accent) 25%, transparent) 81%, transparent 100%);
+  box-shadow: 2px 0 12px var(--glass-light);
+  filter: blur(.4px);
 }
-/* bezel: the glass slab's visible thickness. A rear contour offset down and left, shown only where it
-   extends past the face (the exposed side wall), shaded like glass catching light. */
+/* the slab: the glass has visible thickness. A rear contour offset down and to the left shows only where it extends past the
+   face (a few px at the bottom, a hairline on the left), shaded like polished silver glass catching light. Neutral on purpose:
+   the colored light stays on the face's left edge. */
 :root[data-theme="light"] .hero-stack::after {
   content: "";
   position: absolute;
   inset: 0;
-  transform: translate(-1px, 3px);
-  border-radius: var(--r-xl);
+  transform: translate(-1px, 6px);
+  border-radius: inherit;
   box-sizing: border-box;
-  padding: 0 0 3px 1px;
+  padding: 0 0 6px 1.5px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .85) 100%),
-    linear-gradient(118deg, rgba(150, 176, 226, .7) 0%, rgba(226, 236, 252, .85) 26%, rgba(138, 168, 222, .65) 54%, rgba(222, 234, 252, .85) 80%, rgba(150, 176, 226, .7) 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .5) 100%),
+    linear-gradient(118deg, rgba(146, 158, 182, .92) 0%, rgba(214, 221, 236, .95) 26%, rgba(138, 151, 177, .88) 54%, rgba(218, 225, 238, .95) 80%, rgba(146, 158, 182, .92) 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -351,7 +387,22 @@ body::before {
   z-index: -1;
   pointer-events: none;
 }
-.priority-hero > * { position: relative; z-index: 1; }
+@supports not (color: color-mix(in srgb, red 10%, transparent)) {
+  :root[data-theme="light"] .priority-hero { --glass-light: transparent; --glass-reflection: transparent; --glass-rim-tint: transparent; }
+  :root[data-theme="light"] .priority-hero::after { background: none; box-shadow: none; }
+}
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  :root[data-theme="light"] .hero-stack { border-radius: 26px; }
+  :root[data-theme="light"] .priority-hero {
+    border-radius: 26px;
+    box-shadow:
+      0 20px 34px -23px rgba(47, 53, 72, .25),
+      0 8px 15px -11px rgba(45, 52, 76, .13),
+      inset 0 1px 0 #ffffff,
+      inset 0 -2px 2px rgba(255, 255, 255, .88);
+  }
+}
+.priority-hero > * { position: relative; z-index: 2; }   /* content above the optical layers */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .priority-hero { background: var(--hero-solid); border: 1px solid var(--edge); }
   .priority-hero::before, .priority-hero::after { display: none; }
@@ -800,6 +851,41 @@ body::before {
 .merge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
 @media (max-width: 520px) { .merge-grid { grid-template-columns: 1fr; } }
 
+.mission-extras { display: grid; gap: 12px; margin-top: 18px; }
+.prompt-card, .quick-win { padding: 16px 18px; }
+.prompt-text { margin: 0 0 10px; font-size: 15px; line-height: 21px; }
+.quick-win-head { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; }
+.quick-win-head .select { width: auto; min-width: 84px; }
+.quick-win-result { margin-top: 12px; }
+.weekly-list { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 15px; line-height: 21px; }
+.idea-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: start; padding: 10px 0; background: var(--hairline) top / 100% 1px no-repeat; }
+.idea-row.is-archived { opacity: .75; }
+.idea-copy { display: grid; gap: 2px; min-width: 0; font-size: 15px; line-height: 20px; overflow-wrap: anywhere; }
+.idea-copy small { color: var(--secondary); font-size: 13.5px; }
+.idea-row .rel-actions { grid-column: 2; }
+@media (min-width: 1100px) { .mission-extras { grid-column: 2; grid-row: 3; margin-top: 0; } }
+
+.blocked-banner { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--red-bg); color: var(--red); font-size: 14px; line-height: 19px; }
+.blocked-banner svg { flex: none; margin-top: 1px; }
+.blocked-banner .banner-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; margin-left: 6px; }
+.blocked-banner .link-button { color: inherit; }
+.why-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 2px 0 8px; padding: 6px 0; min-height: 32px; background: none; border: 0; color: var(--exe-accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.why-toggle svg { width: 16px; height: 16px; transition: transform .2s; }
+.why-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.why-list { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 4px; font-size: 14.5px; line-height: 20px; color: var(--secondary); }
+.impact-line { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; font-size: 14.5px; line-height: 20px; color: var(--ink); }
+.impact-line svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.compare-wrap { overflow-x: auto; }
+.compare { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 14.5px; line-height: 20px; }
+.compare caption { text-align: left; padding-bottom: 8px; }
+.compare th, .compare td { text-align: left; vertical-align: top; padding: 8px 10px; border-top: 1px solid var(--edge); }
+.compare thead th { border-top: 0; font-weight: 600; }
+.compare tbody th { width: 96px; font-weight: 600; color: var(--secondary); }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.split-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+@media (max-width: 520px) { .split-row { grid-template-columns: 1fr 1fr; } .split-row .text-input { grid-column: 1 / -1; } }
+.sel-row { padding: 0; min-height: 0; }
+
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }
 .inbox-filters button[aria-pressed="true"] { background: var(--accent-fill); border-color: transparent; box-shadow: none; color: #fff; font-weight: 600; }
@@ -949,6 +1035,10 @@ body::before {
 :root[data-theme="dark"] .focus-panel .pill { background: rgba(255, 255, 255, .14); color: #ffffff; border: 1px solid rgba(255, 255, 255, .3); }
 
 /* ---------- 11. accessibility fallbacks ---------- */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  :root[data-theme="light"] .priority-hero { background: #ffffff; border: 1px solid #8d98aa; box-shadow: none; }
+  :root[data-theme="light"] .priority-hero::before, :root[data-theme="light"] .priority-hero::after { display: none; }
+}
 @media (prefers-reduced-transparency: reduce) {
   .card, .priority-mini, .mobile-dock, .modal-sheet, .sidebar, .inbox-filters button, .inbox-add, .quiet-button, .top-capture, .workspace-switch, .inbox-peek {
     -webkit-backdrop-filter: none;

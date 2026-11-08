@@ -1,0 +1,30 @@
+{
+  "name": "exe-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:db": "node --test supabase/tests/schema.test.mjs supabase/tests/types.test.mjs",
+    "gen:types": "node scripts/gen-types.mjs",
+    "test:unit": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "vite web",
+    "build": "vite build web",
+    "test": "npm run typecheck && npm run test:unit && npm run test:db",
+    "check:supabase": "node scripts/check-supabase.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0"
+  }
+}
