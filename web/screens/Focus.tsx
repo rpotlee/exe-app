@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { ignoreSuggestion, selectCurrentFocus } from '../../src/domain/commands';
 import { activeIds, computeSuggestion } from '../../src/domain/engine';
 import { blockedCount } from '../../src/domain/blocking';
@@ -11,6 +11,7 @@ import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
+import { syncPriorityGlassAccent } from '../ui/pearl';
 
 const folderOf = (ws: Workspace, o: Outcome) => ws.folders.find(f => f.id === o.folder_id)?.name ?? 'Not filed';
 
@@ -45,6 +46,7 @@ export function Focus() {
   const week = isoWeek(new Date()), weeklyDue = !empty && !(ws.settings?.priority_dismissed ?? []).includes(weeklyId(week));
   const reviewPrompt = (p: (typeof plist)[number]) => { if (p.page === 'decisions') setDecisionSel(p.targetId); else setFolderSel(p.folderId ?? 'all'); go(p.page); };
 
+  useLayoutEffect(() => { syncPriorityGlassAccent(); }, [current?.id]);   // after the card renders and when the active priority changes
   const steps = current ? stepsOf(ws, current.id) : [], firstOpen = steps.find(t => t.done_at === null), nextStep = firstOpen ?? steps[0];
   const nx = ws.focus.filter(f => f.lane === 'next').length, lt = ws.focus.filter(f => f.lane === 'later').length;
   const openSlots = 3 - ids.length;

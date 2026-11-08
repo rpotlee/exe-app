@@ -319,39 +319,68 @@ body::before {
 /* light theme: light sits behind the upper-right of the pane. It edge-lights the rim on that side, scatters inward
    across the frosted face, blooms slightly past the edge and throws a tinted shadow away from itself. */
 :root[data-theme="light"] .hero-stack { position: relative; isolation: isolate; }
+/* Current Priority card, light theme: pearl optical glass. A nearly opaque, neutral surface; soft layered neutral shadows;
+   a narrow masked silver-white rim; and a restrained accent light on the left edge only (a thin reflection, a faint bloom
+   inward, and a hint on the curved perimeter). The accent is --exe-priority-accent. syncPriorityGlassAccent() sets it from
+   the priority icon's rendered color, so the light follows the icon; until it runs it is the app's own accent token. */
 :root[data-theme="light"] .priority-hero {
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
-  backdrop-filter: blur(20px) saturate(170%);
+  --exe-priority-accent: var(--exe-accent);
+  --glass-light: color-mix(in srgb, var(--exe-priority-accent) 10%, transparent);
+  --glass-reflection: color-mix(in srgb, var(--exe-priority-accent) 58%, transparent);
+  --glass-rim-tint: color-mix(in srgb, var(--exe-priority-accent) 36%, transparent);
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(190, 197, 209, .34);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background:
+    radial-gradient(ellipse 200px 230px at -12% 48%, var(--glass-light) 0%, transparent 79%),
+    linear-gradient(153deg, #ffffff 0%, #fdfdfe 35%, #fafafb 75%, #f8f9fa 100%);
+  box-shadow:
+    0 25px 42px -26px rgba(47, 53, 72, .26),
+    0 9px 18px -11px rgba(45, 52, 76, .14),
+    0 2px 5px rgba(45, 52, 76, .025),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -2px 2px rgba(255, 255, 255, .88);
 }
-:root[data-theme="light"] .priority-hero::before { padding: 1.5px; }
+/* the optical rim: a masked 1.5px ring, neutral silver and white, with the accent confined to the left-hand curve */
+:root[data-theme="light"] .priority-hero::before {
+  inset: 0;
+  z-index: 1;
+  padding: 1.5px;
+  background:
+    radial-gradient(ellipse 130px 58% at 0% 50%, var(--glass-rim-tint) 0%, transparent 100%),
+    linear-gradient(137deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, .95) 19%, rgba(207, 215, 226, .39) 43%, rgba(255, 255, 255, .97) 70%, rgba(210, 219, 233, .58) 88%, rgba(255, 255, 255, 1) 100%);
+}
+/* the colored reflection: a thin line of light along part of the left edge */
 :root[data-theme="light"] .priority-hero::after {
   display: block;
-  background:
-    radial-gradient(70% 40% at 0% 0%, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, 0) 60%),
-    linear-gradient(112deg, rgba(255, 255, 255, 0) 24%, rgba(255, 255, 255, .5) 30%, rgba(255, 255, 255, 0) 36%),
-    linear-gradient(112deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .22) 43%, rgba(255, 255, 255, 0) 46%);
+  inset: auto;
+  left: 0;
+  top: 16%;
+  bottom: 10%;
+  width: 2px;
+  z-index: 1;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--exe-priority-accent) 28%, transparent) 19%, var(--glass-reflection) 49%, color-mix(in srgb, var(--exe-priority-accent) 25%, transparent) 81%, transparent 100%);
+  box-shadow: 2px 0 12px var(--glass-light);
+  filter: blur(.4px);
 }
-/* bezel: the glass slab's visible thickness. A rear contour offset down and left, shown only where it
-   extends past the face (the exposed side wall), shaded like glass catching light. */
-:root[data-theme="light"] .hero-stack::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translate(-1px, 3px);
-  border-radius: var(--r-xl);
-  box-sizing: border-box;
-  padding: 0 0 3px 1px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, .85) 100%),
-    linear-gradient(118deg, rgba(150, 176, 226, .7) 0%, rgba(226, 236, 252, .85) 26%, rgba(138, 168, 222, .65) 54%, rgba(222, 234, 252, .85) 80%, rgba(150, 176, 226, .7) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  z-index: -1;
-  pointer-events: none;
+@supports not (color: color-mix(in srgb, red 10%, transparent)) {
+  :root[data-theme="light"] .priority-hero { --glass-light: transparent; --glass-reflection: transparent; --glass-rim-tint: transparent; }
+  :root[data-theme="light"] .priority-hero::after { background: none; box-shadow: none; }
 }
-.priority-hero > * { position: relative; z-index: 1; }
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  :root[data-theme="light"] .priority-hero {
+    border-radius: 26px;
+    box-shadow:
+      0 20px 34px -23px rgba(47, 53, 72, .25),
+      0 8px 15px -11px rgba(45, 52, 76, .13),
+      inset 0 1px 0 #ffffff,
+      inset 0 -2px 2px rgba(255, 255, 255, .88);
+  }
+}
+.priority-hero > * { position: relative; z-index: 2; }   /* content above the optical layers */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .priority-hero { background: var(--hero-solid); border: 1px solid var(--edge); }
   .priority-hero::before, .priority-hero::after { display: none; }
@@ -963,6 +992,10 @@ body::before {
 :root[data-theme="dark"] .focus-panel .pill { background: rgba(255, 255, 255, .14); color: #ffffff; border: 1px solid rgba(255, 255, 255, .3); }
 
 /* ---------- 11. accessibility fallbacks ---------- */
+@media (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
+  :root[data-theme="light"] .priority-hero { background: #ffffff; border: 1px solid #8d98aa; box-shadow: none; }
+  :root[data-theme="light"] .priority-hero::before, :root[data-theme="light"] .priority-hero::after { display: none; }
+}
 @media (prefers-reduced-transparency: reduce) {
   .card, .priority-mini, .mobile-dock, .modal-sheet, .sidebar, .inbox-filters button, .inbox-add, .quiet-button, .top-capture, .workspace-switch, .inbox-peek {
     -webkit-backdrop-filter: none;
