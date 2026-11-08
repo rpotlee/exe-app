@@ -4,7 +4,7 @@ Keep this file current. Update it in every commit that changes project state. La
 
 ## Read first, in this order
 1. `DECISIONS.md` — owner-approved and owner-delegated product decisions (DEC-001 to DEC-004), each with rationale.
-2. `~/Downloads/EXE_MASTER_PRODUCT_AND_BUILD_SPEC (1).md` (also copy it into the repo as `EXE_MASTER_PRODUCT_AND_BUILD_SPEC.md` if missing) — **governing product spec**. The owner says earlier specs are outdated (DEC-004).
+2. `EXE_MASTER_PRODUCT_AND_BUILD_SPEC.md` — **governing product spec**. The owner says earlier specs are outdated (DEC-004).
 3. `AGENTS.md` — process rules (feature branch, tests, real screenshots, PR per phase).
 4. `PRODUCT-BLUEPRINT.md` — reconstructed inventory of the current code and the gap register (§9). Gaps resolved by DEC-001 to DEC-004 are listed there as open; treat DECISIONS.md as newer.
 5. `V1-LOCKED-SPEC.md` — older. Do not edit. Master spec wins on conflict.
