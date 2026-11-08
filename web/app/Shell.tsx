@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { currentFocusId } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
 import { QueuedStore, type QueueState } from '../../src/store/queued';
@@ -8,15 +8,15 @@ import type { AssistClient } from './useAssist';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
-import { Dialogs } from './Dialogs';
+const Dialogs = lazy(() => import('./Dialogs').then(m => ({ default: m.Dialogs })));   // opened on demand, not part of the first load
 import { useWorkspace } from './useWorkspace';
 import { Focus } from '../screens/Focus';
-import { Lanes } from '../screens/Lanes';
+const Lanes = lazy(() => import('../screens/Lanes').then(m => ({ default: m.Lanes })));
 import { Inbox } from '../screens/Inbox';
-import { MapScreen } from '../screens/Map';
-import { Later } from '../screens/Later';
-import { Decisions } from '../screens/Decisions';
-import { Review } from '../screens/Review';
+const MapScreen = lazy(() => import('../screens/Map').then(m => ({ default: m.MapScreen })));
+const Later = lazy(() => import('../screens/Later').then(m => ({ default: m.Later })));
+const Decisions = lazy(() => import('../screens/Decisions').then(m => ({ default: m.Decisions })));
+const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Review })));
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'inbox'; };
@@ -33,7 +33,8 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   const [folderSel, setFolderSel] = useState('all');
   const [decisionSel, setDecisionSel] = useState('');
   const [stack, setStack] = useState<ModalState[]>([]);
-  const setModal = useCallback((m: ModalState | null) => setStack(s => (m ? [...s, m] : s.slice(0, -1))), []);
+  // the same dialog is never stacked on itself (a double tap while it loads must not open two)
+  const setModal = useCallback((m: ModalState | null) => setStack(s => (m ? (JSON.stringify(s[s.length - 1]) === JSON.stringify(m) ? s : [...s, m]) : s.slice(0, -1))), []);
   useEffect(() => { const h = () => setPage(fromHash()); window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h); }, []);
   const go = useCallback((p: Page) => { location.hash = `#/${p}`; window.scrollTo({ top: 0 }); }, []);
   useEffect(() => { document.body.classList.toggle('page-is-focus', page === 'focus'); document.title = 'Exe — ' + ({ focus: 'Focus', lanes: 'Next & Later', inbox: 'Inbox', review: 'AI Review', map: 'Map', decisions: 'Decisions' })[page]; }, [page]);
@@ -94,7 +95,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
               <span className="desktop-avatar">{name.slice(0, 1).toUpperCase()}</span>
             </div>
           </header>
-          <section id="view" className="view">{screen}</section>
+          <section id="view" className="view"><Suspense fallback={<p className="auth-note" role="status">Loading…</p>}>{screen}</Suspense></section>
         </main>
       </div>
       <div className="mobile-navigation">
@@ -104,7 +105,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
         <button className="mobile-capture" aria-label="Quick Capture" onClick={() => setModal({ kind: 'capture' })}><span className="capture-label">Capture something</span><span className="capture-go" aria-hidden="true"><Icon name="plus" /></span></button>
       </div>
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
-      {stack.map((m, i) => <Dialogs key={i} m={m} />)}
+      <Suspense fallback={null}>{stack.map((m, i) => <Dialogs key={i} m={m} />)}</Suspense>
       {queue && qs?.conflict && <ConflictDialog queue={queue} entries={qs.conflict} reload={api.reload} />}
     </Ctx.Provider>
   );
