@@ -306,3 +306,30 @@ Title per screen; skip link; `aria-live` only on the toast; 44px targets; visibl
 | Map | 8 | 400/550/700/750/800 | 6 | 11 | 29 |
 | Decisions | 6 | 400/600/700/750/800 | 5 | 1 | 23 |
 Totals across the app: 16 sizes, 7 weights, 11 radii, 3 token files, 40 hex + 51 rgba literals in component CSS.
+
+---
+
+## Implementation status (2026-11-08)
+
+**Done and measured (390px, Chromium):**
+- A1/C1: no text under 12px on any screen. The type scale in use is 12, 13, 15, 16, 17, 22, 38 (display), plus the 25px logo. Down from 16 sizes.
+- A2: weights are 400, 500, 600, 700 (800 only in the logo). Down from 7.
+- A3 (partly): rows, tags, pills and buttons use the system radii. Remaining non-system radii are transparent icon buttons.
+- G1: one checkbox everywhere (24px circle, 3.2:1 edge, flat when done). **This now also applies to Inbox and Map.**
+- G2 (partly): primary buttons are flat accent; the Quick Capture Save and decision actions are 50px capsules.
+- G3/G4/G5/I3: Inbox filters 44px, Map rows 56px, brand button 44px. No tappable element under 44px on any of the five screens.
+- I1: each screen has its own page title.
+- I6: skip link added. C2: the stray period in headings is hidden from assistive tech.
+- D2/I4: focus ring is light blue on the dock and in Focus Mode.
+- I4b: Inbox "more" control contrast fixed.
+
+**Still open (not started):**
+- B1 / Focus Mode redesign; B2 one-glass rule; B4 desktop grid.
+- B7 / J1: Map and Decisions still have the horizontal scroller (visible scrollbar, truncated decision titles) and nested boxes. They need the progressive-disclosure rebuild.
+- B5/B6: AI Review empty state still tall, duplicate explainer still present.
+- E1: spacing is not yet on the 4-pt grid. E2: Inbox list is not in a card.
+- D1/D3: cobalt is still used for many jobs; success/warning tokens are not defined.
+- F1: dock labels (icon-only kept by owner decision; active-label option not built).
+- H2/H3, J2-J11: completion feedback, resume chip, chunking, plain-language status.
+- A5/A6/A7/A8: one token file, tokenizing component literals, elevation tokens, deleting dead legacy CSS.
+- I9: `prefers-contrast` and `forced-colors`. Dark theme is unaudited.

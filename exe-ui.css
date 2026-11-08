@@ -197,15 +197,15 @@
   --dock-ring: #2b313b;
   --sidebar-edge: rgba(15, 23, 42, .08);
 
-  --checkbox-bg: rgba(255, 255, 255, .7);
-  --checkbox-edge: #cbd5e1;
-  --checkbox-inset: inset 0 1px 2px rgba(15, 23, 42, .12);
+  --checkbox-bg: #ffffff;
+  --checkbox-edge: #8590a6;
+  --checkbox-inset: none;
   --mini-icon-bg: rgba(255, 255, 255, .8);
   --mini-icon-edge: rgba(15, 23, 42, .06);
   --chip-bg: rgba(47, 84, 235, .08);
   --track-bg: rgba(15, 23, 42, .08);
   --tick: rgba(255, 255, 255, .95);
-  --raw-more: #94a3b8;
+  --raw-more: #56657f;
   --avatar-bg: #e4e6fd;
   --avatar-ink: #353d8b;
 
@@ -240,7 +240,7 @@ body::before {
 }
 
 /* ---------- 2. type + logo ---------- */
-.mission-heading h1, .page-heading h1 { font-size: 38.5px; line-height: 44px; letter-spacing: -1.65px; font-weight: 700; color: var(--ink); }
+.mission-heading h1, .page-heading h1 { font-size: 38px; line-height: 44px; letter-spacing: -1.6px; font-weight: 700; color: var(--ink); }
 .mission-sub, .page-sub { margin-top: 8px; font-size: 16.5px; line-height: 22px; letter-spacing: -.35px; color: var(--secondary); }
 .page-heading .eyebrow, .page-heading .period { display: none; }
 
@@ -404,7 +404,7 @@ body::before {
   .topline-actions { display: flex; align-items: center; margin-right: -5px; }
   .mobile-topline .bell-button { width: 44px; height: 44px; margin: 0; padding: 9px; border: 0; background: none; box-shadow: none; color: var(--secondary); }
   .mobile-workspace { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; }
-  .mobile-workspace .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); font-size: 14px; font-weight: 600; }
+  .mobile-workspace .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); font-size: 13px; font-weight: 600; }
   /* the document scrolls (not an inner box), so Safari can collapse its toolbars */
   html, body { height: auto; min-height: 100%; overflow: visible; }
   .app-shell { display: block; height: auto; min-height: 100dvh; overflow: visible; }
@@ -889,4 +889,44 @@ body::before {
   .page-heading { margin-bottom: 12px; }
   .priority-hero { padding: 16px 18px 14px; }
   .view { max-width: 640px; margin-inline: auto; }
+}
+
+/* ---------- 13. system normalization (Design System v1) ----------
+   One type scale (12 13 15 16 17 22 + display), four weights (400 500 600 700), radii 20 / pill / 50%, 44px targets.
+   Kept last so the older Map / Decisions / Review rules cannot override it. */
+.eyebrow, .review-tag { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .06em; }
+.pill { font-size: 12px; line-height: 16px; font-weight: 600; border-radius: 999px; }
+.small-note, .endnote, .decision-item small, .stream-row small, .outcome-top p { font-size: 13px; line-height: 18px; }
+.stream-row strong, .decision-item strong { font-size: 15px; line-height: 20px; font-weight: 600; }
+.map-title, .decision-detail h2 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -.4px; }
+.empty-state h2 { font-size: 22px; line-height: 28px; }
+#view .empty-state p, #view .review-summary p, #view .helper, #view p.lead { font-size: 15px; line-height: 20px; }
+.avatar { font-size: 13px; }
+.section-heading, .outcome-top h3 { font-size: 17px; line-height: 22px; font-weight: 600; }
+.detail-block h3 { font-size: 15px; line-height: 20px; font-weight: 600; }
+.outcome-tasks .check-row { min-height: 56px; }
+.outcome-tasks .check-row span { font-size: 16px; font-weight: 400; line-height: 22px; }
+.option-tag { font-size: 13px; line-height: 18px; font-weight: 500; border-radius: 999px; }
+.mini-button, .quiet-button { min-height: 44px; border-radius: 999px; font-size: 15px; font-weight: 600; }
+.stream-row, .decision-item { border-radius: var(--r-lg); }
+.raw-more { border-radius: 999px; }
+.empty-icon { border-radius: var(--r-lg); }
+.brand-mobile { min-height: 44px; }
+.inbox-filters button { height: 44px; min-height: 44px; }
+/* one checkbox everywhere: 24px circle, 3:1 edge, flat accent when done */
+.check-row input, .raw-check input { width: 24px; height: 24px; border-radius: 50%; }
+.check-row input:checked, .raw-check input:checked { background: var(--exe-accent); box-shadow: none; }
+/* one primary button: flat accent; sheet and detail actions are full-size capsules */
+.primary-button { background: var(--exe-accent); box-shadow: none; }
+.button-row .primary-button, .capture-foot .primary-button { min-height: 50px; padding-inline: 22px; border-radius: 999px; font-size: 17px; font-weight: 600; }
+/* focus ring that stays visible on dark surfaces */
+.mobile-dock :focus-visible, .focus-layer :focus-visible { outline-color: #9fb3ff; }
+/* skip link */
+.skip-link { position: absolute; left: 16px; top: -72px; z-index: 200; padding: 12px 18px; border-radius: 999px; background: var(--exe-accent); color: #fff; font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: calc(env(safe-area-inset-top) + 12px); }
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  .mission-sub, .page-sub { font-size: 16px; line-height: 22px; }
+  .mission-other-heading { font-size: 22px; line-height: 28px; }
+  .mini-title { font-size: 15px; line-height: 20px; font-weight: 600; }
+  .mini-idle { font-size: 13px; }
 }
