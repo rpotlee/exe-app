@@ -232,3 +232,34 @@ test('deleting a folder or outcome never deletes the work inside it', async () =
     assert.equal((await one(d, 'select count(*)::int n from captures')).n, 1);
   });
 });
+
+test('exe_apply_writes: all-or-nothing, rejects stale writes, unknown tables and bad columns', async () => {
+  const db = await freshDb();
+  const call = (d, writes) => d.query('select exe_apply_writes($1::jsonb)', [JSON.stringify(writes)]);
+  const folder = (id, name) => ({ table: 'folders', op: 'insert', row: { id, owner_id: A, name, description: '', icon: 'folder', position: 0, created_at: '2027-01-01T00:00:00Z', updated_at: '2027-01-01T00:00:00Z', revision: 1 } });
+  const F1 = '10000000-0000-4000-8000-000000000001', F2 = '10000000-0000-4000-8000-000000000002';
+  await asUser(db, A, async d => {
+    await call(d, [folder(F1, 'one')]);
+    // a failure halfway rolls back everything in the same call
+    assert.match(await fails(call(d, [folder(F2, 'two'), { table: 'folders', op: 'insert', row: { ...folder(F2, 'dup').row } }])), /duplicate|unique/);
+    assert.equal((await one(d, 'select count(*)::int n from folders')).n, 1);
+    // a stale write is a conflict, and nothing else in the call is kept
+    await call(d, [{ table: 'folders', op: 'update', row: { id: F1, revision: 1, name: 'renamed' } }]);
+    const stale = await fails(call(d, [folder(F2, 'two'), { table: 'folders', op: 'update', row: { id: F1, revision: 1, name: 'again' } }]));
+    assert.match(stale, /conflict/);
+    assert.deepEqual(await all(d, 'select name, revision from folders'), [{ name: 'renamed', revision: 2 }]);
+    // only the app's tables and real columns are accepted
+    assert.match(await fails(call(d, [{ table: 'user_ai_settings', op: 'insert', row: {} }])), /unknown table/);
+    assert.match(await fails(call(d, [{ table: 'folders; drop table folders', op: 'insert', row: {} }])), /unknown table/);
+    assert.match(await fails(call(d, [{ table: 'folders', op: 'update', row: { id: F1, revision: 2, 'name; drop table folders': 'x' } }])), /bad columns/);
+    assert.match(await fails(call(d, [{ table: 'folders', op: 'truncate', row: {} }])), /unknown operation/);
+    // it cannot be used to reach someone else's rows or write as them
+    assert.match(await fails(call(d, [{ ...folder('10000000-0000-4000-8000-000000000009', 'sneaky'), row: { ...folder('x', 'sneaky').row, id: '10000000-0000-4000-8000-000000000009', owner_id: B } }])), /row-level security/);
+    await call(d, [{ table: 'folders', op: 'delete', row: { id: F1 } }]);
+    assert.equal((await one(d, 'select count(*)::int n from folders')).n, 0);
+  });
+  assert.match(await fails(db.query('select exe_apply_writes($1::jsonb)', ['[]']).then(() => asUser(db, A, d => d.query(`select exe_apply_writes('{"a":1}'::jsonb)`)))), /must be a list/);
+  await db.exec('set role anon');
+  assert.match(await fails(db.query(`select exe_apply_writes('[]'::jsonb)`)), /permission denied/);
+  await db.exec('reset role');
+});

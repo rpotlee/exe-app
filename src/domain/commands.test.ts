@@ -4,21 +4,16 @@ import { describe, expect, it } from 'vitest';
 import * as C from './commands';
 import { computeSuggestion } from './engine';
 import { emptyWorkspace, type Workspace } from './model';
-import { applyWrites, pk, type Ctx, type Write } from './writes';
+import { applyWrites, type Ctx, type Write } from './writes';
 import { asUser, freshDb, A } from '../../supabase/tests/harness.mjs';
 
 let n = 0, clock = 0;
 const ctx: Ctx = { owner: A, now: () => new Date(Date.UTC(2027, 0, 1, 0, 0, clock++)).toISOString(), id: () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}` };
 
-const JSON_COLS = new Set(['before', 'after']);
-async function toDb(db: any, w: Write) {
-  const keys = Object.keys(w.row), key = pk(w.table);
-  const val = (k: string) => (JSON_COLS.has(k) ? JSON.stringify(w.row[k]) : w.row[k]);
-  if (w.op === 'insert') return db.query(`insert into ${w.table} (${keys.join(',')}) values (${keys.map((_, i) => `$${i + 1}`).join(',')})`, keys.map(val));
-  if (w.op === 'delete') return db.query(`delete from ${w.table} where ${key} = $1`, [w.row[key]]);
-  const sets = keys.filter(k => k !== key && k !== 'revision');
-  const r = await db.query(`update ${w.table} set ${sets.map((k, i) => `${k} = $${i + 1}`).join(',')} where ${key} = $${sets.length + 1} and revision = $${sets.length + 2}`, [...sets.map(val), w.row[key], w.row.revision]);
-  if (r.affectedRows !== 1) throw new Error(`conflict: ${w.table} ${String(w.row[key])} changed underneath us`);
+/** One command = one all-or-nothing call, exactly as the app sends it. */
+async function toDb(db: any, writes: Write[]) {
+  try { await db.query('select exe_apply_writes($1::jsonb)', [JSON.stringify(writes)]); }
+  catch (e: any) { throw new Error(String(e.message)); }
 }
 
 /** The columns that must agree between memory and the database (timestamps are set by each side's own clock). */
@@ -37,7 +32,7 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       let ws: Workspace = emptyWorkspace();
       const run = async (r: C.Result): Promise<C.Result> => {
         if (!r.ok) return r;
-        for (const w of r.writes) await toDb(d, w);         // throws if the database refuses
+        await toDb(d, r.writes);                              // throws if the database refuses
         ws = applyWrites(ws, r.writes);
         for (const t of Object.keys(FIELDS)) {
           const rows = (await d.query(`select to_jsonb(x) as j from ${t} x`)).rows.map((r: any) => r.j);
