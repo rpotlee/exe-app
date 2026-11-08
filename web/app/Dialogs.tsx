@@ -13,6 +13,7 @@ import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
 import { PROVIDER_NAMES, type AiSettings, type Provider } from './ai';
 import { weeklyId, weeklySummary } from '../../src/domain/weekly';
+import { describeAudit } from '../../src/domain/insight';
 import { Modal, useDialog } from '../ui/Modal';
 import { useApp, type ModalState } from './context';
 
@@ -23,6 +24,9 @@ const DRAFT = 'exe-capture-draft';
 export function Dialogs({ m }: { m: ModalState }) {
   switch (m.kind) {
     case 'capture': return <CaptureSheet />;
+    case 'history': return <HistoryDialog />;
+    case 'approveSelected': return <ApproveSelected items={m.items} />;
+    case 'split': return <SplitDialog id={m.id} folderId={m.folderId} />;
     case 'steps': return <StepsDialog outcomeId={m.outcomeId} />;
     case 'idea': return <IdeaForm id={m.id} folderId={m.folderId} />;
     case 'promote': return <PromoteIdea id={m.id} />;
@@ -87,6 +91,8 @@ function Settings() {
       <div className="divider"></div>
       <div className="recommendation"><span className="review-tag">BACKUP</span><p>Download everything as a file. Supabase's free plan has no automatic backups, so keep one.</p>
         <div className="button-row"><button className="primary-button" onClick={exportJson}>Download JSON backup</button></div></div>
+      <div className="divider"></div>
+      <div className="recommendation"><span className="review-tag">HISTORY</span><p>What you approved, applied or undid, in words. Original captures are never removed by any of it.</p><div className="button-row"><button className="mini-button" onClick={() => modal({ kind: 'history' })}>Open history</button></div></div>
       <div className="divider"></div>
       <div className="recommendation"><span className="review-tag">RESTORE OR IMPORT</span><p>Load a backup from this app, or the file the old prototype exported. You see what is in it first, and nothing changes until you confirm.</p>
         <label className="form-field"><span className="small-note">Backup file (.json)</span><input className="text-input" type="file" accept="application/json,.json" aria-label="Backup file" onChange={e => { const f = e.target.files?.[0]; if (!f) return; setNote(''); f.text().then(t => { const r = parseBackup(t); if (!r.ok) setNote(r.error); else modal({ kind: 'restore', parsed: r.parsed }); }).catch(() => setNote('Could not read that file.')); e.target.value = ''; }} /></label>
@@ -349,8 +355,10 @@ function OptionEdit({ id }: { id: string }) {
   if (!o) return null;
   return (
     <Modal title="Edit option" onClose={() => modal(null)}>
-      <form onSubmit={e => { e.preventDefault(); const r = C.renameOption(api.get(), api.ctx, id, val(new FormData(e.currentTarget), 'option')); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
+      <form onSubmit={e => { e.preventDefault(); const f = new FormData(e.currentTarget); if (val(f, 'option').trim() !== o.text) { const r = C.renameOption(api.get(), api.ctx, id, val(f, 'option')); if (!r.ok) { setError(r.error); return; } api.run(() => r); } api.run(w => C.setOptionNotes(w, id, { pros: val(f, 'pros'), cons: val(f, 'cons') })); modal(null); }}>
         <input className="text-input" name="option" required maxLength={160} defaultValue={o.text} aria-label="Option text" />
+        <label className="form-field"><span className="small-note">What is good about it (your words)</span><textarea className="text-input" name="pros" maxLength={2000} defaultValue={o.pros} /></label>
+        <label className="form-field"><span className="small-note">What is not so good</span><textarea className="text-input" name="cons" maxLength={2000} defaultValue={o.cons} /></label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="capture-foot"><button type="button" className="quiet-button" onClick={() => { const r = C.removeOption(api.get(), api.ctx, id); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>Remove option</button>
           <button className="primary-button" type="submit">Save option</button></div>
@@ -571,6 +579,56 @@ function WeeklyDialog() {
       <h3 className="section-heading" style={{ marginTop: 14 }}>Still open</h3>
       <ul className="weekly-list"><li>{s.unresolvedDecisions} unresolved {s.unresolvedDecisions === 1 ? 'decision' : 'decisions'}</li><li>{s.waitingReview} {s.waitingReview === 1 ? 'capture' : 'captures'} waiting for AI Review</li><li>{s.blocked} blocked (confirmed blocks only)</li></ul>
       <div className="capture-foot"><span></span><button className="primary-button" onClick={close}>Done</button></div>
+    </Modal>
+  );
+}
+
+function HistoryDialog() {
+  const { api, modal } = useApp();
+  const ws = api.ws, rows = ws.audit.slice().sort((a, b) => b.at.localeCompare(a.at)).slice(0, 100);
+  const stamp = (iso: string) => { try { return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch { return ''; } };
+  return (
+    <Modal title="History" onClose={() => modal(null)}>
+      <p className="helper">Changes you approved, applied or undid. Nothing here was done without you.</p>
+      {rows.length ? <ol className="decision-log">{rows.map(e => <li key={e.id}><span className="log-time">{stamp(e.at)}</span> {describeAudit(ws, e)}</li>)}</ol> : <p className="small-note">Nothing yet. Approvals, applied priority suggestions, finished outcomes and undos will appear here.</p>}
+    </Modal>
+  );
+}
+
+/** Approve a chosen group. The preview lists exactly what will be created; steps with no matching outcome stay loose. */
+function ApproveSelected({ items }: { items: (C.Approval & { id: string })[] }) {
+  const { api, modal } = useApp();
+  const ws = api.ws, folder = (id: string | null) => ws.folders.find(f => f.id === id)?.name ?? 'Not filed';
+  const go = () => { let n = 0; for (const it of items) if (api.run((w, c) => C.approveCapture(w, c, it.id, it))) n++; api.flash(`${n} ${n === 1 ? 'capture' : 'captures'} organized. Originals preserved.`); modal(null); };
+  return (
+    <Modal title={`Approve ${items.length} selected`} onClose={() => modal(null)}>
+      <p className="helper">This is exactly what will be created. Every original capture stays as written, and you can undo each approval later.</p>
+      <ul className="weekly-list">{items.map(i => <li key={i.id}><strong>{i.type === 'Note' ? 'Note' : i.type}</strong>: {i.title} <span className="small-note">({folder(i.folderId)}{i.type === 'Task' && !i.outcomeId ? ', no outcome: stays loose' : ''})</span></li>)}</ul>
+      <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Cancel</button><button className="primary-button" onClick={go}>Approve these</button></div>
+    </Modal>
+  );
+}
+
+/** One capture, several items. The person edits the pieces and picks a type for each; nothing happens until they confirm. */
+function SplitDialog({ id, folderId }: { id: string; folderId: string | null }) {
+  const { api, modal } = useApp();
+  const c = api.ws.captures.find(x => x.id === id);
+  const initial = () => { const parts = (c ? captureText(c) : '').split(/\n|;|\s+then\s+|,\s+and\s+/i).map(x => x.trim()).filter(Boolean); return (parts.length > 1 ? parts : [...parts, '']).map(title => ({ title, type: 'Task' as C.Approval['type'] })); };
+  const [rows, setRows] = useState(initial), [error, setError] = useState('');
+  if (!c) return null;
+  const set = (i: number, patch: Partial<(typeof rows)[number]>) => setRows(r => r.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  return (
+    <Modal title="Split into several items" onClose={() => modal(null)}>
+      <p className="helper"><q>{captureText(c)}</q><br />Edit the pieces and choose what each one is. The original capture is kept whole, and you can undo this.</p>
+      <form onSubmit={e => { e.preventDefault(); const r = C.splitCapture(api.get(), api.ctx, id, rows.map(x => ({ type: x.type, folderId, outcomeId: null, title: x.title }))); if (!r.ok) { setError(r.error); return; } api.run(() => r); modal(null); }}>
+        {rows.map((x, i) => (
+          <div key={i} className="split-row"><input className="text-input" aria-label={`Piece ${i + 1}`} value={x.title} onChange={e => set(i, { title: e.target.value })} maxLength={200} />
+            <select className="select" aria-label={`Type of piece ${i + 1}`} value={x.type} onChange={e => set(i, { type: e.target.value as C.Approval['type'] })}>{(['Task', 'Outcome', 'Decision', 'Idea'] as const).map(t => <option key={t} value={t}>{t}</option>)}</select>
+            <button type="button" className="mini-button" aria-label={`Remove piece ${i + 1}`} onClick={() => setRows(r => r.filter((_, j) => j !== i))}>Remove</button></div>))}
+        <div className="button-row"><button type="button" className="mini-button" onClick={() => setRows(r => [...r, { title: '', type: 'Task' }])}><Icon name="plus" /> Add a piece</button></div>
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <div className="capture-foot"><span className="small-note">Steps with no matching outcome stay loose.</span><button className="primary-button" type="submit">Split</button></div>
+      </form>
     </Modal>
   );
 }

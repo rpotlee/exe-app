@@ -220,3 +220,15 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Ideas.** Create, edit, file, archive, restore and **promote**. Promoting is always the person's explicit confirmation; it creates an outcome in **Later** (never Now), links back to the idea, and keeps the idea archived. Ideas stay outside the Priority Engine.
 - **Not yet live:** "Suggest steps with AI" needs the updated `ai-review` function to be published to the owner's Supabase project, and an automated safety check blocked Claude from doing that. Until it is published, the button reports that AI is not ready and typing steps still works. Publishing command: `supabase functions deploy ai-review --use-api`.
 
+## DEC-014 — The remaining buildable features, and the one left out (2026-11-08)
+**Source:** the owner asked to build the rest of the app. The rules are Claude's recommendations (master §9, §11, §7.3, §14); the owner can overrule them.
+
+- **"Why this?" and the blocked state on the home card.** Reasons come only from the same facts the Priority Engine uses (active, pinned, a deadline you entered, items it would unlock, a ready step, when you last worked on it). If nothing special applies it says only that you chose it. **Red is used only for a block you confirmed**, with the name of the blocker and a link to open it (the decision, or the Map). A suggested relationship never turns the card red.
+- **Decisions ranked by verified impact.** Open decisions first, ordered by how much confirmed, unfinished work each is holding up, then the earliest deadline you entered on that work, then newest. Never by how persuasive its text is. Each row says "holding up N".
+- **Comparing options.** You write what is good and not so good about each option, plus the criteria you care about. The app lays your own words side by side. It **never scores or ranks options for you.**
+- **History.** A plain-words list of what you approved, applied or undid (stored in the existing append-only audit table). Reachable from Settings.
+- **Approve a chosen group, with a preview.** Tick captures in AI Review, see exactly what will be created, then confirm. Anything you rejected before is skipped, and steps with no matching outcome stay loose.
+- **Split one capture into several items.** Only on the person's approval. The original capture stays whole and is marked "Split"; each item records it as its source; undo removes the items while they are all untouched and refuses (all or nothing) if any was worked on.
+- **Migration 8** added the comparison text columns and the "Split" marker (applied to the owner's project).
+- **Left out: research with real sources (master §13).** Quick Answers and Guided Research need each AI provider's web-search tool, whose request formats were not verified, cannot be tested without the owner's key, and would need the AI function published again (blocked for Claude). Building it blind would risk invented sources, which the spec forbids. It should be built after one live AI call succeeds and the three providers' search tools are checked.
+

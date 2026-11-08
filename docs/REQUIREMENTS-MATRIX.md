@@ -54,3 +54,14 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 | §14.1–14.2 prompts after changes | Built (3 kinds) | `prompts()` | `next.test.ts`, `tests/app_react.py` |
 | §14.3 weekly review | Built (optional, real data only) | `src/domain/weekly.ts` | `next.test.ts`, `tests/app_react.py` |
 | §2.1 Ideas (create, edit, archive, promote) | Built | `createIdea` … `promoteIdea` | `commands.test.ts` (real schema), `tests/app_react.py` |
+
+## Added 2026-11-08 (DEC-014)
+| Spec § | Status | Test |
+|---|---|---|
+| §11.2/§11.4 "Why this?" and red blocked state with an unblock action | Built | `insight.test.ts`, `tests/app_react.py` |
+| §9.2 Decision queue sorted by verified impact | Built | `insight.test.ts`, `tests/app_react.py` |
+| §9.3 options with criteria and side-by-side notes (no scores) | Built | `review.test.ts` (real schema), `tests/app_react.py` |
+| §7.7 history / audit view | Built (Settings, History) | `insight.test.ts`, `tests/app_react.py` |
+| §7.3 selective batch approve with preview | Built | `tests/app_react.py` |
+| §7 / DEC-002 split one capture into several, undoable | Built | `review.test.ts` (real schema), `tests/app_react.py` |
+| §13 Research (Quick Answer, Guided Research, citations) | **Not built** (see DEC-014) | none |

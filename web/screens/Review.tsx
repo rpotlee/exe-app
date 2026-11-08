@@ -13,6 +13,7 @@ const TYPES: ProposalType[] = ['Task', 'Outcome', 'Decision', 'Idea', 'Note'];
 export function Review() {
   const { api, go, modal, ai } = useApp();
   const ws = api.ws, [edits, setEdits] = useState<Record<string, Partial<Proposal>>>({});
+  const [sel, setSel] = useState<Set<string>>(new Set());
   const [cfg, setCfg] = useState<AiSettings | null>(null), [sug, setSug] = useState<Record<string, AiProposal>>({}), [who, setWho] = useState(''), [aiMsg, setAiMsg] = useState(''), [busy, setBusy] = useState(false);
   useEffect(() => { ai?.settings().then(setCfg).catch(() => setCfg(null)); }, [ai]);
   const allPending = pendingCaptures(ws), aside = setAside(ws), [shown, setShown] = useState(30), pending = allPending.slice(0, shown);   // big lists are shown 30 at a time
@@ -27,6 +28,8 @@ export function Review() {
   const edit = (id: string, patch: Partial<Proposal>) => setEdits(e => ({ ...e, [id]: { ...e[id], ...patch } }));
   const toApproval = (p: Proposal): C.Approval => ({ type: p.type, folderId: p.folderId, outcomeId: p.outcomeId, title: p.title });
 
+  const toggleSel = (id: string) => setSel(x => { const n = new Set(x); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const chosen = pending.filter(c => sel.has(c.id) && !rejectedBefore(c, prop(c)));
   const approve = (c: Capture) => { const p = prop(c); if (needsPlacement(p)) modal({ kind: 'placement', id: c.id, folderId: p.folderId, mergeWith: null }); else api.run((w, cx) => C.approveCapture(w, cx, c.id, toApproval(p))); };
   const approveAll = () => {
     const todo = allPending.filter(c => !rejectedBefore(c, prop(c))); let loose = 0;
@@ -37,7 +40,7 @@ export function Review() {
   return (
     <>
       <PageHeading label="AI REVIEW" title="AI Review" sub={cfg?.enabled ? `Approve organization deliberately. AI suggestions come from your own ${PROVIDER_NAMES[cfg.provider]} key, only when you ask.` : "Approve organization deliberately. Without AI turned on, this uses local keyword rules (a simulation), not an AI model."}
-        extra={<div className="page-tools">{allPending.length > 0 && <button className="primary-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({allPending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
+        extra={<div className="page-tools">{chosen.length > 0 && <button className="primary-button" onClick={() => modal({ kind: 'approveSelected', items: chosen.map(c => ({ id: c.id, ...toApproval(prop(c)) })) })}><Icon name="check" /> Approve selected ({chosen.length})</button>}{allPending.length > 0 && <button className="quiet-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({allPending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
       <div className="review-layout">
         <section className="stack">
           {pending.length > 0 && <div className="card review-aside">{cfg?.enabled ? <div className="button-row"><button className="primary-button" disabled={busy} onClick={ask}><Icon name="sparkles" /> {busy ? 'Asking…' : 'Get AI suggestions'}</button><span className="small-note">Sends the text of up to 20 waiting captures to {PROVIDER_NAMES[cfg.provider]} with your key.</span></div> : <p className="small-note">{ai ? 'Want real AI suggestions? Add your own key in Settings. Nothing is sent anywhere until you turn it on and ask.' : 'Real AI suggestions need an account (they use your own key, stored on the server).'}</p>}{aiMsg && <p className="small-note" role="status">{aiMsg}</p>}</div>}
@@ -45,7 +48,7 @@ export function Review() {
             const p = prop(c), dup = duplicateOf(ws, c), again = rejectedBefore(c, p);
             return (
               <article key={c.id} className="card review-item">
-                <div className="row-between"><span className="review-tag">ORIGINAL CAPTURE</span><span className="pill blue">Unapproved</span></div>
+                <div className="row-between"><label className="check-row sel-row"><input type="checkbox" checked={sel.has(c.id)} onChange={() => toggleSel(c.id)} aria-label={`Select to approve together: ${captureText(c)}`} /><span className="review-tag">ORIGINAL CAPTURE</span></label><span className="pill blue">Unapproved</span></div>
                 <p className="review-original">{captureText(c)}</p>
                 <div className="review-fields">
                   <div className="form-field"><label htmlFor={`type-${c.id}`}>Suggested type</label><select className="select" id={`type-${c.id}`} value={p.type} onChange={e => edit(c.id, { type: e.target.value as ProposalType })}>{TYPES.map(t => <option key={t} value={t}>{t === 'Note' ? 'Just a note' : t}</option>)}</select></div>
@@ -56,6 +59,7 @@ export function Review() {
                 {again && <p className="form-error" role="status">You rejected this exact suggestion before. Change the type or folder to approve it.</p>}
                 {dup && <div className="review-dup"><strong>Possible duplicate.</strong> This looks like another capture waiting for review: <q>{captureText(dup)}</q> <button className="mini-button" onClick={() => modal({ kind: 'mergePreview', id: c.id, otherId: dup.id, folderId: p.folderId, type: p.type })}>Preview merge</button></div>}
                 <div className="action-line"><button className="primary-button" disabled={again} onClick={() => approve(c)}><Icon name="check" /> Approve &amp; organize</button>
+                  <button className="mini-button" onClick={() => modal({ kind: 'split', id: c.id, folderId: p.folderId })}>Split…</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => C.deferCapture(w, cx, c.id))}>Not now</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => C.rejectCapture(w, cx, c.id, proposalFingerprint(p)))}>Reject</button></div>
               </article>); })
@@ -64,7 +68,7 @@ export function Review() {
           {aside.length > 0 && <section className="card review-aside" aria-label="Set aside"><h3 className="section-heading">Set aside ({aside.length})</h3><p className="small-note">Not deleted. The capture and its suggestion are kept.</p>
             {aside.map(c => <div key={c.id} className="aside-row"><span className="aside-text">{captureText(c)}<small>{c.review_state === 'rejected' ? 'Rejected' : 'Not now'}</small></span><button className="mini-button" aria-label={`Review again: ${captureText(c)}`} onClick={() => api.run(w => C.reviewAgain(w, c.id))}>Review again</button></div>)}</section>}
           {recent.length > 0 && <section className="card review-aside" aria-label="Recently approved"><h3 className="section-heading">Recently approved</h3><p className="small-note">You can undo an approval until you have worked on what it created. The original capture always stays.</p>
-            {recent.map(c => <div key={c.id} className="aside-row"><span className="aside-text">{captureText(c)}<small>Approved as {c.organized_as === 'Note' ? 'a note' : c.organized_as}{merged(c.id) ? ' (merged with another capture)' : ''}</small></span><button className="mini-button" aria-label={`Undo approval: ${captureText(c)}`} onClick={() => api.run((w, cx) => C.undoApproval(w, cx, c.id))}>Undo</button></div>)}</section>}
+            {recent.map(c => <div key={c.id} className="aside-row"><span className="aside-text">{captureText(c)}<small>Approved as {c.organized_as === 'Note' ? 'a note' : c.organized_as === 'Split' ? 'several items (split)' : c.organized_as}{merged(c.id) ? ' (merged with another capture)' : ''}</small></span><button className="mini-button" aria-label={`Undo approval: ${captureText(c)}`} onClick={() => api.run((w, cx) => C.undoApproval(w, cx, c.id))}>Undo</button></div>)}</section>}
         </section>
         <aside className="card review-summary"><h3>Designed to protect your focus</h3><p>This version makes simple local suggestions and keeps your originals. A real AI service, with your own key, comes later.</p>
           <div className="recommendation"><span className="review-tag">REVIEW RULES</span><p>Suggest, then you approve. Nothing enters Now automatically, and nothing is deleted.</p></div></aside>

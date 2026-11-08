@@ -186,6 +186,41 @@ with sync_playwright() as p:
         d = S(page); assert len(d['captures']) == n_before + 18 and len(d['outcomes']) == o_before + 12 and len([f for f in d['focus'] if f['lane'] == 'now']) <= 3
         assert any(c['text'] == 'Register the business in NYC' for c in d['captures']) and all(c['owner_id'] == 'local' for c in d['captures'])
         page.keyboard.press('Escape')
+        # a confirmed block: the home card says so in red with a way to unblock; decisions rank by what they hold up; "Why this?"
+        nav(page, 'focus'); current = page.locator('.priority-hero h2').inner_text()
+        nav(page, 'decisions'); page.get_by_role('button', name='New decision').click(); page.locator('#modal-root input[name=name]').fill('Pick a venue?'); page.get_by_role('button', name='Add decision').click()
+        nav(page, 'map'); pick(page, w, 'All notes'); page.get_by_role('button', name='Add relationship').click(); f = page.locator('#modal-root')
+        f.locator('select[name=from]').select_option(label='Pick a venue?'); f.locator('select[name=to]').select_option(label=current); f.locator('select[name=kind]').select_option('blocks'); f.get_by_role('button', name='Add relationship').click()
+        nav(page, 'focus'); expect(page.locator('.blocked-banner')).to_contain_text('Pick a venue?'); expect(page.locator('.blocked-banner')).to_contain_text('a block you confirmed')
+        page.get_by_role('button', name='Why this?').click(); expect(page.locator('.why-list')).to_contain_text('active')
+        page.get_by_role('button', name='Open the decision').click(); expect(page.get_by_role('heading', name='Pick a venue?', level=2)).to_be_visible()
+        assert page.locator('.decision-item').first.inner_text().startswith('Pick a venue?') and 'holding up 1' in page.locator('.decision-item').first.inner_text()
+        expect(page.locator('.impact-line')).to_contain_text('Holding up 1 item')
+        # comparing options: your own words side by side, no scores
+        for o in ['Hall', 'Garden']:
+            page.get_by_role('button', name='Add option').click(); page.locator('#modal-root input[name=option]').fill(o); page.locator('#modal-root').get_by_role('button', name='Add option', exact=True).click()
+        page.get_by_role('button', name='Edit option: Hall').click(); page.locator('#modal-root textarea[name=pros]').fill('Indoors, always dry'); page.locator('#modal-root textarea[name=cons]').fill('Costs more'); page.get_by_role('button', name='Save option').click()
+        page.get_by_label('Criteria').fill('Budget under 800'); page.get_by_label('Research notes').click()
+        expect(page.locator('table.compare')).to_contain_text('Indoors, always dry'); expect(page.locator('table.compare')).to_contain_text('Nothing written'); expect(page.locator('table.compare caption')).to_contain_text('does not score')
+        assert next(d for d in S(page)['decisions'] if d['name'] == 'Pick a venue?')['criteria'] == 'Budget under 800'
+        # history in words
+        (page.get_by_role('button', name='Settings') if not mobile else page.get_by_role('button', name='Account and settings')).filter(visible=True).first.click()
+        page.get_by_role('button', name='Open history').click(); expect(page.locator('#modal-root')).to_contain_text('You confirmed the outcome'); page.keyboard.press('Escape'); page.keyboard.press('Escape')
+        # approve a chosen group with a preview, and split one capture into several (undoable)
+        for t in ['Alpha chore one', 'Beta chore two', 'Fix the fence then paint it']: cap(page, t)
+        nav(page, 'review')
+        def rcard(text): return page.locator('.review-item').filter(has=page.locator('.review-original', has_text=text))
+        rcard('Alpha chore one').get_by_label('Select to approve together: Alpha chore one').check(); rcard('Beta chore two').get_by_label('Select to approve together: Beta chore two').check()
+        page.get_by_role('button', name='Approve selected (2)').click(); expect(page.locator('#modal-root')).to_contain_text('exactly what will be created'); expect(page.locator('#modal-root')).to_contain_text('Alpha chore one')
+        n_t = len(S(page)['tasks']); page.get_by_role('button', name='Cancel').click(); assert len(S(page)['tasks']) == n_t, 'a preview creates nothing'
+        page.get_by_role('button', name='Approve selected (2)').click(); page.get_by_role('button', name='Approve these').click()
+        d = S(page); assert {c['text']: c['organized_as'] for c in d['captures'] if c['text'] in ('Alpha chore one', 'Beta chore two')} == {'Alpha chore one': 'Task', 'Beta chore two': 'Task'} and len(d['tasks']) == n_t + 2
+        rcard('Fix the fence').get_by_role('button', name='Split…').click(); expect(page.get_by_label('Piece 1', exact=True)).to_have_value('Fix the fence'); expect(page.get_by_label('Piece 2', exact=True)).to_have_value('paint it')
+        page.locator('#modal-root').get_by_role('button', name='Split', exact=True).click()
+        d = S(page); sc = next(c for c in d['captures'] if c['text'] == 'Fix the fence then paint it'); assert sc['organized_as'] == 'Split' and sc['text'] == 'Fix the fence then paint it'
+        assert sorted(t['name'] for t in d['tasks'] if sc['id'] in t['sources']) == ['Fix the fence', 'paint it']
+        page.get_by_role('button', name='Undo approval: Fix the fence then paint it').click()
+        d = S(page); assert not any(sc['id'] in t['sources'] for t in d['tasks']) and next(c for c in d['captures'] if c['id'] == sc['id'])['status'] == 'pending'
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
             for r in ['focus', 'inbox', 'map', 'decisions', 'review']:

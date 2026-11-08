@@ -6,6 +6,7 @@ import { dismissPrompt } from '../../src/domain/commands';
 import { currentFocusId, type Outcome, type Workspace } from '../../src/domain/model';
 import { prompts as changePrompts, quickWin } from '../../src/domain/next';
 import { isoWeek, weeklyId } from '../../src/domain/weekly';
+import { whyCurrent } from '../../src/domain/insight';
 import { progressOf, stepsOf } from '../../src/domain/progress';
 import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
@@ -29,7 +30,7 @@ function HeroStat({ ws, id }: { ws: Workspace; id: string }) {
 
 export function Focus() {
   const { api, go, modal, awaitingReview, setFolderSel, setDecisionSel } = useApp();
-  const [mins, setMins] = useState(0);
+  const [mins, setMins] = useState(0), [whyOpen, setWhyOpen] = useState(false);
   const ws = api.ws, ids = activeIds(ws), stored = currentFocusId(ws);
   const currentId = stored && ids.includes(stored) ? stored : ids[0] ?? null;
   const current = ws.outcomes.find(o => o.id === currentId) ?? null;
@@ -47,6 +48,8 @@ export function Focus() {
   const reviewPrompt = (p: (typeof plist)[number]) => { if (p.page === 'decisions') setDecisionSel(p.targetId); else setFolderSel(p.folderId ?? 'all'); go(p.page); };
 
   useLayoutEffect(() => { syncPriorityGlassAccent(); }, [current?.id]);   // after the card renders and when the active priority changes
+  const why = useMemo(() => (current ? whyCurrent(ws, current.id, d => new Date(d.length === 10 ? d + 'T00:00:00' : d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })) : null), [ws, current?.id]);   // eslint-disable-line
+  const unblock = (b: { id: string; type: string }) => { if (b.type === 'decision') { setDecisionSel(b.id); go('decisions'); } else { setFolderSel(current?.folder_id ?? 'all'); go('map'); } };
   const steps = current ? stepsOf(ws, current.id) : [], firstOpen = steps.find(t => t.done_at === null), nextStep = firstOpen ?? steps[0];
   const nx = ws.focus.filter(f => f.lane === 'next').length, lt = ws.focus.filter(f => f.lane === 'later').length;
   const openSlots = 3 - ids.length;
@@ -71,6 +74,11 @@ export function Focus() {
         {current ? (
           <div className="hero-stack"><section className="priority-hero" aria-labelledby="current-priority-title">
             <div className="hero-head"><div className="hero-heading"><div className="hero-icon"><Icon name="layers" /></div><div className="hero-copy"><div className="overline">CURRENT PRIORITY</div><h2 id="current-priority-title">{current.name}</h2><div className="type-label">{folderOf(ws, current)}</div></div></div></div>
+            {why && why.blockers.length > 0 && (
+              <div className="blocked-banner" role="status"><Icon name="lock" /><div><strong>Blocked.</strong> Held up by {why.blockers.map(b => `“${b.name}”`).join(', ')} (a block you confirmed).
+                <span className="banner-actions">{why.blockers.map(b => <button key={b.id} className="link-button" onClick={() => unblock(b)}>{b.type === 'decision' ? 'Open the decision' : 'Review in Map'}</button>)}</span></div></div>)}
+            <button type="button" className="why-toggle" aria-expanded={whyOpen} onClick={() => setWhyOpen(o => !o)}>Why this? <Icon name="chevron-down" /></button>
+            {whyOpen && why && <ul className="why-list">{why.lines.map(l => <li key={l}>{l}</li>)}</ul>}
             <HeroStat ws={ws} id={current.id} />
             <div className="hero-checks desktop-checks">{steps.map(t => <CheckRow key={t.id} task={t} next={t.id === firstOpen?.id} />)}{!steps.length && <p className="small-note">No checklist steps added yet.</p>}</div>
             <div className={`hero-checks mobile-checks ${expanded ? 'expanded' : ''}`} id="mobile-steps">

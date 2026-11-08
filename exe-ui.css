@@ -865,6 +865,27 @@ body::before {
 .idea-row .rel-actions { grid-column: 2; }
 @media (min-width: 1100px) { .mission-extras { grid-column: 2; grid-row: 3; margin-top: 0; } }
 
+.blocked-banner { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--red-bg); color: var(--red); font-size: 14px; line-height: 19px; }
+.blocked-banner svg { flex: none; margin-top: 1px; }
+.blocked-banner .banner-actions { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; margin-left: 6px; }
+.blocked-banner .link-button { color: inherit; }
+.why-toggle { display: inline-flex; align-items: center; gap: 4px; margin: 2px 0 8px; padding: 6px 0; min-height: 32px; background: none; border: 0; color: var(--exe-accent-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.why-toggle svg { width: 16px; height: 16px; transition: transform .2s; }
+.why-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.why-list { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 4px; font-size: 14.5px; line-height: 20px; color: var(--secondary); }
+.impact-line { display: flex; gap: 8px; align-items: flex-start; margin: 8px 0; font-size: 14.5px; line-height: 20px; color: var(--ink); }
+.impact-line svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+.compare-wrap { overflow-x: auto; }
+.compare { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 14.5px; line-height: 20px; }
+.compare caption { text-align: left; padding-bottom: 8px; }
+.compare th, .compare td { text-align: left; vertical-align: top; padding: 8px 10px; border-top: 1px solid var(--edge); }
+.compare thead th { border-top: 0; font-weight: 600; }
+.compare tbody th { width: 96px; font-weight: 600; color: var(--secondary); }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.split-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+@media (max-width: 520px) { .split-row { grid-template-columns: 1fr 1fr; } .split-row .text-input { grid-column: 1 / -1; } }
+.sel-row { padding: 0; min-height: 0; }
+
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }
 .inbox-filters button[aria-pressed="true"] { background: var(--accent-fill); border-color: transparent; box-shadow: none; color: #fff; font-weight: 600; }
