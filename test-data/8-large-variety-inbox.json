@@ -1,0 +1,1837 @@
+{
+ "version": 1,
+ "workspaceName": "Large variety inbox",
+ "workstreams": [],
+ "outcomes": [],
+ "focusAssignments": [],
+ "tasks": [],
+ "relationships": [],
+ "decisions": [],
+ "ideas": [],
+ "captures": [
+  {
+   "id": "c0",
+   "text": "Email Rachel about the open position at company A",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c1",
+   "text": "Reply to Dan about the invoice he sent last week",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c2",
+   "text": "Email landlord about the broken dishwasher",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c3",
+   "text": "Write a thank-you note to Aunt Maria for the gift",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c4",
+   "text": "Ask my manager about working remotely on Fridays",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c5",
+   "text": "Email the school about Maya's vaccination records",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c6",
+   "text": "Follow up with the recruiter at Northwind",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c7",
+   "text": "Draft a cancellation email to the gym",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c8",
+   "text": "Message Priya to reschedule Thursday's meeting",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c9",
+   "text": "Email the accountant about quarterly estimated taxes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c10",
+   "text": "Research how to register a business in New York City",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c11",
+   "text": "Find out whether I need an LLC or a sole proprietorship",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c12",
+   "text": "Look up requirements for a home business license",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c13",
+   "text": "Research how to get a Real ID in my state",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c14",
+   "text": "Compare health insurance plans for freelancers",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c15",
+   "text": "Find out how long US passport renewal takes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c16",
+   "text": "Research how to set up a Roth IRA",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c17",
+   "text": "Look into how to trademark a business name",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c18",
+   "text": "Find the rules for importing a car from Canada",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c19",
+   "text": "Research electric vehicle tax credits",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c20",
+   "text": "Figure out how to apply for a building permit for a deck",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c21",
+   "text": "Learn what a 529 plan is and whether it makes sense for us",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c22",
+   "text": "What is the capital of Australia?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c23",
+   "text": "How many ounces are in a pound?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c24",
+   "text": "What is the tallest mountain in South America?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c25",
+   "text": "What year did the Berlin Wall fall?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c26",
+   "text": "What is the time difference between New York and Tokyo?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c27",
+   "text": "How many days until the next leap year?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c28",
+   "text": "What is the boiling point of water in Fahrenheit?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c29",
+   "text": "Who wrote Pride and Prejudice?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c30",
+   "text": "Book a dentist appointment",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c31",
+   "text": "Schedule an annual physical",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c32",
+   "text": "Renew car registration",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c33",
+   "text": "Renew passport",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c34",
+   "text": "Take the car in for an oil change",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c35",
+   "text": "Get a haircut",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c36",
+   "text": "Book flights for the May trip",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c37",
+   "text": "Pick travel dates for the May trip",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c38",
+   "text": "Reserve a hotel in Lisbon",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c39",
+   "text": "Make a packing list for the trip",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c40",
+   "text": "Buy travel insurance",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c41",
+   "text": "Check whether my passport has six months left",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c42",
+   "text": "Exchange some euros before the trip",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c43",
+   "text": "Plan a surprise party for Sam",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c44",
+   "text": "Pick a date for Sam's party",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c45",
+   "text": "Make the guest list for Sam's party",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c46",
+   "text": "Order a cake for Sam's party",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c47",
+   "text": "Buy decorations for Sam's party",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c48",
+   "text": "Choose a gift for Sam",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c49",
+   "text": "Fix the leaky kitchen faucet",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c50",
+   "text": "Get a plumber quote for the faucet",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c51",
+   "text": "Clean out the garage",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c52",
+   "text": "Donate old clothes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c53",
+   "text": "Replace the smoke detector batteries",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c54",
+   "text": "Paint the guest bedroom",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c55",
+   "text": "Pick a paint color for the guest bedroom",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c56",
+   "text": "Buy paint and rollers",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c57",
+   "text": "Assemble the new bookshelf",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c58",
+   "text": "Hang the pictures in the hallway",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c59",
+   "text": "Why is the garage door so loud?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c60",
+   "text": "Mow the lawn",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c61",
+   "text": "Plant tomatoes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c62",
+   "text": "Call the electrician about the flickering lights",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c63",
+   "text": "Declutter the closet",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c64",
+   "text": "Sign the lease for the new apartment",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c65",
+   "text": "Decide between the two apartments",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c66",
+   "text": "Hire movers",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c67",
+   "text": "Get boxes for the move",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c68",
+   "text": "Set up internet at the new place",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c69",
+   "text": "Change my address with the bank",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c70",
+   "text": "Forward my mail",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c71",
+   "text": "Cancel the old utility accounts",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c72",
+   "text": "Review the Q4 budget",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c73",
+   "text": "Prepare slides for Monday's presentation",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c74",
+   "text": "Send the project update to the team",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c75",
+   "text": "Finish the onboarding flow design",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c76",
+   "text": "Fix the login bug on mobile",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c77",
+   "text": "Write the release notes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c78",
+   "text": "Update my resume",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c79",
+   "text": "Update my LinkedIn profile",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c80",
+   "text": "Ask for a performance review",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c81",
+   "text": "Learn the basics of SQL",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c82",
+   "text": "Read the security audit report",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c83",
+   "text": "Decide on pricing for the new plan",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c84",
+   "text": "Compare three project management tools",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c85",
+   "text": "Choose a name for the new product",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c86",
+   "text": "Ask legal about data retention",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c87",
+   "text": "Reconcile the March credit card statement",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c88",
+   "text": "Set up automatic bill pay",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c89",
+   "text": "Cancel unused subscriptions",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c90",
+   "text": "Compare savings account interest rates",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c91",
+   "text": "Pay the property tax bill",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c92",
+   "text": "Gather documents for taxes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c93",
+   "text": "File taxes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c94",
+   "text": "Check my credit report",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c95",
+   "text": "Build a six-month emergency fund",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c96",
+   "text": "Decide whether to refinance the mortgage",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c97",
+   "text": "Run a 10K in the spring",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c98",
+   "text": "Buy running shoes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c99",
+   "text": "Sign up for a local 10K race",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c100",
+   "text": "Go for a 3 mile run",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c101",
+   "text": "Meal prep for the week",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c102",
+   "text": "Try a new vegetarian recipe",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c103",
+   "text": "Drink more water",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c104",
+   "text": "Cancel the gym membership",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c105",
+   "text": "Book a massage",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c106",
+   "text": "Meditate for ten minutes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c107",
+   "text": "Read Atomic Habits",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c108",
+   "text": "Read that article about sleep",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c109",
+   "text": "Finish the online course on data visualization",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c110",
+   "text": "Practice Spanish for 15 minutes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c111",
+   "text": "Buy milk, eggs and coffee",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c112",
+   "text": "Pick up dry cleaning",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c113",
+   "text": "Return the package to Amazon",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c114",
+   "text": "Buy a standing desk",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c115",
+   "text": "Order a new phone charger",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c116",
+   "text": "Buy printer ink",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c117",
+   "text": "Get a birthday card for Mom",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c118",
+   "text": "Call Mom on Sunday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c119",
+   "text": "Call Grandpa",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c120",
+   "text": "Plan a weekend with college friends",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c121",
+   "text": "Learn to sail",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c122",
+   "text": "Start a podcast",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c123",
+   "text": "Write a short story",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c124",
+   "text": "Organize family photos",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c125",
+   "text": "Back up my laptop",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c126",
+   "text": "Update all my passwords",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c127",
+   "text": "Set up two-factor authentication",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c128",
+   "text": "Clean out my email inbox",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c129",
+   "text": "Unsubscribe from newsletters I never read",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c130",
+   "text": "Research the best laptop for video editing",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c131",
+   "text": "Think about whether to adopt a dog",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c132",
+   "text": "Volunteer at the food bank",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c133",
+   "text": "Sort out what to do about the noisy neighbors",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c134",
+   "text": "Email Marcus the updated contract and ask him to sign by Friday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c135",
+   "text": "Reply to the landlord's renewal offer",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c136",
+   "text": "Write to my insurance agent asking why the premium went up",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c137",
+   "text": "Email the HOA about the fence dispute",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c138",
+   "text": "Draft a LinkedIn message to Elena about the design role",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c139",
+   "text": "Ask Jordan if he can cover my shift on the 14th",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c140",
+   "text": "Send Mom the flight details",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c141",
+   "text": "Email the vet to ask about the vaccination schedule",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c142",
+   "text": "Follow up with the contractor about the deck quote",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c143",
+   "text": "Write a recommendation letter for Chris",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c144",
+   "text": "Ask the bank why the wire transfer is delayed",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c145",
+   "text": "Message the team about moving standup to 10am",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c146",
+   "text": "Email the printer for a quote on 500 flyers",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c147",
+   "text": "Research how to apply for a small business loan",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c148",
+   "text": "Research what permits a food truck needs in Texas",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c149",
+   "text": "Find out how to transfer a car title between states",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c150",
+   "text": "Look up how long it takes to get a visa for Portugal",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c151",
+   "text": "Research how to incorporate in Delaware vs Wyoming",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c152",
+   "text": "Compare 401k rollover options after leaving a job",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c153",
+   "text": "Find the rules for deducting a home office",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c154",
+   "text": "Look up how to report a lost social security card",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c155",
+   "text": "Research the best way to ship a pallet cross-country",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c156",
+   "text": "Find out what vaccines are needed for travel to Kenya",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c157",
+   "text": "Learn how to file an extension for taxes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c158",
+   "text": "Find the requirements to become a notary",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c159",
+   "text": "Research how to apply for global entry",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c160",
+   "text": "Look up how to dispute a credit card charge",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c161",
+   "text": "Find out if I can contribute to both an IRA and a 401k",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c162",
+   "text": "How many calories are in a banana?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c163",
+   "text": "What is the speed of light?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c164",
+   "text": "Who was the first person on the moon?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c165",
+   "text": "What is the population of Canada?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c166",
+   "text": "What is the square root of 144?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c167",
+   "text": "What currency does Switzerland use?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c168",
+   "text": "How many states are in the US?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c169",
+   "text": "What is the largest ocean on Earth?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c170",
+   "text": "What is the chemical symbol for gold?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c171",
+   "text": "How many minutes are in a day?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c172",
+   "text": "Prepare for the board meeting",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c173",
+   "text": "Finish the quarterly report",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c174",
+   "text": "Review the pull request from Dana",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c175",
+   "text": "Write the onboarding doc for new hires",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c176",
+   "text": "Set up the staging environment",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c177",
+   "text": "Fix the flaky test in the payments suite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c178",
+   "text": "Migrate the database to the new region",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c179",
+   "text": "Estimate the work for the mobile redesign",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c180",
+   "text": "Interview three candidates for the engineer role",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c181",
+   "text": "Write job description for the engineer role",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c182",
+   "text": "Post the engineer role on job boards",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c183",
+   "text": "Schedule interviews for the engineer role",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c184",
+   "text": "Prepare interview questions for the engineer role",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c185",
+   "text": "Decide whether to hire a contractor or a full-timer",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c186",
+   "text": "Decide which cloud provider to use",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c187",
+   "text": "Pick a CRM for the team",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c188",
+   "text": "Choose between React Native and Flutter",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c189",
+   "text": "Decide on a launch date",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c190",
+   "text": "Decide whether to raise prices",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c191",
+   "text": "Plan the team offsite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c192",
+   "text": "Book a venue for the offsite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c193",
+   "text": "Send a save-the-date for the offsite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c194",
+   "text": "Arrange transportation for the offsite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c195",
+   "text": "Plan the agenda for the offsite",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c196",
+   "text": "Plan a kitchen remodel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c197",
+   "text": "Get three contractor quotes for the remodel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c198",
+   "text": "Choose countertops",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c199",
+   "text": "Pick cabinet colors",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c200",
+   "text": "Order appliances for the remodel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c201",
+   "text": "Decide on a remodel budget",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c202",
+   "text": "Hire an electrician for the remodel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c203",
+   "text": "Apply for a permit for the remodel",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c204",
+   "text": "Buy a used car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c205",
+   "text": "Research reliable used cars under 15k",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c206",
+   "text": "Check the Carfax on the Civic",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c207",
+   "text": "Arrange a test drive",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c208",
+   "text": "Get a pre-purchase inspection",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c209",
+   "text": "Get a loan pre-approval for the car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c210",
+   "text": "Negotiate the price of the car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c211",
+   "text": "Register the new car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c212",
+   "text": "Switch car insurance to the new car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c213",
+   "text": "Learn to play guitar",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c214",
+   "text": "Buy a beginner guitar",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c215",
+   "text": "Find a guitar teacher",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c216",
+   "text": "Practice chords for 20 minutes",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c217",
+   "text": "Book a doctor's appointment for the knee",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c218",
+   "text": "Get an MRI referral",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c219",
+   "text": "Ask about physical therapy options",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c220",
+   "text": "Stretch every morning",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c221",
+   "text": "Sleep by 10:30",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c222",
+   "text": "Cut down on caffeine",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c223",
+   "text": "Schedule an eye exam",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c224",
+   "text": "Buy new glasses",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c225",
+   "text": "Write a will",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c226",
+   "text": "Choose a guardian for the kids",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c227",
+   "text": "Update beneficiaries on the retirement account",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c228",
+   "text": "Organize important documents in one folder",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c229",
+   "text": "Scan the old tax returns",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c230",
+   "text": "Back up the photo library",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c231",
+   "text": "Clear storage on my phone",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c232",
+   "text": "Update my phone",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c233",
+   "text": "Set up the new router",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c234",
+   "text": "Fix the wifi dead spot upstairs",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c235",
+   "text": "Call the cable company about my bill",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c236",
+   "text": "Negotiate a lower internet bill",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c237",
+   "text": "Switch phone plans",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c238",
+   "text": "Return the shoes that don't fit",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c239",
+   "text": "Buy a gift for the teacher",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c240",
+   "text": "Plan Maya's birthday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c241",
+   "text": "Send invitations for Maya's birthday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c242",
+   "text": "Order a cake for Maya",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c243",
+   "text": "Book a bouncy castle",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c244",
+   "text": "Buy party favors",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c245",
+   "text": "Write a toast for Dan's wedding",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c246",
+   "text": "Buy a wedding gift for Dan",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c247",
+   "text": "Book a hotel for the wedding",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c248",
+   "text": "Rent a tux",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c249",
+   "text": "Get a haircut before the wedding",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c250",
+   "text": "RSVP to Dan's wedding",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c251",
+   "text": "the thing with the account",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c252",
+   "text": "call back",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c253",
+   "text": "that idea about the app",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c254",
+   "text": "fix it",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c255",
+   "text": "remember to ask about the schedule",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c256",
+   "text": "look into this",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c257",
+   "text": "Don't forget",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c258",
+   "text": "maybe",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c259",
+   "text": "Check the tire pressure",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c260",
+   "text": "Rotate the tires",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c261",
+   "text": "Wash the car",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c262",
+   "text": "Clean the gutters",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c263",
+   "text": "Seal the driveway",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c264",
+   "text": "Pressure wash the deck",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c265",
+   "text": "Stain the deck",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c266",
+   "text": "Call the pest control",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c267",
+   "text": "Replace the water filter",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c268",
+   "text": "Test the sump pump",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c269",
+   "text": "Buy a fire extinguisher",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c270",
+   "text": "Make an emergency kit",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c271",
+   "text": "Write down the router password",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c272",
+   "text": "Take a CPR class",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c273",
+   "text": "Take a photography class",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c274",
+   "text": "Visit the dentist about the crown",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c275",
+   "text": "Review the lease before signing",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c276",
+   "text": "Ask a lawyer about the clause on subletting",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c277",
+   "text": "Compare the two job offers",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c278",
+   "text": "Negotiate the salary on the new offer",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c279",
+   "text": "Give notice at the current job",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c280",
+   "text": "Plan the handoff to the replacement",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c281",
+   "text": "Write the handoff doc",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c282",
+   "text": "Say goodbye to the team",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c283",
+   "text": "Return the laptop and badge",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c284",
+   "text": "Update the resume after the move",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c285",
+   "text": "Throw away expired food",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c286",
+   "text": "Meal plan for next week",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c287",
+   "text": "Grocery list for Thursday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c288",
+   "text": "Try the new sushi place",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c289",
+   "text": "Make a reservation for our anniversary",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c290",
+   "text": "Buy flowers for our anniversary",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c291",
+   "text": "Plan a staycation",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c292",
+   "text": "Visit the farmers market",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c293",
+   "text": "Donate blood",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c294",
+   "text": "Vote",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c295",
+   "text": "Call mom on Sunday",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c296",
+   "text": "Phone mom this weekend",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c297",
+   "text": "call the dentist",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c298",
+   "text": "Book the dentist",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c299",
+   "text": "Renew passport",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c300",
+   "text": "renew my passport",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c301",
+   "text": "I keep thinking we should rethink the whole onboarding flow. Right now people sign up, land on an empty screen, and don't know what to do. Maybe a guided first list? Also not sure if we should ask for the AI key up front or later. Need to talk to Dan about it and look at how other apps do it.",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c302",
+   "text": "Notes from the call with the accountant: estimated taxes are due on the 15th, I may owe more than last year because of the freelance income, she suggested setting aside 30%, and asked me to send the 1099s and the home office measurements before the end of the month.",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c303",
+   "text": "Trip idea: maybe Lisbon in May, then train to Porto for two days. Need to check flights, figure out whether to rent a car, and find out if our passports are still good. Ask Priya for restaurant recommendations. Budget around 3k for two people.",
+   "status": "pending",
+   "source": "Imported"
+  }
+ ]
+}

@@ -1,0 +1,301 @@
+Email Rachel about the open position at company A
+Reply to Dan about the invoice he sent last week
+Email landlord about the broken dishwasher
+Write a thank-you note to Aunt Maria for the gift
+Ask my manager about working remotely on Fridays
+Email the school about Maya's vaccination records
+Follow up with the recruiter at Northwind
+Draft a cancellation email to the gym
+Message Priya to reschedule Thursday's meeting
+Email the accountant about quarterly estimated taxes
+Research how to register a business in New York City
+Find out whether I need an LLC or a sole proprietorship
+Look up requirements for a home business license
+Research how to get a Real ID in my state
+Compare health insurance plans for freelancers
+Find out how long US passport renewal takes
+Research how to set up a Roth IRA
+Look into how to trademark a business name
+Find the rules for importing a car from Canada
+Research electric vehicle tax credits
+Figure out how to apply for a building permit for a deck
+Learn what a 529 plan is and whether it makes sense for us
+What is the capital of Australia?
+How many ounces are in a pound?
+What is the tallest mountain in South America?
+What year did the Berlin Wall fall?
+What is the time difference between New York and Tokyo?
+How many days until the next leap year?
+What is the boiling point of water in Fahrenheit?
+Who wrote Pride and Prejudice?
+Book a dentist appointment
+Schedule an annual physical
+Renew car registration
+Renew passport
+Take the car in for an oil change
+Get a haircut
+Book flights for the May trip
+Pick travel dates for the May trip
+Reserve a hotel in Lisbon
+Make a packing list for the trip
+Buy travel insurance
+Check whether my passport has six months left
+Exchange some euros before the trip
+Plan a surprise party for Sam
+Pick a date for Sam's party
+Make the guest list for Sam's party
+Order a cake for Sam's party
+Buy decorations for Sam's party
+Choose a gift for Sam
+Fix the leaky kitchen faucet
+Get a plumber quote for the faucet
+Clean out the garage
+Donate old clothes
+Replace the smoke detector batteries
+Paint the guest bedroom
+Pick a paint color for the guest bedroom
+Buy paint and rollers
+Assemble the new bookshelf
+Hang the pictures in the hallway
+Why is the garage door so loud?
+Mow the lawn
+Plant tomatoes
+Call the electrician about the flickering lights
+Declutter the closet
+Sign the lease for the new apartment
+Decide between the two apartments
+Hire movers
+Get boxes for the move
+Set up internet at the new place
+Change my address with the bank
+Forward my mail
+Cancel the old utility accounts
+Review the Q4 budget
+Prepare slides for Monday's presentation
+Send the project update to the team
+Finish the onboarding flow design
+Fix the login bug on mobile
+Write the release notes
+Update my resume
+Update my LinkedIn profile
+Ask for a performance review
+Learn the basics of SQL
+Read the security audit report
+Decide on pricing for the new plan
+Compare three project management tools
+Choose a name for the new product
+Ask legal about data retention
+Reconcile the March credit card statement
+Set up automatic bill pay
+Cancel unused subscriptions
+Compare savings account interest rates
+Pay the property tax bill
+Gather documents for taxes
+File taxes
+Check my credit report
+Build a six-month emergency fund
+Decide whether to refinance the mortgage
+Run a 10K in the spring
+Buy running shoes
+Sign up for a local 10K race
+Go for a 3 mile run
+Meal prep for the week
+Try a new vegetarian recipe
+Drink more water
+Cancel the gym membership
+Book a massage
+Meditate for ten minutes
+Read Atomic Habits
+Read that article about sleep
+Finish the online course on data visualization
+Practice Spanish for 15 minutes
+Buy milk, eggs and coffee
+Pick up dry cleaning
+Return the package to Amazon
+Buy a standing desk
+Order a new phone charger
+Buy printer ink
+Get a birthday card for Mom
+Call Mom on Sunday
+Call Grandpa
+Plan a weekend with college friends
+Learn to sail
+Start a podcast
+Write a short story
+Organize family photos
+Back up my laptop
+Update all my passwords
+Set up two-factor authentication
+Clean out my email inbox
+Unsubscribe from newsletters I never read
+Research the best laptop for video editing
+Think about whether to adopt a dog
+Volunteer at the food bank
+Sort out what to do about the noisy neighbors
+Email Marcus the updated contract and ask him to sign by Friday
+Reply to the landlord's renewal offer
+Write to my insurance agent asking why the premium went up
+Email the HOA about the fence dispute
+Draft a LinkedIn message to Elena about the design role
+Ask Jordan if he can cover my shift on the 14th
+Send Mom the flight details
+Email the vet to ask about the vaccination schedule
+Follow up with the contractor about the deck quote
+Write a recommendation letter for Chris
+Ask the bank why the wire transfer is delayed
+Message the team about moving standup to 10am
+Email the printer for a quote on 500 flyers
+Research how to apply for a small business loan
+Research what permits a food truck needs in Texas
+Find out how to transfer a car title between states
+Look up how long it takes to get a visa for Portugal
+Research how to incorporate in Delaware vs Wyoming
+Compare 401k rollover options after leaving a job
+Find the rules for deducting a home office
+Look up how to report a lost social security card
+Research the best way to ship a pallet cross-country
+Find out what vaccines are needed for travel to Kenya
+Learn how to file an extension for taxes
+Find the requirements to become a notary
+Research how to apply for global entry
+Look up how to dispute a credit card charge
+Find out if I can contribute to both an IRA and a 401k
+How many calories are in a banana?
+What is the speed of light?
+Who was the first person on the moon?
+What is the population of Canada?
+What is the square root of 144?
+What currency does Switzerland use?
+How many states are in the US?
+What is the largest ocean on Earth?
+What is the chemical symbol for gold?
+How many minutes are in a day?
+Prepare for the board meeting
+Finish the quarterly report
+Review the pull request from Dana
+Write the onboarding doc for new hires
+Set up the staging environment
+Fix the flaky test in the payments suite
+Migrate the database to the new region
+Estimate the work for the mobile redesign
+Interview three candidates for the engineer role
+Write job description for the engineer role
+Post the engineer role on job boards
+Schedule interviews for the engineer role
+Prepare interview questions for the engineer role
+Decide whether to hire a contractor or a full-timer
+Decide which cloud provider to use
+Pick a CRM for the team
+Choose between React Native and Flutter
+Decide on a launch date
+Decide whether to raise prices
+Plan the team offsite
+Book a venue for the offsite
+Send a save-the-date for the offsite
+Arrange transportation for the offsite
+Plan the agenda for the offsite
+Plan a kitchen remodel
+Get three contractor quotes for the remodel
+Choose countertops
+Pick cabinet colors
+Order appliances for the remodel
+Decide on a remodel budget
+Hire an electrician for the remodel
+Apply for a permit for the remodel
+Buy a used car
+Research reliable used cars under 15k
+Check the Carfax on the Civic
+Arrange a test drive
+Get a pre-purchase inspection
+Get a loan pre-approval for the car
+Negotiate the price of the car
+Register the new car
+Switch car insurance to the new car
+Learn to play guitar
+Buy a beginner guitar
+Find a guitar teacher
+Practice chords for 20 minutes
+Book a doctor's appointment for the knee
+Get an MRI referral
+Ask about physical therapy options
+Stretch every morning
+Sleep by 10:30
+Cut down on caffeine
+Schedule an eye exam
+Buy new glasses
+Write a will
+Choose a guardian for the kids
+Update beneficiaries on the retirement account
+Organize important documents in one folder
+Scan the old tax returns
+Back up the photo library
+Clear storage on my phone
+Update my phone
+Set up the new router
+Fix the wifi dead spot upstairs
+Call the cable company about my bill
+Negotiate a lower internet bill
+Switch phone plans
+Return the shoes that don't fit
+Buy a gift for the teacher
+Plan Maya's birthday
+Send invitations for Maya's birthday
+Order a cake for Maya
+Book a bouncy castle
+Buy party favors
+Write a toast for Dan's wedding
+Buy a wedding gift for Dan
+Book a hotel for the wedding
+Rent a tux
+Get a haircut before the wedding
+RSVP to Dan's wedding
+the thing with the account
+call back
+that idea about the app
+fix it
+remember to ask about the schedule
+look into this
+Don't forget
+maybe
+Check the tire pressure
+Rotate the tires
+Wash the car
+Clean the gutters
+Seal the driveway
+Pressure wash the deck
+Stain the deck
+Call the pest control
+Replace the water filter
+Test the sump pump
+Buy a fire extinguisher
+Make an emergency kit
+Write down the router password
+Take a CPR class
+Take a photography class
+Visit the dentist about the crown
+Review the lease before signing
+Ask a lawyer about the clause on subletting
+Compare the two job offers
+Negotiate the salary on the new offer
+Give notice at the current job
+Plan the handoff to the replacement
+Write the handoff doc
+Say goodbye to the team
+Return the laptop and badge
+Update the resume after the move
+Throw away expired food
+Meal plan for next week
+Grocery list for Thursday
+Try the new sushi place
+Make a reservation for our anniversary
+Buy flowers for our anniversary
+Plan a staycation
+Visit the farmers market
+Donate blood
+Vote
+Call mom on Sunday
+Phone mom this weekend
+call the dentist
+Book the dentist
+Renew passport
+renew my passport
