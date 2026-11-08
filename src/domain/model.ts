@@ -32,8 +32,9 @@ export interface Workspace {
   ideas: Idea[];
   relationships: Relationship[];
   settings: UserSettings | null;
+  audit: AuditEvent[];                   // newest changes the person approved or applied (append-only history)
 }
 
 export const MAX_NOW = 3;
 export const currentFocusId = (ws: Workspace): string | null => ws.settings?.current_focus_outcome_id ?? null;
-export const emptyWorkspace = (): Workspace => ({ folders: [], outcomes: [], focus: [], tasks: [], captures: [], decisions: [], decisionOptions: [], decisionLog: [], ideas: [], relationships: [], settings: null });
+export const emptyWorkspace = (): Workspace => ({ folders: [], outcomes: [], focus: [], tasks: [], captures: [], decisions: [], decisionOptions: [], decisionLog: [], ideas: [], relationships: [], settings: null, audit: [] });

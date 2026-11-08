@@ -224,6 +224,8 @@ export interface Database {
           created_at: string;
           updated_at: string;
           revision: number;
+          pros: string;
+          cons: string;
         };
         Insert: {
           id?: string;
@@ -234,6 +236,8 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          pros?: string;
+          cons?: string;
         };
         Update: {
           id?: string;
@@ -244,6 +248,8 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          pros?: string;
+          cons?: string;
         };
         Relationships: [];
       };
@@ -265,6 +271,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           revision: number;
+          criteria: string;
         };
         Insert: {
           id?: string;
@@ -283,6 +290,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          criteria?: string;
         };
         Update: {
           id?: string;
@@ -301,6 +309,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          criteria?: string;
         };
         Relationships: [];
       };
@@ -699,8 +708,8 @@ export const COLUMNS = {
   audit_events: ['id', 'owner_id', 'at', 'actor', 'action', 'entity_type', 'entity_id', 'proposal_id', 'before', 'after', 'undo_of'],
   captures: ['id', 'owner_id', 'text', 'edited_text', 'source', 'folder_id', 'batch_id', 'batch_text', 'completed_at', 'archived_at', 'status', 'organized_as', 'review_state', 'review_at', 'rejected_fingerprints', 'task_id', 'merged_into', 'created_at', 'updated_at', 'revision'],
   decision_log: ['id', 'owner_id', 'decision_id', 'type', 'text', 'at'],
-  decision_options: ['id', 'owner_id', 'decision_id', 'text', 'position', 'created_at', 'updated_at', 'revision'],
-  decisions: ['id', 'owner_id', 'folder_id', 'name', 'description', 'status', 'evidence', 'notes', 'chosen_option', 'conclusion', 'rationale', 'resolved_at', 'sources', 'created_at', 'updated_at', 'revision'],
+  decision_options: ['id', 'owner_id', 'decision_id', 'text', 'position', 'created_at', 'updated_at', 'revision', 'pros', 'cons'],
+  decisions: ['id', 'owner_id', 'folder_id', 'name', 'description', 'status', 'evidence', 'notes', 'chosen_option', 'conclusion', 'rationale', 'resolved_at', 'sources', 'created_at', 'updated_at', 'revision', 'criteria'],
   focus_assignments: ['id', 'owner_id', 'outcome_id', 'lane', 'position', 'created_at', 'updated_at', 'revision'],
   folders: ['id', 'owner_id', 'name', 'description', 'icon', 'position', 'created_at', 'updated_at', 'revision'],
   ideas: ['id', 'owner_id', 'folder_id', 'name', 'notes', 'archived_at', 'sources', 'created_at', 'updated_at', 'revision'],

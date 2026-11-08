@@ -17,7 +17,7 @@ export const pk = (table: Table): string => (table === 'user_settings' ? 'owner_
 type WsKey = keyof Workspace;
 const KEY: Partial<Record<Table, WsKey>> = {
   folders: 'folders', outcomes: 'outcomes', focus_assignments: 'focus', tasks: 'tasks', captures: 'captures', decisions: 'decisions',
-  decision_options: 'decisionOptions', decision_log: 'decisionLog', ideas: 'ideas', relationships: 'relationships',
+  decision_options: 'decisionOptions', decision_log: 'decisionLog', ideas: 'ideas', relationships: 'relationships', audit_events: 'audit',
 };
 
 const clear = <T extends Row>(rows: T[], col: string, value: unknown): T[] => rows.map(r => (r[col] === value ? { ...r, [col]: null } : r));

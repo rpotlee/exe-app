@@ -25,7 +25,5 @@ export class LocalStore implements Store {
   async apply(writes: Write[]): Promise<void> {
     const ws = applyWrites(await this.load(), writes);
     this.storage.setItem(this.key, JSON.stringify(ws));
-    const audit = writes.filter(w => w.table === 'audit_events').map(w => w.row);
-    if (audit.length) { let old: unknown[] = []; try { old = JSON.parse(this.storage.getItem(this.key + ':audit') ?? '[]') as unknown[]; } catch { /* start a new history */ } this.storage.setItem(this.key + ':audit', JSON.stringify([...old, ...audit])); }
   }
 }

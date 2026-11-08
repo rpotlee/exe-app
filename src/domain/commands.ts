@@ -221,7 +221,7 @@ export const optionsOf = (ws: Workspace, decisionId: string) => ws.decisionOptio
 export function createDecision(ws: Workspace, ctx: Ctx, input: { name: string; description?: string; folderId: string | null }): Result {
   void ws;
   const name = trimmed(input.name); if (!name) return fail('Write the question first.');
-  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, sources: [] };
+  const row = { ...baseRow(ctx), folder_id: input.folderId, name, description: trimmed(input.description ?? ''), status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, criteria: '', sources: [] };
   return done([ins('decisions', row), logRow(ctx, row.id, 'created')], 'Decision added.');
 }
 export function editDecision(ws: Workspace, ctx: Ctx, id: string, input: { name: string; description: string; folderId: string | null }): Result {
@@ -230,7 +230,7 @@ export function editDecision(ws: Workspace, ctx: Ctx, id: string, input: { name:
   return done([upd('decisions', d, { name, description: trimmed(input.description), folder_id: input.folderId }), logRow(ctx, id, 'edited', 'Question or context updated.')], 'Decision updated.');
 }
 /** Evidence (facts you checked) and notes are kept apart on purpose. */
-export function setDecisionText(ws: Workspace, id: string, field: 'evidence' | 'notes', value: string): Result {
+export function setDecisionText(ws: Workspace, id: string, field: 'evidence' | 'notes' | 'criteria', value: string): Result {
   const d = decision(ws, id); if (!d) return fail('That decision no longer exists.');
   return done([upd('decisions', d, { [field]: value })]);
 }
@@ -239,7 +239,7 @@ export function addOption(ws: Workspace, ctx: Ctx, decisionId: string, text: str
   const t = trimmed(text); if (!t) return fail('Write the option first.');
   const mine = optionsOf(ws, decisionId);
   if (mine.some(o => o.text.trim().toLowerCase() === t.toLowerCase())) return fail('That option already exists.');
-  return done([ins('decision_options', { ...baseRow(ctx), decision_id: decisionId, text: t, position: mine.length })], 'Option added.');
+  return done([ins('decision_options', { ...baseRow(ctx), decision_id: decisionId, text: t, position: mine.length, pros: '', cons: '' })], 'Option added.');
 }
 export function renameOption(ws: Workspace, ctx: Ctx, optionId: string, text: string): Result {
   const o = ws.decisionOptions.find(x => x.id === optionId); if (!o) return fail('That option no longer exists.');
@@ -249,6 +249,11 @@ export function renameOption(ws: Workspace, ctx: Ctx, optionId: string, text: st
   if (d && d.chosen_option === o.text) writes.push(upd('decisions', d, { chosen_option: t }));
   if (t !== o.text) writes.push(logRow(ctx, o.decision_id, 'edited', `Renamed option “${o.text}” to “${t}”.`));
   return done(writes, 'Option saved.');
+}
+/** What the person thinks is good and bad about an option. Plain text; the app never scores or ranks options for them. */
+export function setOptionNotes(ws: Workspace, optionId: string, input: { pros: string; cons: string }): Result {
+  const o = ws.decisionOptions.find(x => x.id === optionId); if (!o) return fail('That option no longer exists.');
+  return done([upd('decision_options', o, { pros: input.pros.slice(0, 2000), cons: input.cons.slice(0, 2000) })], 'Saved.');
 }
 export function removeOption(ws: Workspace, ctx: Ctx, optionId: string): Result {
   const o = ws.decisionOptions.find(x => x.id === optionId); if (!o) return fail('That option no longer exists.');
@@ -277,7 +282,7 @@ export function followUpsOf(ws: Workspace, decisionId: string): string[] {
 
 // ------------------------------------------------------------------ AI Review actions (simulation; DEC-002)
 export interface Approval { type: Proposal['type']; folderId: string | null; outcomeId: string | null; newOutcomeName?: string; title: string }
-function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: string | null; revision: number }, a: Approval, mergedWith: string[] = []): { writes: Write[]; itemId: string | null } {
+function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: string | null; revision: number }, a: Approval, mergedWith: string[] = [], skipCapture = false): { writes: Write[]; itemId: string | null } {
   const writes: Write[] = [], sources = [c.id, ...mergedWith], at = ctx.now();
   let itemId: string | null = null, taskId: string | null = null, outcomeId = a.outcomeId;
   if (a.type === 'Task') {
@@ -295,12 +300,12 @@ function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: stri
     writes.push(ins('focus_assignments', { ...baseRow(ctx), outcome_id: itemId, lane: 'later', position: ws.focus.length }));
   } else if (a.type === 'Decision') {
     itemId = ctx.id();
-    writes.push(ins('decisions', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Newly captured decision; add evidence and options.', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, sources }), logRow(ctx, itemId, 'created', 'Approved from a capture.'));
+    writes.push(ins('decisions', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Newly captured decision; add evidence and options.', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, criteria: '', sources }), logRow(ctx, itemId, 'created', 'Approved from a capture.'));
   } else if (a.type === 'Idea') {
     itemId = ctx.id();
     writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the Inbox.', archived_at: null, sources }));
   }
-  writes.push({ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'organized', organized_as: a.type, task_id: taskId, review_state: null, review_at: null, folder_id: c.folder_id ?? a.folderId } });
+  if (!skipCapture) writes.push({ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'organized', organized_as: a.type, task_id: taskId, review_state: null, review_at: null, folder_id: c.folder_id ?? a.folderId } });
   void at;
   return { writes, itemId };
 }
@@ -333,6 +338,7 @@ export function reviewAgain(ws: Workspace, id: string): Result {
 export function undoApproval(ws: Workspace, ctx: Ctx, captureId: string): Result {
   const c = capture(ws, captureId); if (!c || c.status !== 'organized' || !c.organized_as || c.merged_into) return fail('Nothing to undo.');
   const type = c.organized_as, mine = (s: string[]) => s.includes(c.id);
+  if (type === 'Split') return undoSplit(ws, ctx, c);
   const related = (id: string) => ws.relationships.some(r => r.from_id === id || r.to_id === id);
   let removeTable: Table | null = null, removeId: string | null = null;
   if (type === 'Task' && c.task_id) { const t = ws.tasks.find(x => x.id === c.task_id); if (t) { if (t.done_at || related(t.id)) return fail('You have worked on that step since, so it was not removed.'); removeTable = 'tasks'; removeId = t.id; } }
@@ -398,4 +404,32 @@ export function promoteIdea(ws: Workspace, ctx: Ctx, id: string): Result {
     upd('ideas', i, { archived_at: ctx.now(), notes: `${i.notes}${i.notes ? '\n' : ''}Promoted to an outcome.` }),
     audit(ctx, 'idea-promoted', 'idea', i.id, null, { outcome: oid }),
   ], 'Promoted to an outcome in Later. The idea is kept, archived.');
+}
+
+/** One capture becomes several items, only when the user says so. The original capture stays whole and is marked 'Split'.
+ *  Every item records the capture as its source, so the split can be undone while the items are untouched. */
+export function splitCapture(ws: Workspace, ctx: Ctx, captureId: string, items: Approval[]): Result {
+  const c = capture(ws, captureId); if (!c || c.status !== 'pending') return fail('That capture is not waiting for review.');
+  const real = items.filter(i => i.type !== 'Note' && trimmed(i.title));
+  if (real.length < 2) return fail('A split needs at least two items. To keep it as one, just approve it.');
+  const writes: Write[] = [];
+  const view: Workspace = { ...ws };
+  for (const a of real) { const r = approveWrites(view, ctx, c, { ...a, outcomeId: a.outcomeId ?? null }, [], true); writes.push(...r.writes); }
+  writes.push(upd('captures', c, { status: 'organized', organized_as: 'Split', task_id: null, review_state: null, review_at: null, folder_id: c.folder_id ?? real[0]?.folderId ?? null }));
+  return done(writes, `Split into ${real.length} items. The original capture is kept. You can undo this.`);
+}
+
+function undoSplit(ws: Workspace, ctx: Ctx, c: Workspace['captures'][number]): Result {
+  const has = (s: string[]) => s.includes(c.id), related = (id: string) => ws.relationships.some(r => r.from_id === id || r.to_id === id);
+  const tasks = ws.tasks.filter(t => has(t.sources)), outcomes = ws.outcomes.filter(o => has(o.sources)), decisions = ws.decisions.filter(d => has(d.sources)), ideas = ws.ideas.filter(i => has(i.sources));
+  const touched = tasks.some(t => t.done_at || related(t.id)) || outcomes.some(o => o.done_at || o.pinned || o.deadline || related(o.id) || ws.tasks.some(t => t.outcome_id === o.id && !has(t.sources)))
+    || decisions.some(d => d.status !== 'open' || d.evidence || d.notes || d.criteria || related(d.id) || ws.decisionOptions.some(o => o.decision_id === d.id));
+  if (touched) return fail('You have worked on one of those items since, so nothing was removed.');
+  const writes: Write[] = [{ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'pending', organized_as: null, task_id: null, review_state: null, review_at: null } }];
+  for (const t of tasks) writes.push({ table: 'tasks', op: 'delete', row: { id: t.id } });
+  for (const o of outcomes) writes.push({ table: 'outcomes', op: 'delete', row: { id: o.id } });
+  for (const d of decisions) writes.push({ table: 'decisions', op: 'delete', row: { id: d.id } });
+  for (const i of ideas) writes.push({ table: 'ideas', op: 'delete', row: { id: i.id } });
+  writes.push(audit(ctx, 'approval-undo', 'capture', c.id, { type: 'Split' }));
+  return done(writes, 'Split undone. The capture is back in the review list.');
 }

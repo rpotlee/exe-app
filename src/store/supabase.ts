@@ -18,12 +18,12 @@ export class SupabaseStore implements Store {
   constructor(private readonly db: Db, readonly owner: string) {}
   async load(): Promise<Workspace> {
     const q = <T extends keyof Database['public']['Tables']>(t: T) => this.db.from(t).select('*');
-    const [folders, outcomes, focus, tasks, captures, decisions, options, log, ideas, rels, settings] = await Promise.all([
-      q('folders'), q('outcomes'), q('focus_assignments'), q('tasks'), q('captures'), q('decisions'), q('decision_options'), q('decision_log'), q('ideas'), q('relationships'), q('user_settings')]);
-    for (const r of [folders, outcomes, focus, tasks, captures, decisions, options, log, ideas, rels, settings]) if (r.error) throw new Error(r.error.message);
+    const [folders, outcomes, focus, tasks, captures, decisions, options, log, ideas, rels, settings, audit] = await Promise.all([
+      q('folders'), q('outcomes'), q('focus_assignments'), q('tasks'), q('captures'), q('decisions'), q('decision_options'), q('decision_log'), q('ideas'), q('relationships'), q('user_settings'), this.db.from('audit_events').select('*').order('at', { ascending: false }).limit(300)]);
+    for (const r of [folders, outcomes, focus, tasks, captures, decisions, options, log, ideas, rels, settings, audit]) if (r.error) throw new Error(r.error.message);
     return {
       ...emptyWorkspace(), folders: folders.data ?? [], outcomes: outcomes.data ?? [], focus: focus.data ?? [], tasks: tasks.data ?? [], captures: captures.data ?? [],
-      decisions: decisions.data ?? [], decisionOptions: options.data ?? [], decisionLog: log.data ?? [], ideas: ideas.data ?? [], relationships: rels.data ?? [], settings: settings.data?.[0] ?? null,
+      decisions: decisions.data ?? [], decisionOptions: options.data ?? [], decisionLog: log.data ?? [], ideas: ideas.data ?? [], relationships: rels.data ?? [], settings: settings.data?.[0] ?? null, audit: audit.data ?? [],
     };
   }
   async apply(writes: Write[]): Promise<void> { await this.applyOnce(uuid(), writes); }

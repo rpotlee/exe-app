@@ -24,7 +24,7 @@ describe('LocalStore', () => {
     const f = C.createFolder(ws, ctx, 'Home'); if (!f.ok) throw new Error(f.error); ws = applyWrites(ws, f.writes); await a.apply(f.writes);
     const d = C.deleteFolder(ws, ctx, ws.folders[0]!.id, null); if (!d.ok) throw new Error(d.error); await a.apply(d.writes);
     expect((await a.load()).folders).toEqual([]); expect((await b.load()).folders).toEqual([]);
-    expect(JSON.parse(kv.m.get('exe-v2:u1:audit') as string)[0]).toMatchObject({ action: 'folder-delete' });
+    expect((await a.load()).audit[0]).toMatchObject({ action: 'folder-delete' });   // history lives in the workspace now
   });
   it('survives unreadable stored data', async () => {
     const kv = mem(); kv.setItem('exe-v2:u1', '{not json');

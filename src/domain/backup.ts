@@ -56,14 +56,14 @@ export function fromPrototype(d: Record<string, unknown>, now: string): { ws: Wo
   });
   ws.decisions = arr(d.decisions).filter(x => str(x.id) && str(x.name).trim()).map(x => {
     const resolved = x.status === 'resolved';
-    return { ...meta(str(x.id), now), folder_id: folderOf(x.stream), name: str(x.name, 200).trim(), description: str(x.description, 600), status: resolved ? 'resolved' : 'open', evidence: str(x.evidence, 20000), notes: str(x.notes, 20000), chosen_option: str(x.chosenOption, 160), conclusion: str(x.selected, 320), rationale: str(x.rationale, 800), resolved_at: resolved ? (iso(x.resolvedAt) ?? now) : null, sources: [] };
+    return { ...meta(str(x.id), now), folder_id: folderOf(x.stream), name: str(x.name, 200).trim(), description: str(x.description, 600), status: resolved ? 'resolved' : 'open', evidence: str(x.evidence, 20000), notes: str(x.notes, 20000), chosen_option: str(x.chosenOption, 160), conclusion: str(x.selected, 320), rationale: str(x.rationale, 800), resolved_at: resolved ? (iso(x.resolvedAt) ?? now) : null, criteria: str(x.criteria, 2000), sources: [] };
   });
   const dIds = new Set(ws.decisions.map(x => x.id));
   for (const x of arr(d.decisions)) {
     if (!dIds.has(str(x.id))) continue;
     const opts = Array.isArray(x.options) ? [...new Set(x.options.filter((o): o is string => typeof o === 'string' && !!o.trim()).map(o => o.trim().slice(0, 160)))] : [];
     const lower = new Set<string>();
-    opts.forEach((text, i) => { if (lower.has(text.toLowerCase())) return; lower.add(text.toLowerCase()); ws.decisionOptions.push({ ...meta(`${str(x.id)}:o${i}`, now), decision_id: str(x.id), text, position: i }); });
+    opts.forEach((text, i) => { if (lower.has(text.toLowerCase())) return; lower.add(text.toLowerCase()); ws.decisionOptions.push({ ...meta(`${str(x.id)}:o${i}`, now), decision_id: str(x.id), text, position: i, pros: '', cons: '' }); });
     for (const [i, l] of arr(x.log).entries()) { const type = str(l.type); if (['created', 'edited', 'resolved', 'reopened'].includes(type)) ws.decisionLog.push({ id: `${str(x.id)}:l${i}`, owner_id: '', decision_id: str(x.id), type, text: str(l.text, 2000), at: iso(l.at) ?? now }); }
   }
   ws.ideas = arr(d.ideas).filter(x => str(x.id) && str(x.name).trim()).map(x => ({ ...meta(str(x.id), now), folder_id: folderOf(x.stream), name: str(x.name, 200).trim(), notes: str(x.notes, 20000), archived_at: iso(x.archivedAt), sources: [] }));

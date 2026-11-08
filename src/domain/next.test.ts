@@ -45,7 +45,7 @@ describe('quickWin: "I have N minutes"', () => {
 describe('prompts after changes', () => {
   const now = Date.parse('2027-03-10T00:00:00Z');
   it('a resolved decision that was holding things up says so, and only until dismissed', () => {
-    const d = { ...base, id: 'd1', folder_id: null, name: 'Which city?', description: '', status: 'resolved', evidence: '', notes: '', chosen_option: '', conclusion: 'X', rationale: '', resolved_at: '2027-03-09T00:00:00Z', sources: [] };
+    const d = { ...base, id: 'd1', folder_id: null, name: 'Which city?', description: '', status: 'resolved', evidence: '', notes: '', chosen_option: '', conclusion: 'X', rationale: '', resolved_at: '2027-03-09T00:00:00Z', criteria: '', sources: [] };
     const w = ws({ decisions: [d], tasks: [task('t', null)], relationships: [{ ...rel('r', 'd1', 't'), from_type: 'decision' }] });
     const p = prompts(w, now); expect(p).toHaveLength(1); expect(p[0]).toMatchObject({ kind: 'decision', page: 'decisions', targetId: 'd1' }); expect(p[0]!.text).toMatch(/Nothing was changed/);
     expect(prompts({ ...w, settings: { ...base, workspace_name: '', current_focus_outcome_id: null, priority_dismissed: [p[0]!.id], research_opt_in: false } as Workspace['settings'] }, now)).toEqual([]);

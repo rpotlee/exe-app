@@ -70,7 +70,26 @@ describe('AI Review actions', () => {
       // undoing the caterer step also takes back the outcome it created, but only when nothing else is in it
       await ok(C.undoApproval(ws, ctx, caterer)); expect(ws.tasks.find(t => t.name === 'Book the caterer')).toBeUndefined();
       expect(ws.outcomes).toHaveLength(1);                                                         // the guest step is in it, so the outcome stays
-      expect((await d.query(`select action from audit_events where action = 'approval-undo'`)).rows).toHaveLength(3);
+      // one capture becomes several items, only when asked; nothing is lost and it can be undone while untouched
+      await ok(C.addCaptures(ws, ctx, 'Call the venue and ask about the date, then decide whether to book a band'));
+      const big = ws.captures.at(-1)!;
+      expect(C.splitCapture(ws, ctx, big.id, [{ type: 'Task', folderId: null, outcomeId: null, title: 'Call the venue' }]).ok).toBe(false);          // one item is not a split
+      await ok(C.splitCapture(ws, ctx, big.id, [{ type: 'Task', folderId: null, outcomeId: null, title: 'Call the venue about the date' }, { type: 'Decision', folderId: null, outcomeId: null, title: 'Book a band?' }]));
+      expect(act(big.id)).toMatchObject({ status: 'organized', organized_as: 'Split', text: big.text });
+      const kids = [ws.tasks.find(t => t.name === 'Call the venue about the date')!, ws.decisions.find(x => x.name === 'Book a band?')!];
+      expect(kids.every(k => k.sources.includes(big.id))).toBe(true);
+      await ok(C.undoApproval(ws, ctx, big.id));
+      expect(ws.tasks.find(t => t.name === 'Call the venue about the date')).toBeUndefined(); expect(ws.decisions.find(x => x.name === 'Book a band?')).toBeUndefined(); expect(act(big.id).status).toBe('pending');
+      await ok(C.splitCapture(ws, ctx, big.id, [{ type: 'Task', folderId: null, outcomeId: null, title: 'Call the venue about the date' }, { type: 'Idea', folderId: null, outcomeId: null, title: 'A band?' }]));
+      await ok(C.setTaskDone(ws, ctx, ws.tasks.find(t => t.name === 'Call the venue about the date')!.id, true));
+      const refusedSplit = C.undoApproval(ws, ctx, big.id); expect(refusedSplit.ok).toBe(false); if (!refusedSplit.ok) expect(refusedSplit.error).toMatch(/worked on/);
+      // decision comparison notes and criteria are plain text the person writes
+      await ok(C.createDecision(ws, ctx, { name: 'Which band?', folderId: null }));
+      const dd = ws.decisions.find(x => x.name === 'Which band?')!; await ok(C.addOption(ws, ctx, dd.id, 'Jazz trio'));
+      await ok(C.setDecisionText(ws, dd.id, 'criteria', 'Budget under 800; can play outdoors'));
+      await ok(C.setOptionNotes(ws, ws.decisionOptions[0]!.id, { pros: 'Quiet enough to talk', cons: 'No dance floor' }));
+      expect(ws.decisionOptions[0]).toMatchObject({ pros: 'Quiet enough to talk', cons: 'No dance floor' }); expect(ws.decisions.find(x => x.id === dd.id)!.criteria).toMatch(/Budget/);
+      expect((await d.query(`select action from audit_events where action = 'approval-undo'`)).rows).toHaveLength(4);
     });
   }, 120_000);
 });
