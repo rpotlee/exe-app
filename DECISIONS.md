@@ -190,3 +190,12 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Pausing:** a free project the owner has not opened for a week goes to sleep and the app stops working until someone clicks Resume. Fine for a personal tool that is opened most weeks; upgrade to Pro ($25 a month) if that becomes a problem. The owner decides when.
 - **AI costs nothing to the app** (bring-your-own-key, DEC-005). AI calls run in edge functions; 500,000 a month is more than enough.
 
+## DEC-010 — Schema installed on the real Supabase project; two fixes it exposed (2026-11-08)
+**Source:** Claude, after the owner created the project ("exe", us-east-1) and approved the Supabase sign-in. Facts, not recommendations.
+
+- The three migrations are applied to the project. A rule check run **on the real database** (`scripts/smoke-remote.sql`, rolled back, saves nothing) passes: Now cap, current focus, dependency loops, self-block, immutable capture text, hidden AI key, append-only audit, and the AI role unable to complete or delete.
+- **Finding 1:** the AI server role needs `postgres` to be allowed to switch into it. Fixed in migration 2.
+- **Finding 2:** Supabase gives every new table in `public` to signed-in and signed-out users by default. That had undone two locks (the AI key was readable and the audit history editable by a signed-in user). Migration 3 takes those privileges back and grants only what is intended. Neither bug could be seen in the first test copy, because it lacked Supabase's default grants.
+- **Process change:** the local database tests now emulate Supabase's default grants, and the rule check should be rerun against the real project after every migration (`npx supabase db push`, then `supabase db query --linked -f scripts/smoke-remote.sql`).
+- The project's public URL and anon key are in the untracked `.env`. The secret service-role key was never written anywhere.
+

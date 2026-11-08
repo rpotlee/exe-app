@@ -29,3 +29,6 @@ Nothing here creates an account or holds a secret. The owner (or whoever holds t
 ## Free-tier facts (checked 2026-11-08, see DEC-009; recheck before signing up)
 500 MB database, 1 GB storage, 50,000 monthly active users, 2 active projects, **no automatic backups**, and **free projects are paused after 1 week of inactivity** (Resume button in the dashboard). Pro is from $25 a month. Use the app's JSON export as your backup on the free plan.
 
+## Status (2026-11-08)
+Installed on the owner's project "exe" and verified: `node scripts/check-supabase.mjs` (all 15 tables closed to signed-out visitors) and `supabase db query --linked -f scripts/smoke-remote.sql` (rules hold on the real database; rolled back). After any new migration: `supabase db push`, then both checks. See DEC-010.
+

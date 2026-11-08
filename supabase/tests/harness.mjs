@@ -11,7 +11,9 @@ export async function freshDb() {
   await db.exec(`
     create schema auth;
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-    create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;`);
+    create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
+    -- Supabase grants every new table in public to these roles by default. Emulate it so the tests catch locks that rely on its absence.
+    alter default privileges in schema public grant all on tables to anon, authenticated, service_role;`);
   for (const f of readdirSync(dir).filter(f => f.endsWith('.sql')).sort()) await db.exec(readFileSync(join(dir, f), 'utf8'));
   return db;
 }
