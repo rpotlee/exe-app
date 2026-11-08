@@ -18,7 +18,7 @@ with sync_playwright() as p:
         for i in range(12):
             page.get_by_label('Add a to-do',exact=True).fill(f'{i}: {long_text}')
             page.get_by_label('Add a to-do',exact=True).press('Enter')
-        row=page.locator('.raw-row').last
+        row=page.locator('.raw-row').first  # newest first (DEC-003): the item just added
         row.locator('[data-row-more]').click()
         more=row.locator('[data-row-more]')
         assert more.get_attribute('aria-expanded')=='true'
@@ -44,9 +44,8 @@ with sync_playwright() as p:
                 view=page.locator('#view').bounding_box();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
                 assert plus['y']+plus['height']<=dock['y']  # separate button above the dock
             # Last checkbox, disclosure and actions can all be scrolled into the clear region.
-            page.evaluate('window.scrollTo(0,document.documentElement.scrollHeight)')  # end of list: the clearance leaves it above the + button
             for selector in ['[data-capture-check]','[data-row-more]','[data-edit-capture]','[data-archive-capture]']:
-                control=row.locator(selector);control.scroll_into_view_if_needed();box=control.bounding_box()
+                control=row.locator(selector);control.evaluate("e=>e.scrollIntoView({block:'center'})");box=control.bounding_box()  # mid-screen: clear of the + button
                 assert box['y']+box['height']<=plus['y']
                 assert control.evaluate('e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}')
             # Capture sheet stays inside a smaller visual viewport with simulated keyboard offset.

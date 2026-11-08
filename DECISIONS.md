@@ -144,3 +144,16 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 
 ### Still open (needs the owner)
 - Nothing blocking. The Phase 4 search question depends on the verification above.
+
+## DEC-006 — Remaining Phase 1 decisions, made by Claude (2026-11-08)
+**Source:** the owner repeated that Claude should make decisions and record the reasoning rather than ask. Each line is a delegated recommendation the owner can overrule; the log will be amended. Items marked *built* are in the prototype.
+
+- **Quick Capture segmentation (master §5.4) — built.** A pasted block is a to-do list, one capture per line, when it has two or more non-empty lines and either every line is 100 characters or shorter or any line starts with a list marker (`-`, `*`, `•`, `1.`, `1)`). Otherwise it stays one capture with its line breaks. List captures share a batch id and keep the original block, so the split is reversible. *Why:* the spec needs a deterministic rule that never discards lines; short lines are almost always a list, long wrapped lines are almost always one thought.
+- **Inbox order (DEC-003 P-15) — built.** Newest first; in Done, most recently completed first. Seed captures carry no real dates, so their order follows the order they were stored.
+- **Light theme only (DEC-003 D-04) — built.** The app always loads light and ignores `?theme=dark` and any saved dark choice. The unused dark CSS stays for now and is removed in a later cleanup so this change cannot alter the light look. *Why:* removing a few hundred lines of CSS and the visual diff risk can be done separately.
+- **"Blocked" in the state line.** Keep one combined number (blocked tasks plus blocked outcomes). *Why:* it is the simplest honest count and the owner has not asked for a split.
+- **Empty first run (DEC-002) and Folders (DEC-001) ship together as the next slice.** The owner's Altr data stays available at `?example=1`; a normal visit starts empty. *Why:* an empty app is a dead end unless users can create folders and outcomes, so the two cannot be built apart. Folders keep the existing Workstream entity (no ninth entity).
+- **AI Review actions (DEC-002) follow Folders.** Reject, defer-with-memory, merge preview and undo are built on the prototype as clearly labeled simulation, because they need stored proposal records that the folder slice also touches. Real AI waits for the backend (DEC-005).
+- **Review route.** Phase 1b goes to the owner as a draft pull request with real screenshots; it is not merged without the owner. *Why:* AGENTS.md requires a PR per phase and owner review of visual changes, and a draft PR is that review.
+- **Real iPhone Safari.** Claude cannot run a physical device. The check stays on the release list and is done by a person with the PR branch served over the local network; nothing is deployed for it without the owner's approval.
+

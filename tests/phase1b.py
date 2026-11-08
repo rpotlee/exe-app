@@ -58,6 +58,19 @@ with sync_playwright() as p:
         assert page.locator(f'{scope} [data-nav=inbox] [data-inbox-count]').inner_text() == '2'
         assert page.locator(f'{scope} [data-nav=review] [data-dock-count]').inner_text() == '2'
         before = S(page)
+        # ---- Quick Capture segmentation (DEC-006) and Inbox order
+        def cap(text):
+            page.locator('[data-capture]').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('#capture-form button[type=submit]').click()
+        n = len(S(page)['captures'])
+        cap('Call the plumber\nBook flights\nRenew passport'); c = S(page)['captures'][n:]
+        assert [x['text'] for x in c] == ['Call the plumber', 'Book flights', 'Renew passport'] and len({x['batchId'] for x in c}) == 1 and c[0]['batchText'].count('\n') == 2
+        para = 'I keep thinking about whether the New York registration needs to happen before we take bookings, ' + 'and how long the publication step takes once we start.\nThe second line continues the same thought and is clearly a sentence that wraps over a long line.'
+        cap(para); c = S(page)['captures'][n + 3:]; assert len(c) == 1 and c[0]['text'] == para.strip() and 'batchId' not in c[0], 'a paragraph stays one capture'
+        cap('- first marked item that is quite long and goes past the short-line limit for sure, really it does, yes\n- second marked item that is also long enough to pass the short-line limit used above, yes'); assert len(S(page)['captures']) == n + 6
+        nav(page, 'inbox'); first = page.locator('.raw-row .raw-text').first.inner_text(); assert first.startswith('second marked item'), first
+        last_id = S(page)['captures'][-1]['id']; page.locator(f'[data-capture-check="{last_id}"]').click()
+        page.locator('[data-inbox-filter=done]').click(); assert page.locator('.raw-row .raw-text').first.inner_text().startswith('second marked item')
+        page.locator(f'[data-capture-check="{last_id}"]').click(); nav(page, 'focus')
         # ---- Next & Later screen: row at the bottom of Focus, own screen, lane changes, cap of three
         page.locator('[data-nav=lanes]').click()
         assert page.get_by_role('heading', name='Next & Later', exact=True).count() == 1
