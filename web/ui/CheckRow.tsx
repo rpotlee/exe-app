@@ -3,7 +3,7 @@ import { isTaskBlocked } from '../../src/domain/blocking';
 import type { Task } from '../../src/domain/model';
 import { useApp } from '../app/context';
 import { Icon } from './Icon';
-import { PriorityChip } from './PriorityChip';
+import { PriorityDot } from './PriorityDot';
 import { labelFor } from '../../src/domain/mission';
 
 /** A step checkbox. Checking records only the step; when the last one is checked the app ASKS whether the outcome is done. */
@@ -20,7 +20,7 @@ export function CheckRow({ task, next }: { task: Task; next?: boolean }) {
     <label className={`check-row ${next ? 'is-next' : ''}`}>
       <input type="checkbox" checked={task.done_at !== null} aria-label={`Mark ${task.name} complete`} onChange={e => toggle(e.target.checked)} />
       <span>{task.name}</span>
-      {src && lab && (lab.level || priorityMode === 'ai') && <PriorityChip captureId={src.id} level={lab.level} fromAi={lab.fromAi} why={lab.why} text={task.name} />}
+      {src && lab && (lab.level || priorityMode === 'ai') && <PriorityDot captureId={src.id} level={lab.level} fromAi={lab.fromAi} why={lab.why} text={task.name} />}
       {blocked && <span className="pill red" title="Blocked by an unfinished item"><Icon name="lock" /> Blocked</span>}
     </label>
   );

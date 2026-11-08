@@ -197,7 +197,7 @@ with sync_playwright() as p:
         nav(page, 'map'); pick(page, w, 'All notes'); page.get_by_role('button', name='Add relationship').click(); f = page.locator('#modal-root')
         f.locator('select[name=from]').select_option(label='Pick a venue?'); f.locator('select[name=to]').select_option(label=current); f.locator('select[name=kind]').select_option('blocks'); f.get_by_role('button', name='Add relationship').click()
         nav(page, 'focus'); expect(page.locator('.blocked-banner')).to_contain_text('Pick a venue?'); expect(page.locator('.blocked-banner')).to_contain_text('a block you confirmed')
-        page.get_by_role('button', name='Why this?').click(); expect(page.locator('.why-list')).to_contain_text('active')
+        expect(page.get_by_role('button', name='Why this?')).to_have_count(0)   # the Why this? disclosure was removed (owner)
         page.get_by_role('button', name='Open the decision').click(); expect(page.get_by_role('heading', name='Pick a venue?', level=2)).to_be_visible()
         assert page.locator('.decision-item').first.inner_text().startswith('Pick a venue?') and 'holding up 1' in page.locator('.decision-item').first.inner_text()
         expect(page.locator('.impact-line')).to_contain_text('Holding up 1 item')
