@@ -30,6 +30,12 @@ with sync_playwright() as p:
         go(pg, 'map'); pg.locator('[data-new-folder]').click(); pg.locator('#folder-form [name=name]').fill('Home'); pg.locator('#folder-form button[type=submit]').click()
         pg.locator('[data-add-outcome]').first.click(); pg.locator('#outcome-new-form [name=name]').fill('Plan the family reunion'); pg.locator('#outcome-new-form button[type=submit]').click()
         pg.wait_for_timeout(2700); shot_name = f'{w}-folders.png'; pg.screenshot(path=str(OUT / shot_name))
+        # AI Review with a duplicate pair, a set-aside item and a recent approval
+        for t in ['Order balloons for the party', 'Order the balloons for party', 'Look into a new phone plan', 'Book the caterer']:
+            pg.locator('[data-capture]').filter(visible=True).last.click(); pg.get_by_label('Capture text').fill(t); pg.locator('#capture-form button[type=submit]').click(); pg.wait_for_timeout(200)
+        go(pg, 'review'); pg.locator('.review-item').filter(has=pg.locator('.review-original', has_text='phone plan')).locator('[data-defer]').click()
+        c = pg.locator('.review-item').filter(has=pg.locator('.review-original', has_text='caterer')); c.locator('[data-review-field=type]').select_option('Idea'); pg.locator('.review-item').filter(has=pg.locator('.review-original', has_text='caterer')).locator('[data-approve]').click()
+        pg.wait_for_timeout(2700); pg.screenshot(path=str(OUT / f'{w}-ai-review.png'))
         ctx.close()
     b.close()
 print('done')

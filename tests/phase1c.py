@@ -66,7 +66,7 @@ with sync_playwright() as p:
         page.locator('#folder-delete-form button[type=submit]').click(); assert S(page)['workstreams'] == []
         # ---- AI Review (simulation): a Task with no outcome stays loose; no silent 'Unsorted work'
         cap(page, 'Buy balloons'); nav(page, 'review')
-        card = page.locator('.review-item').filter(has_text='Buy balloons'); card.locator('[data-review-field=type]').select_option('Task'); card.locator('[data-approve]').click()
+        card = page.locator('.review-item').filter(has_text='Buy balloons'); card.locator('[data-review-field=type]').select_option('Task'); card.locator('[data-approve]').click(); page.locator('#placement-form [name=choice]').select_option('loose'); page.locator('#placement-form button[type=submit]').click()
         d = S(page); assert not any(o['name'] == 'Unsorted work' for o in d['outcomes'])
         t = next(t for t in d['tasks'] if t['name'] == 'Buy balloons'); assert t['outcome'] == '' and next(c for c in d['captures'] if c['text'] == 'Buy balloons')['taskId'] == t['id']
         nav(page, 'map'); pick(page, w, 'all'); assert 'Steps with no outcome' in page.locator('.map-detail').inner_text()

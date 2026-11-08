@@ -791,6 +791,15 @@ body::before {
 .archived-steps { margin-top: 10px; display: grid; gap: 6px; }
 .archived-step { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--secondary); }
 
+.review-dup { margin-top: 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--chip-bg); font-size: 14.5px; line-height: 20px; }
+.review-dup q { display: block; margin: 4px 0 8px; color: var(--secondary); }
+.review-aside { padding: 18px 20px; }
+.aside-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; background: var(--hairline) top / 100% 1px no-repeat; }
+.aside-text { display: grid; gap: 2px; min-width: 0; font-size: 15px; line-height: 20px; overflow-wrap: anywhere; }
+.aside-text small { color: var(--secondary); font-size: 13px; }
+.merge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+@media (max-width: 520px) { .merge-grid { grid-template-columns: 1fr; } }
+
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }
 .inbox-filters button[aria-pressed="true"] { background: var(--accent-fill); border-color: transparent; box-shadow: none; color: #fff; font-weight: 600; }
