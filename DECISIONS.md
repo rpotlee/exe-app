@@ -164,3 +164,18 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - Active tab = lighter cobalt (`#9fb3ff`) so it reads on the dark bar; inactive labels are white at about 72% for contrast.
 - Everything else in DEC-004 (canvas, borders, accent, no dark theme) is unchanged.
 
+## DEC-008 — Database design choices (2026-11-08)
+**Source:** delegated to Claude; recommendations the owner can overrule. Implements DEC-005. Built and tested in `supabase/`.
+
+- **IDs are database UUIDs** instead of the prototype's text ids; the importer maps old ids to new ones and keeps a link back. *Why:* UUIDs are safe to create offline and cannot collide across devices.
+- **One private workspace per user; no workspace table.** Every row has `owner_id`; every foreign key includes the owner, so one user's row can never point at another's. *Why:* DEC-003 P-20; simplest model that row-level security can fully protect.
+- **The current focus is one column on the user's settings row**, not a flag on many rows. *Why:* "exactly one" is then true by construction; a trigger makes it a Now outcome and clears it when the outcome leaves Now.
+- **"AI cannot delete or complete" is a database role, not a promise.** Server-side AI uses a role that can read the owner's rows and add pending proposals and nothing more. A suggested relationship can never be saved as confirmed. *Why:* the guarantee holds even if the AI code or a model response is wrong.
+- **Relationships are one table covering outcomes, tasks and decisions**, with the cycle and self-block checks in the database.
+- **The original capture text is immutable**; edits are stored beside it. The audit history and decision log are append-only.
+- **Deleting a folder or outcome never deletes the work inside it**; items become unfiled or loose, matching DEC-001 and DEC-002.
+- **Writes are guarded by revision numbers** (`update … where revision = <known>`); a stale write matches nothing and the app shows the conflict (DEC-003 P-17).
+- **TypeScript types are generated from the migrations**, and a test fails if they drift (DEC-005).
+- **The AI key is stored encrypted by a server function and the browser role cannot read it.** Only Anthropic, OpenAI and Gemini are allowed as providers (owner decision); the model name is a free-text field the user fills in.
+- **Testing without Docker:** the schema is verified in an in-process Postgres (PGlite) with the same roles Supabase has. Run it against a real Supabase project before relying on it.
+
