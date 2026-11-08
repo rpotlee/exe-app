@@ -774,7 +774,7 @@ body::before {
 .check-row { border-bottom: 0; background: var(--hairline) bottom / 100% 1px no-repeat; }
 .check-row:last-child { background: none; }
 .divider { height: 1px; border: 0; background: var(--hairline); }
-.focus-panel { --hairline: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .24) 14%, rgba(255, 255, 255, .24) 86%, rgba(255, 255, 255, 0) 100%); }
+:root[data-theme="dark"] .focus-panel { --hairline: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .24) 14%, rgba(255, 255, 255, .24) 86%, rgba(255, 255, 255, 0) 100%); }
 
 /* box outlines become soft glass edges */
 .outcome-block, .recommendation, .empty-state {
@@ -819,8 +819,24 @@ body::before {
 }
 .inbox-add .text-input:focus { box-shadow: none; }
 
-/* ---------- 10. Focus Mode: deeper, warmer smoky glass ---------- */
-.focus-layer {
+/* ---------- 10. Focus Mode ----------
+   Light (default): the same white system as the rest of the app. Plain canvas, one floating card, flat capsule actions.
+   Dark theme keeps its own deep smoky look. */
+:root[data-theme="light"] .focus-layer { background: var(--canvas-base); color: var(--ink); }
+:root[data-theme="light"] .focus-top { padding: calc(env(safe-area-inset-top) + 16px) 16px 0; }
+:root[data-theme="light"] .focus-top .quiet-button { background: var(--glass-soft); border: var(--glass-edge); box-shadow: var(--glass-hair), var(--glass-shadow); color: var(--ink); min-height: 44px; padding-inline: 18px; }
+:root[data-theme="light"] .focus-body { margin-top: 28px; padding-inline: 4px; }
+:root[data-theme="light"] .focus-body .focus-label { color: var(--exe-muted); font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .06em; }
+:root[data-theme="light"] .focus-body h1 { color: var(--ink); font-size: clamp(30px, 8vw, 38px); line-height: 1.16; font-weight: 700; letter-spacing: -1.2px; margin: 10px 0 12px; }
+:root[data-theme="light"] .focus-body .lead { color: var(--secondary); font-size: 16px; line-height: 24px; }
+:root[data-theme="light"] .focus-panel { background: var(--glass-card); border: 0; border-radius: var(--r-xl); box-shadow: var(--glass-shadow); padding: 20px; margin-top: 24px; }
+:root[data-theme="light"] .focus-panel .section-heading { color: var(--ink); }
+:root[data-theme="light"] .focus-panel .check-row { min-height: 56px; color: var(--ink); }
+:root[data-theme="light"] .focus-panel .check-row > span:not(.pill) { font-size: 16px; font-weight: 400; line-height: 22px; letter-spacing: -.2px; }
+:root[data-theme="light"] .focus-actions { display: flex; flex-direction: column; align-items: stretch; gap: 14px; margin-top: 24px; }
+:root[data-theme="light"] .focus-actions .small-note { color: var(--exe-muted); text-align: center; }
+:root[data-theme="light"] .focus-actions .quiet-button { background: var(--exe-accent); border: 0; box-shadow: none; color: #fff; min-height: 50px; padding-inline: 24px; border-radius: 999px; font-size: 17px; font-weight: 600; justify-content: center; }
+:root[data-theme="dark"] .focus-layer {
   background:
     radial-gradient(70vmax 50vmax at 88% 8%, rgba(255, 112, 92, .50), transparent 60%),
     radial-gradient(60vmax 50vmax at 6% 92%, rgba(124, 84, 255, .55), transparent 62%),
@@ -828,10 +844,10 @@ body::before {
     #0d0a1e;
   color: #ffffff;
 }
-.focus-body h1, .focus-panel .section-heading { color: #ffffff; font-weight: 650; }
-.focus-body .lead, .focus-body .focus-label, .focus-actions .small-note { color: rgba(255, 255, 255, .7); }
-.focus-top .quiet-button, .focus-actions .quiet-button { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .3); color: #ffffff; box-shadow: none; }
-.focus-panel {
+:root[data-theme="dark"] .focus-body h1, :root[data-theme="dark"] .focus-panel .section-heading { color: #ffffff; font-weight: 650; }
+:root[data-theme="dark"] .focus-body .lead, :root[data-theme="dark"] .focus-body .focus-label, :root[data-theme="dark"] .focus-actions .small-note { color: rgba(255, 255, 255, .7); }
+:root[data-theme="dark"] .focus-top .quiet-button, :root[data-theme="dark"] .focus-actions .quiet-button { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .3); color: #ffffff; box-shadow: none; }
+:root[data-theme="dark"] .focus-panel {
   background: rgba(22, 16, 44, .42);
   -webkit-backdrop-filter: blur(26px) saturate(150%);
   backdrop-filter: blur(26px) saturate(150%);
@@ -840,12 +856,12 @@ body::before {
   box-shadow: none;
   color: #ffffff;
 }
-.focus-panel .check-row { color: #ffffff; border-color: rgba(255, 255, 255, .14); }
-.focus-panel .check-row input { background: transparent; border-color: rgba(255, 255, 255, .7); box-shadow: none; }
-.focus-panel .check-row input:checked { background: #ffffff; border-color: #ffffff; }
-.focus-panel .check-row input:checked::after { border-color: #1d34d8; }
-.focus-panel .check-row:has(input:checked) > span:not(.pill) { color: rgba(255, 255, 255, .6); }
-.focus-panel .pill { background: rgba(255, 255, 255, .14); color: #ffffff; border: 1px solid rgba(255, 255, 255, .3); }
+:root[data-theme="dark"] .focus-panel .check-row { color: #ffffff; border-color: rgba(255, 255, 255, .14); }
+:root[data-theme="dark"] .focus-panel .check-row input { background: transparent; border-color: rgba(255, 255, 255, .7); box-shadow: none; }
+:root[data-theme="dark"] .focus-panel .check-row input:checked { background: #ffffff; border-color: #ffffff; }
+:root[data-theme="dark"] .focus-panel .check-row input:checked::after { border-color: #1d34d8; }
+:root[data-theme="dark"] .focus-panel .check-row:has(input:checked) > span:not(.pill) { color: rgba(255, 255, 255, .6); }
+:root[data-theme="dark"] .focus-panel .pill { background: rgba(255, 255, 255, .14); color: #ffffff; border: 1px solid rgba(255, 255, 255, .3); }
 
 /* ---------- 11. accessibility fallbacks ---------- */
 @media (prefers-reduced-transparency: reduce) {
@@ -855,7 +871,7 @@ body::before {
     background: var(--surface);
   }
   .priority-hero { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--hero-solid); }
-  .focus-panel { background: #1a1432; }
+  :root[data-theme="dark"] .focus-panel { background: #1a1432; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-track .fill { transition: none; }
@@ -920,7 +936,7 @@ body::before {
 .primary-button { background: var(--exe-accent); box-shadow: none; }
 .button-row .primary-button, .capture-foot .primary-button { min-height: 50px; padding-inline: 22px; border-radius: 999px; font-size: 17px; font-weight: 600; }
 /* focus ring that stays visible on dark surfaces */
-.mobile-dock :focus-visible, .focus-layer :focus-visible { outline-color: #9fb3ff; }
+.mobile-dock :focus-visible, :root[data-theme="dark"] .focus-layer :focus-visible { outline-color: #9fb3ff; }
 /* skip link */
 .skip-link { position: absolute; left: 16px; top: -72px; z-index: 200; padding: 12px 18px; border-radius: 999px; background: var(--exe-accent); color: #fff; font-weight: 600; text-decoration: none; }
 .skip-link:focus { top: calc(env(safe-area-inset-top) + 12px); }

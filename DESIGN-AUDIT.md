@@ -325,8 +325,10 @@ Totals across the app: 16 sizes, 7 weights, 11 radii, 3 token files, 40 hex + 51
 
 - B7/B8/J1 (mobile): Map and Decisions no longer have horizontal scrollers or truncated titles. The current workstream/decision is a row that opens to show the others; Map outcomes are flat rows and only the open one shows its steps (open state survives ticking a step). Desktop keeps the two-column layout. Verified by measurement and behavior tests at 390px; keyboard activation for the outcome headers was added but not hand-tested.
 
+- B1: Focus Mode now uses the white system in the light theme: white canvas, one floating checklist card, the shared circle checkbox, secondary pills for Return and Capture, a flat 50px capsule for Finish session, no red/orange glow. Verified by measurement and an interaction test (tick/untick, Quick Capture from inside Focus Mode and back, close) at 390px; desktop viewed once at small scale. The dark theme keeps its own look (unaudited).
+
 **Still open (not started):**
-- B1 / Focus Mode redesign; B2 one-glass rule; B4 desktop grid.
+- B2 one-glass rule; B4 desktop grid.
 - B5/B6: AI Review empty state still tall, duplicate explainer still present.
 - E1: spacing is not yet on the 4-pt grid. E2: Inbox list is not in a card.
 - D1/D3: cobalt is still used for many jobs; success/warning tokens are not defined.
