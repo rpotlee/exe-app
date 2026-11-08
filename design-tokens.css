@@ -1,0 +1,119 @@
+@font-face { font-family: "Exe Inter"; src: url("assets/fonts/InterVariable.ttf") format("truetype"); font-weight: 100 900; font-style: normal; font-display: swap; }
+/* Exe V1: calibrated to the two approved UI references. */
+:root {
+  --font-ui: "Exe Inter", Arial, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-priority: 19px;
+  --text-compact: 15px;
+  --text-caption: 13px;
+  --text-title: 26px;
+  --text-page: 36px;
+  --weight-regular: 400;
+  --weight-medium: 550;
+  --weight-strong: 650;
+  --weight-heading: 750;
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #fafaff;
+  --surface-blue: #eeefff;
+  --ink: #101426;
+  --text: #263047;
+  --secondary: #455169;
+  --muted: #53617a;
+  --icon-violet: #5542bc;
+  --icon-violet-tile: #eeebff;
+  --icon-blue: #2858dd;
+  --icon-blue-tile: #eaf0ff;
+  --illumination-opacity: 1;
+  --blue: #2449ec;
+  --blue-dark: #1734c7;
+  --blue-light: #e9ebff;
+  --on-accent: #ffffff;
+  --red: #b42339;
+  --red-bg: #fff0f2;
+  --amber: #805000;
+  --amber-bg: #fff5e2;
+  --green: #176b43;
+  --green-bg: #ecf7ef;
+  --edge: #dde1ee;
+  --control-border: #7d89a2;
+  --edge-strong: #ced5e5;
+  --track: #e2e4f4;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-dock: 24px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --shadow-1: 0 2px 5px rgba(30, 38, 85, .05), 0 1px 2px rgba(30, 38, 85, .025);
+  --shadow-2: 0 6px 18px rgba(48, 39, 105, .10), 0 2px 4px rgba(48, 39, 105, .055), inset 0 1px 0 rgba(255,255,255,.9);
+  --shadow-3: 0 16px 40px rgba(30, 38, 85, .15), 0 2px 6px rgba(30, 38, 85, .06);
+  --overlay-surface: rgba(16, 20, 38, .36);
+  --shadow-pressed: inset 0 2px 4px rgba(16, 20, 38, .12);
+  --glass-fallback-alpha: .98;
+  --shadow-accent: 0 4px 10px rgba(36, 73, 236, .18), inset 0 1px 0 rgba(255, 255, 255, .2);
+  --shadow: var(--shadow-2);
+  --shadow-up: var(--shadow-3);
+  --radius: var(--radius-lg);
+  --dock-selection-width: 50px;
+  --dock-selection-radius: 12px;
+  --dock-icon-size: 24px;
+  --dock-label-size: 11px;
+  --capture-shadow: 0 5px 14px rgba(27, 43, 190, .24), 0 0 0 5px rgba(255,255,255,.38), inset 0 1px 0 rgba(255,255,255,.4);
+  --glass-alpha: .82;
+  --glass-blur: 18px;
+  --glass-saturation: 1.2;
+  --glass-edge: rgba(208, 216, 232, .85);
+  --glass-shadow: 0 10px 30px rgba(28, 42, 89, .11), inset 0 1px 0 rgba(255, 255, 255, .8);
+  --focus-ring: 3px solid var(--blue);
+  --disabled-opacity: .45;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --duration: 140ms;
+  --touch: 44px;
+  --priority-icon-size: 52px;
+  --sidebar-width: 208px;
+  --content-inset: 32px;
+  --focus-width: 500px;
+  --mobile-inset: 14px;
+  --dock-inset: 4px;
+  --dock-height: 84px;
+  --dock-bottom: 8px;
+  --dock-target-height: 54px;
+  --capture-size: 68px;
+  --capture-overlap: 18px;
+  --dock-assembly-height: calc(var(--dock-height) + var(--capture-size) - var(--capture-overlap));
+  --floating-inset: calc(var(--dock-bottom) + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px));
+  --mobile-clearance: calc(var(--dock-bottom) + var(--dock-assembly-height) + 12px + env(safe-area-inset-bottom));
+}
+/* Responsive token calibrations */
+@media (max-width: 980px) {
+:root {
+  --content-inset: 28px;
+}
+}
+@media (max-width: 760px) {
+:root {
+  --text-page: 36px;
+  --text-title: 18px;
+  --priority-icon-size: 44px;
+}
+}
+@media (max-width: 360px) {
+:root {
+  --text-page: 30px;
+}
+}
+
+@media (min-width: 361px) and (max-width: 389px) {
+  :root { --priority-icon-size: 36px; }
+}

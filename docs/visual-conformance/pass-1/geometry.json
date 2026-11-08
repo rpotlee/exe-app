@@ -1,0 +1,134 @@
+[
+  {
+    "width": 320,
+    "card": {
+      "x": 14,
+      "y": 190.59375,
+      "width": 292,
+      "height": 261.28125
+    },
+    "ring": {
+      "x": 219,
+      "y": 214.734375,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 249,
+      "y": 555.5625,
+      "width": 44,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 375,
+    "card": {
+      "x": 16,
+      "y": 169.328125,
+      "width": 343,
+      "height": 261.28125
+    },
+    "ring": {
+      "x": 272,
+      "y": 193.46875,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 290,
+      "y": 529.109375,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 390,
+    "card": {
+      "x": 16,
+      "y": 169.328125,
+      "width": 358,
+      "height": 261.28125
+    },
+    "ring": {
+      "x": 287,
+      "y": 193.46875,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 305,
+      "y": 529.109375,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 430,
+    "card": {
+      "x": 14,
+      "y": 161.328125,
+      "width": 402,
+      "height": 261.28125
+    },
+    "ring": {
+      "x": 329,
+      "y": 185.46875,
+      "width": 70,
+      "height": 70
+    },
+    "track": {
+      "x": 347,
+      "y": 521.109375,
+      "width": 56,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 1280,
+    "card": {
+      "x": 256,
+      "y": 204.3125,
+      "width": 680,
+      "height": 397.375
+    },
+    "ring": {
+      "x": 827,
+      "y": 244.5,
+      "width": 84,
+      "height": 84
+    },
+    "track": {
+      "x": 807,
+      "y": 701.1875,
+      "width": 84,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 1440,
+    "card": {
+      "x": 256,
+      "y": 204.3125,
+      "width": 680,
+      "height": 397.375
+    },
+    "ring": {
+      "x": 827,
+      "y": 244.5,
+      "width": 84,
+      "height": 84
+    },
+    "track": {
+      "x": 807,
+      "y": 701.1875,
+      "width": 84,
+      "height": 5
+    },
+    "ringFont": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  }
+]
