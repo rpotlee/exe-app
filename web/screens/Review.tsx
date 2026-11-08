@@ -15,7 +15,7 @@ export function Review() {
   const ws = api.ws, [edits, setEdits] = useState<Record<string, Partial<Proposal>>>({});
   const [cfg, setCfg] = useState<AiSettings | null>(null), [sug, setSug] = useState<Record<string, AiProposal>>({}), [who, setWho] = useState(''), [aiMsg, setAiMsg] = useState(''), [busy, setBusy] = useState(false);
   useEffect(() => { ai?.settings().then(setCfg).catch(() => setCfg(null)); }, [ai]);
-  const pending = pendingCaptures(ws), aside = setAside(ws);
+  const allPending = pendingCaptures(ws), aside = setAside(ws), [shown, setShown] = useState(30), pending = allPending.slice(0, shown);   // big lists are shown 30 at a time
   const recent = ws.captures.filter(c => c.status === 'organized' && c.organized_as && c.organized_as !== 'Merged').slice(-5).reverse();
   const merged = (id: string) => ws.captures.some(x => x.merged_into === id);
   const prop = (c: Capture): Proposal => { const a = sug[c.id]; return { ...propose(ws, c), ...(a ? { type: a.type, folderId: a.folderId, outcomeId: a.outcomeId } : {}), ...edits[c.id] }; };
@@ -29,7 +29,7 @@ export function Review() {
 
   const approve = (c: Capture) => { const p = prop(c); if (needsPlacement(p)) modal({ kind: 'placement', id: c.id, folderId: p.folderId, mergeWith: null }); else api.run((w, cx) => C.approveCapture(w, cx, c.id, toApproval(p))); };
   const approveAll = () => {
-    const todo = pending.filter(c => !rejectedBefore(c, prop(c))); let loose = 0;
+    const todo = allPending.filter(c => !rejectedBefore(c, prop(c))); let loose = 0;
     for (const c of todo) { const before = api.get(); if (api.run((w, cx) => { const cap = w.captures.find(x => x.id === c.id); if (!cap) return { ok: false as const, error: '' }; const p = { ...propose(w, cap), ...edits[c.id] }; return C.approveCapture(w, cx, c.id, toApproval(p)); }) && needsPlacement(propose(before, c))) loose++; }
     api.flash(`${todo.length} ${todo.length === 1 ? 'capture' : 'captures'} organized. Originals preserved.${loose ? ` ${loose} ${loose === 1 ? 'step' : 'steps'} left loose; place them from the Map.` : ''}`);
   };
@@ -37,7 +37,7 @@ export function Review() {
   return (
     <>
       <PageHeading label="AI REVIEW" title="AI Review" sub={cfg?.enabled ? `Approve organization deliberately. AI suggestions come from your own ${PROVIDER_NAMES[cfg.provider]} key, only when you ask.` : "Approve organization deliberately. Without AI turned on, this uses local keyword rules (a simulation), not an AI model."}
-        extra={<div className="page-tools">{pending.length > 0 && <button className="primary-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({pending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
+        extra={<div className="page-tools">{allPending.length > 0 && <button className="primary-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({allPending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
       <div className="review-layout">
         <section className="stack">
           {pending.length > 0 && <div className="card review-aside">{cfg?.enabled ? <div className="button-row"><button className="primary-button" disabled={busy} onClick={ask}><Icon name="sparkles" /> {busy ? 'Asking…' : 'Get AI suggestions'}</button><span className="small-note">Sends the text of up to 20 waiting captures to {PROVIDER_NAMES[cfg.provider]} with your key.</span></div> : <p className="small-note">{ai ? 'Want real AI suggestions? Add your own key in Settings. Nothing is sent anywhere until you turn it on and ask.' : 'Real AI suggestions need an account (they use your own key, stored on the server).'}</p>}{aiMsg && <p className="small-note" role="status">{aiMsg}</p>}</div>}
@@ -60,6 +60,7 @@ export function Review() {
                   <button className="mini-button" onClick={() => api.run((w, cx) => C.rejectCapture(w, cx, c.id, proposalFingerprint(p)))}>Reject</button></div>
               </article>); })
             : <div className="empty-state"><span className="empty-icon"><Icon name="sparkles" /></span><h2>Nothing to review.</h2><p>New captures appear here for your approval. The app never silently rewrites your priorities.</p></div>}
+          {allPending.length > shown && <div className="button-row"><button className="quiet-button" onClick={() => setShown(n => n + 30)}>Show 30 more ({allPending.length - shown} waiting)</button></div>}
           {aside.length > 0 && <section className="card review-aside" aria-label="Set aside"><h3 className="section-heading">Set aside ({aside.length})</h3><p className="small-note">Not deleted. The capture and its suggestion are kept.</p>
             {aside.map(c => <div key={c.id} className="aside-row"><span className="aside-text">{captureText(c)}<small>{c.review_state === 'rejected' ? 'Rejected' : 'Not now'}</small></span><button className="mini-button" aria-label={`Review again: ${captureText(c)}`} onClick={() => api.run(w => C.reviewAgain(w, c.id))}>Review again</button></div>)}</section>}
           {recent.length > 0 && <section className="card review-aside" aria-label="Recently approved"><h3 className="section-heading">Recently approved</h3><p className="small-note">You can undo an approval until you have worked on what it created. The original capture always stays.</p>

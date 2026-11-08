@@ -24,9 +24,10 @@ def outcome_block(page, w, name):
     return blk
 RUN = "async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})"
 with sync_playwright() as p:
-    b = p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM', '/usr/bin/chromium'), args=['--no-sandbox'])
+    WK = os.environ.get('BROWSER') == 'webkit'   # BROWSER=webkit runs it in Safari's engine
+    b = p.webkit.launch() if WK else p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM', '/usr/bin/chromium'), args=['--no-sandbox'])
     for w in ([int(x) for x in os.environ['W'].split(',')] if os.environ.get('W') else [320, 375, 390, 430, 768, 1024, 1280, 1440]):
-        ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); page = ctx.new_page(); errors = []
+        ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce', **({'has_touch': True, 'is_mobile': True} if (w < 761 and WK) else {})); page = ctx.new_page(); errors = []
         page.on('pageerror', lambda e: errors.append(str(e)))
         page.on('console', lambda m: errors.append(m.text) if m.type == 'error' and '404' not in m.text else None)
         page.goto(URL); page.evaluate('localStorage.clear()'); page.reload()

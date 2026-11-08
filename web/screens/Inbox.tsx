@@ -14,7 +14,7 @@ export function Inbox() {
   const [filter, setFilter] = useState<Filter>(() => (sessionStorage.getItem('exe-inbox-filter') as Filter | null) ?? 'all');
   const [archived, setArchived] = useState(false);
   const [open, setOpen] = useState<Set<string>>(new Set());
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState(''), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
   const pick = (f: Filter) => { setFilter(f); try { sessionStorage.setItem('exe-inbox-filter', f); } catch { /* convenience only */ } };
   const scope = ws.captures.filter(c => !!c.archived_at === archived);
   const counts = { all: scope.length, active: scope.filter(c => !c.completed_at).length, done: scope.filter(c => c.completed_at).length };
@@ -34,7 +34,7 @@ export function Inbox() {
           <input className="text-input" aria-label="Add a to-do" placeholder="Add a to-do…" required maxLength={4000} value={draft} onChange={e => setDraft(e.target.value)} />
           <button className="add-submit" type="submit" aria-label="Add to-do"><Icon name="corner-down-left" /></button></form>
         <ul className="raw-list">
-          {entries.map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id); return (
+          {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id); return (
             <li key={c.id} className={`raw-row ${c.completed_at ? 'is-complete' : ''}`}>
               <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span></label>
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></button>
@@ -48,6 +48,7 @@ export function Inbox() {
             </li>); })}
           {!entries.length && <li className="empty-state">{scope.length ? 'No to-dos in this view.' : 'Nothing captured yet. Type a to-do above or use the Quick Capture button.'}</li>}
         </ul>
+        {entries.length > limit && <div className="inbox-footer"><button className="quiet-button" onClick={() => setLimit(n => n + 200)}>Show 200 more ({entries.length - limit} more)</button></div>}
         <div className="inbox-footer"><button className="quiet-button" aria-pressed={archived} onClick={() => setArchived(a => !a)}>{archived ? 'Back to list' : 'View archived'}</button></div>
       </section>
     </>

@@ -5,7 +5,8 @@ import type { Capture, Workspace } from './model';
 export type ProposalType = 'Task' | 'Outcome' | 'Decision' | 'Idea' | 'Note';
 export interface Proposal { type: ProposalType; folderId: string | null; outcomeId: string | null; title: string }
 
-const words = (t: string): Set<string> => new Set((t.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []));
+const wordCache = new Map<string, Set<string>>();   // review compares many pairs; compute each text's words once
+const words = (t: string): Set<string> => { let w = wordCache.get(t); if (!w) { w = new Set(t.toLowerCase().match(/[a-z0-9]{3,}/g) ?? []); if (wordCache.size > 5000) wordCache.clear(); wordCache.set(t, w); } return w; };
 export function similarity(a: string, b: string): number {
   const x = words(a), y = words(b); if (x.size < 3 || y.size < 3) return 0;
   let n = 0; x.forEach(w => { if (y.has(w)) n++; });
