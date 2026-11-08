@@ -16,7 +16,7 @@ with sync_playwright() as p:
    page.wait_for_timeout(100)
    page.screenshot(path=str(out/f'{width}-{route}.png'),animations='disabled')
    if route=='focus':
-    metrics.append({'width':width,'card':page.locator('.priority-hero').bounding_box(),'ring':page.locator('.progress-ring').bounding_box(),'track':page.locator('.mini-progress-track').first.bounding_box(),'ringFont':page.locator('.ring-text strong').evaluate('e=>getComputedStyle(e).fontFamily')})
+    metrics.append({'width':width,'card':page.locator('.priority-hero').bounding_box(),'ring':page.locator('.hero-stat').bounding_box(),'track':page.locator('.mini-progress-track').first.bounding_box(),'ringFont':page.locator('.ring-text strong').evaluate('e=>getComputedStyle(e).fontFamily')})
   if width<761:
    dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
    page.screenshot(path=str(out/f'{width}-dock.png'),clip={'x':dock['x'],'y':plus['y'],'width':dock['width'],'height':dock['y']+dock['height']-plus['y']},animations='disabled')
@@ -31,7 +31,7 @@ with sync_playwright() as p:
    page.screenshot(path=str(out/f'{width}-{route}.png'),animations='disabled')
    page.locator('[data-nav=focus]').filter(visible=True).first.click();page.locator('[data-focus-mode]').click()
    page.screenshot(path=str(out/f'{width}-focus-mode.png'));page.keyboard.press('Escape')
-   page.locator('.workspace-switch,.mobile-workspace').filter(visible=True).click();page.screenshot(path=str(out/f'{width}-settings.png'))
+   page.locator('.workspace-switch').filter(visible=True).click() if width>760 else None;page.screenshot(path=str(out/f'{width}-settings.png'))
   page.close()
  b.close()
 (out/'geometry.json').write_text(json.dumps(metrics,indent=2)+'\n')

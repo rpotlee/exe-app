@@ -17,3 +17,10 @@ Both image assets are faithful full-resolution copies of the approved mockups, c
 6. The browser-mobile experience is a first-class web UI; safe areas, touch targets, keyboard behavior, readable text and stable fixed/floating navigation are required.
 
 Before implementing visual changes, inspect both images and compare actual rendered desktop and mobile browser screenshots. Do not redesign the established Exe workflow or architecture.
+
+## Owner-supplied crops (current build target)
+
+- [owner-desktop-focus.jpg](owner-desktop-focus.jpg): desktop Mission Status crop (sidebar, ring, checklist, priority rows).
+- [owner-mobile-focus.jpg](owner-mobile-focus.jpg): mobile Mission Status crop (bell with dot, glass dock with the + embedded between two tabs on each side).
+
+The owner directed that these crops, not the written spec, drive the build wherever they differ. In the mobile crop the fourth dock tab is drawn with the Map icon but labelled "AI Review"; it is implemented as **Map**, and AI Review is reached from the header bell.

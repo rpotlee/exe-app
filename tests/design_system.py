@@ -19,17 +19,16 @@ with sync_playwright() as p:
         linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in channels]
         luminance=sum(v*w for v,w in zip(linear,[.2126,.7152,.0722]))
         assert 1.05/(luminance+.05)>=3,('checkbox boundary contrast',rgb)
-        assert 'sans-serif' in page.locator('.ring-text strong').evaluate('e=>getComputedStyle(e).fontFamily')
+        assert 'sans-serif' in page.locator('.hero-cap').evaluate('e=>getComputedStyle(e).fontFamily')
         for track in page.locator('.mini-progress-track').all():
-            rect=track.bounding_box();assert rect['width']>=44 and rect['height']==5
+            rect=track.bounding_box();assert rect['width']>=44 and 7<=rect['height']<=8
         if width>760:
-            assert page.locator('.priority-hero').bounding_box()['width']==500
+            assert page.locator('.priority-hero').bounding_box()['width'] in (468,500)  # 500 in the two-column layout (>=1100px)
         else:
             targets=page.locator('.dock-item').all();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
-            assert abs(plus['y']+plus['height']-dock['y']-26)<1
+            assert dock['x']<=plus['x'] and plus['x']+plus['width']<=dock['x']+dock['width']  # Capture lives inside the glass island
             for target in targets:
                 r=target.bounding_box();assert r['width']>=44 and r['height']>=44
-                assert plus['y']+plus['height']<=r['y']
             for route in ['focus','inbox','review','map','decisions']:
                 page.locator(f'.mobile-dock [data-nav={route}]').click()
                 assert page.locator('.dock-item.active').count()==1

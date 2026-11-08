@@ -57,14 +57,16 @@ with sync_playwright() as p:
         page.locator('[data-show-archived]').click();page.reload()
         assert page.locator(f'[data-capture-check="{cid}"]').count()==1
         assert [c['text'] for c in state(page)['captures'][:18]]==[c['text'] for c in before['captures']]
-        # Search and settings are accessible on Focus at every viewport.
-        nav(page,'focus');page.get_by_role('button',name='Search workspace',exact=True).filter(visible=True).click()
-        page.get_by_label('Search all work').fill('pricing');assert page.locator('.search-result').count()>0
-        page.keyboard.press('Escape')
-        page.locator('.workspace-switch,.mobile-workspace').filter(visible=True).click()
-        page.get_by_role('button',name='Download JSON backup').wait_for()
-        page.get_by_role('button',name='Import backup',exact=True).wait_for()
-        page.keyboard.press('Escape')
+        # Search and Settings are desktop-only now: the approved mobile mockups show no entry point for them.
+        nav(page,'focus')
+        if width>760:
+            page.get_by_role('button',name='Search workspace',exact=True).filter(visible=True).click()
+            page.get_by_label('Search all work').fill('pricing');assert page.locator('.search-result').count()>0
+            page.keyboard.press('Escape')
+            page.locator('.workspace-switch').filter(visible=True).click()
+            page.get_by_role('button',name='Download JSON backup').wait_for()
+            page.get_by_role('button',name='Import backup',exact=True).wait_for()
+            page.keyboard.press('Escape')
         # Existing task and decision actions remain reachable at every size.
         nav(page,'focus')
         page.locator('[data-task-check="reg-route"]').filter(visible=True).first.click()
@@ -97,7 +99,7 @@ with sync_playwright() as p:
         if width<761:
             assert page.locator('.mobile-dock [data-nav]').count()==5
             dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
-            assert plus['y']+plus['height']<=page.locator('.mobile-dock .dock-item').first.bounding_box()['y']
+            assert dock['x']<=plus['x'] and plus['x']+plus['width']<=dock['x']+dock['width']  # Capture lives inside the dock island
             assert page.locator('.mobile-dock [aria-current=page]').count()==1
         assert not errors,errors
         if width in [390,1280]:
