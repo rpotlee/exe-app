@@ -17,7 +17,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
  for name in ['floating-focus','glass-focus','glass-inbox']:
   reference=Image.open(out/f'{name}-reference.png');height=round(reference.height/reference.width*390)
-  page=b.new_page(viewport={'width':390,'height':height},reduced_motion='reduce');page.goto('http://127.0.0.1:8000')
+  page=b.new_page(viewport={'width':390,'height':height},reduced_motion='reduce');page.goto('http://127.0.0.1:8000/?example=1')
   if name.endswith('inbox'):page.locator('.mobile-dock [data-nav=inbox]').click()
   page.wait_for_timeout(100);page.screenshot(path=str(out/f'{name}-actual.png'),animations='disabled');page.close()
  # Visible left desktop region only: the phone occludes the rest in the reference.

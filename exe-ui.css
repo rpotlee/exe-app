@@ -783,6 +783,8 @@ body::before {
 .decision-log { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14.5px; line-height: 20px; }
 .log-time { color: var(--secondary); font-size: 13px; }
 
+.crumb-name { font-style: normal; }
+.file-field { display: grid; gap: 4px; margin-top: 10px; max-width: 320px; }
 .task-line { display: flex; align-items: center; gap: 4px; }
 .task-line .check-row { flex: 1; min-width: 0; }
 .task-line .task-edit { flex: none; margin-top: 0; opacity: 1; color: var(--secondary); }  /* always visible: Map has no hover row */

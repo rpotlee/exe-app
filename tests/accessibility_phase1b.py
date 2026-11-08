@@ -9,7 +9,7 @@ def check(page, label):
 with sync_playwright() as p:
     b = p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM', '/usr/bin/chromium'), args=['--no-sandbox'])
     for w in [320, 390, 1280]:
-        pg = b.new_page(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); pg.goto('http://127.0.0.1:8000'); pg.evaluate('localStorage.clear()'); pg.reload()
+        pg = b.new_page(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); pg.goto('http://127.0.0.1:8000/?example=1'); pg.evaluate('localStorage.clear()'); pg.reload()
         d = json.loads(pg.evaluate("localStorage.getItem('exe-v1-local-workspace')")); next(o for o in d['outcomes'] if o['id'] == 'pricing')['pinned'] = True
         pg.evaluate('v=>localStorage.setItem("exe-v1-local-workspace",v)', json.dumps(d)); pg.reload()
         pg.locator('[data-review-priorities]').click(); check(pg, 'focus + suggestion card')

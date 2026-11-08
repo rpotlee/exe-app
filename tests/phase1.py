@@ -19,7 +19,7 @@ with sync_playwright() as p:
         context = browser.new_context(viewport={'width':width,'height':900}, reduced_motion='reduce')
         page = context.new_page(); errors=[]
         page.on('pageerror', lambda e: errors.append(str(e)))
-        page.goto('http://127.0.0.1:8000')
+        page.goto('http://127.0.0.1:8000/?example=1')
         before=state(page)
         assert len(before['captures'])==18 and not any(t['done'] for t in before['tasks'])
         for route in ['focus','inbox','review','map','decisions']:

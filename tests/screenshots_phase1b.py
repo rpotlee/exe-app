@@ -9,7 +9,7 @@ with sync_playwright() as p:
     b = p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM', '/usr/bin/chromium'), args=['--no-sandbox'])
     for w, h in [(320, 640), (375, 812), (390, 844), (430, 932), (768, 1024), (1280, 860)]:
         ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2 if w < 500 else 1, reduced_motion='reduce')
-        pg = ctx.new_page(); pg.goto('http://127.0.0.1:8000'); pg.evaluate('localStorage.clear()'); pg.reload(); pg.wait_for_timeout(500)
+        pg = ctx.new_page(); pg.goto('http://127.0.0.1:8000/?example=1'); pg.evaluate('localStorage.clear()'); pg.reload(); pg.wait_for_timeout(500)
         shot = lambda name: pg.screenshot(path=str(OUT / f'{w}-{name}.png'))
         shot('focus')
         pg.locator('[data-nav=lanes]').click(); pg.wait_for_timeout(350); shot('next-and-later')
@@ -22,6 +22,14 @@ with sync_playwright() as p:
         pg.locator('[data-capture]').filter(visible=True).last.click(); pg.get_by_label('Capture text').fill('Call the insurance broker'); pg.locator('#capture-form button[type=submit]').click()
         pg.locator('[data-review-priorities]').click(); pg.wait_for_timeout(300)
         pg.wait_for_timeout(2700); pg.locator('.suggest-card').scroll_into_view_if_needed(); pg.wait_for_timeout(300); shot('focus-suggestion')
+        ctx.close()
+        # regular first run (no example data) and folders
+        ctx = b.new_context(viewport={'width': w, 'height': h}, device_scale_factor=2 if w < 500 else 1, reduced_motion='reduce')
+        pg = ctx.new_page(); pg.goto('http://127.0.0.1:8000/'); pg.evaluate('localStorage.clear()'); pg.reload(); pg.wait_for_timeout(400)
+        pg.screenshot(path=str(OUT / f'{w}-first-run-focus.png'))
+        go(pg, 'map'); pg.locator('[data-new-folder]').click(); pg.locator('#folder-form [name=name]').fill('Home'); pg.locator('#folder-form button[type=submit]').click()
+        pg.locator('[data-add-outcome]').first.click(); pg.locator('#outcome-new-form [name=name]').fill('Plan the family reunion'); pg.locator('#outcome-new-form button[type=submit]').click()
+        pg.wait_for_timeout(2700); shot_name = f'{w}-folders.png'; pg.screenshot(path=str(OUT / shot_name))
         ctx.close()
     b.close()
 print('done')

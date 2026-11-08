@@ -23,7 +23,7 @@ def fresh(browser, w):
     ctx = browser.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce')
     page = ctx.new_page(); errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto('http://127.0.0.1:8000'); page.evaluate('localStorage.clear()'); page.reload()
+    page.goto('http://127.0.0.1:8000/?example=1'); page.evaluate('localStorage.clear()'); page.reload()
     return ctx, page, errors
 source = (ROOT / 'app.js').read_text()
 assert 'CAPTURE_TASKS' not in source and 'blockedBy:[' not in source.split('function migrate')[0], 'hard-coded capture map / blockedBy must be gone'

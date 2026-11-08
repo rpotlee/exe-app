@@ -5,7 +5,7 @@ with sync_playwright() as p:
     browser=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
     for width in [320,390,430,1280]:
         page=browser.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
-        page.goto('http://127.0.0.1:8000')
+        page.goto('http://127.0.0.1:8000/?example=1')
         if width<761:
             session=page.context.new_cdp_session(page)
             session.send('Emulation.setSafeAreaInsetsOverride',{'insets':{'top':20,'bottom':34,'left':0,'right':0}})

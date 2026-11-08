@@ -9,7 +9,7 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 
 | Spec § | Current code (`app.js` unless noted) | Status | Gap | Phase 2 table / API | Test | Phase |
 |---|---|---|---|---|---|---|
-| §2.1 eight entities | Arrays in `data`: captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focusAssignments. IDs preserved by `migrate()`. | Built | Ideas are display-only (no create/edit). Workstream is not yet shown as "Folder" (DEC-001). FocusAssignment has no own ID/order field. | `captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focus_assignments` (owner, timestamps, revision) | BL, P1 | 1 / 2 |
+| §2.1 eight entities | Arrays in `data`: captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focusAssignments. IDs preserved by `migrate()`. | Built | Ideas are display-only (no create/edit). FocusAssignment has no own ID/order field. | `captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focus_assignments` (owner, timestamps, revision) | BL, P1 | 1 / 2 |
 | §2.3, §4.1, §4.2, §19.3 navigation | Five labeled tabs on sidebar and dock; separate cobalt "+" above the dock's right end (`index.html`, `exe-ui.css`). | Built | Search/Settings reachable on phones only through the avatar menu (not covered by a test); no router/back-button behaviour (§4.4). | — | P1b, P1, DS, RF | 1 |
 | §4.3 shared UI states | Static "Saved on this device" label. Empty states for lanes/decisions. | Not built | Loading, unsynced, offline, error, conflict states. | `sync_mutations`; client queue | — | 2 |
 | §5 Quick Capture | Sheet, focus trap, returns to prior route and Focus Mode (`showCapture`); `segmentCapture` keeps a paragraph as one capture and splits a list (DEC-006), with batch id and original block. | Partial | No idempotency key, offline queue or kept draft. | `captures` + `idempotency_keys` | CC, P1b | 1 / 2 |
@@ -37,10 +37,10 @@ Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/acc
 | §17 API | — | Not built | No backend. | `/captures`, `/ai-review/...`, `/focus/assignments`, `/priority/recommendations`, … | — | 2 |
 | §19 design system | Tokens in `exe-ui.css`; light default; frosted dock `rgba(255,255,255,.82)` + `blur(18px)` with opaque fallback. | Built | App always loads light; the unused dark CSS is still in `exe-ui.css` (cleanup planned, DEC-006). | — | DS, A11Y, RF | 1 |
 | §19.4 / §23.4 devices | Checked headless Chromium at 320/375/390/430/768/1024/1280/1440. | Partial | Not tested on real iOS Safari or with a real virtual keyboard; Chromium only. | — | P1, P1b, RF | 1 (open) |
-| DEC-001 folders, DEC-002 empty start | Seed is the owner's Altr test data for everyone. | Not built | Folders, All notes view, empty first run. | `workstreams` (as folders) | — | 1 / 2 |
+| DEC-001 folders | Workstream is shown as **Folder**: create, rename, delete (never silent: items move to a chosen folder or All notes), file captures, outcomes and decisions, **All notes** view, loose steps. | Built | Ideas cannot be created or filed from the UI; tasks inherit their outcome's folder. | `workstreams` (as folders), `captures.folder_id` | `tests/phase1c.py` | 1 |
+| DEC-002 empty start | A normal visit starts empty with no Altr text; the owner's data loads only from `?example=1` into an empty workspace; workspace name is user-entered; no silent "Unsorted work". | Built | AI Review reject/defer/merge/undo and the ask-before-creating-an-outcome prompt are still to build (simulation). | — | `tests/phase1c.py` | 1 |
 
 ## Open items that need the owner
 - Phase 4 research is planned through each AI provider's own web search tool, with a separate search service only as a fallback; verify what each provider offers first (DEC-005). AI providers are decided: Anthropic, OpenAI and Google Gemini. AI is bring-your-own-key and needs the Phase 2 backend; nothing AI-related can ship on the prototype.
 - Whether the "blocked" count in the state line should count tasks and outcomes separately (currently one number).
-- Dark theme removal, folders and the empty first run are decided (DEC-001/002/003) but not part of the Phase 1b build order given.
 - `tests/visual_conformance.py` and `tests/visual_compare.py` were not re-run; they compare against the old icon-only dock.

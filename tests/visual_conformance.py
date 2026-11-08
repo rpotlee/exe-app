@@ -11,7 +11,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
  for width in [320,375,390,430,1280,1440]:
   page=b.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
-  page.goto('http://127.0.0.1:8000')
+  page.goto('http://127.0.0.1:8000/?example=1')
   for route in ['focus','inbox']:
    page.locator(f'[data-nav={route}]').filter(visible=True).first.click()
    page.wait_for_timeout(100)

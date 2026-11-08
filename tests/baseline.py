@@ -10,7 +10,7 @@ with sync_playwright() as p:
     for width, name in [(1280, 'desktop'), (390, 'mobile')]:
         context = browser.new_context(viewport={'width': width, 'height': 900})
         page = context.new_page()
-        page.goto('http://127.0.0.1:8000')
+        page.goto('http://127.0.0.1:8000/?example=1')
         page.get_by_role('heading', name='Mission Status', exact=True).wait_for()
         state = json.loads(page.evaluate("localStorage.getItem('exe-v1-local-workspace')"))
         assert len(state['captures']) == 18

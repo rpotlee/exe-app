@@ -12,7 +12,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
     for width in [320,375,390,430,1280,1440]:
         page=b.new_page(viewport={'width':width,'height':900},reduced_motion='reduce')
-        page.goto('http://127.0.0.1:8000')
+        page.goto('http://127.0.0.1:8000/?example=1')
         duplicate=page.evaluate('''()=>{const seen=new Set(),duplicates=[];function walk(rules,context){for(const r of rules){if(r.type===1){const key=context+'|'+r.selectorText;if(seen.has(key))duplicates.push(key);seen.add(key);}else if(r.cssRules)walk(r.cssRules,context+'|'+r.conditionText);}}walk(document.styleSheets[1].cssRules,'');return duplicates;}''')
         assert not duplicate,duplicate
         rgb=page.locator('.check-row input').filter(visible=True).first.evaluate('e=>getComputedStyle(e).borderColor')

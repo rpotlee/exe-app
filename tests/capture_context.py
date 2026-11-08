@@ -5,7 +5,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(executable_path=os.environ.get('EXE_CHROMIUM','/usr/bin/chromium'),args=['--no-sandbox'])
     for width in [320,390,430,1280]:
         page=b.new_page(viewport={'width':width,'height':900})
-        page.goto('http://127.0.0.1:8000')
+        page.goto('http://127.0.0.1:8000/?example=1')
         page.locator('[data-nav=inbox]').filter(visible=True).first.click()
         page.get_by_label('Add a to-do',exact=True).fill('Unfinished draft')
         page.evaluate('document.querySelector("#view").scrollTop=250' if width<761 else 'scrollTo(0,250)');before=page.evaluate('document.querySelector("#view").scrollTop' if width<761 else 'scrollY')
