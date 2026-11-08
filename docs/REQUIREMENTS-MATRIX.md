@@ -1,0 +1,46 @@
+# Requirements matrix (Phase 1b)
+
+Spec section → current code → gap → table/API (Phase 2 target, see DEC-005) → test → phase.
+Governing spec: `EXE_MASTER_PRODUCT_AND_BUILD_SPEC.md` (DEC-004). Written 2026-11-08 against branch `feat/phase-1b-mockup-fidelity`.
+
+**Status words.** *Built* = works in the localStorage prototype and has a test. *Partial* = some of it works. *Simulated* = looks like the feature but is a local rule, not the real thing. *Not built* = absent. Nothing here is a deployed or AI-backed application; there is no backend, sign-in or sync.
+
+Tests: `P1` = `tests/phase1.py`, `P1b` = `tests/phase1b.py`, `A11Y` = `tests/accessibility*.py` (axe), `CC` = `tests/capture_context.py`, `DS` = `tests/design_system.py`, `RF` = `tests/refinement.py`, `BL` = `tests/baseline.py`. All run 320–1440 px unless noted.
+
+| Spec § | Current code (`app.js` unless noted) | Status | Gap | Phase 2 table / API | Test | Phase |
+|---|---|---|---|---|---|---|
+| §2.1 eight entities | Arrays in `data`: captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focusAssignments. IDs preserved by `migrate()`. | Built | Ideas are display-only (no create/edit). Workstream is not yet shown as "Folder" (DEC-001). FocusAssignment has no own ID/order field. | `captures, workstreams, outcomes, tasks, decisions, ideas, relationships, focus_assignments` (owner, timestamps, revision) | BL, P1 | 1 / 2 |
+| §2.3, §4.1, §4.2, §19.3 navigation | Five labeled tabs on sidebar and dock; separate cobalt "+" above the dock's right end (`index.html`, `exe-ui.css`). | Built | Search/Settings reachable on phones only through the avatar menu (not covered by a test); no router/back-button behaviour (§4.4). | — | P1b, P1, DS, RF | 1 |
+| §4.3 shared UI states | Static "Saved on this device" label. Empty states for lanes/decisions. | Not built | Loading, unsynced, offline, error, conflict states. | `sync_mutations`; client queue | — | 2 |
+| §5 Quick Capture | Sheet, focus trap, returns to prior route and Focus Mode (`showCapture`). | Partial | Every non-empty line becomes a capture; spec wants a paragraph/multiline note kept as one. No batch provenance, idempotency key, offline queue or kept draft. | `captures` + `idempotency_keys` | CC, P1b | 1 / 2 |
+| §6 Inbox | Raw checklist, All/Active/Done, inline add, edit (original kept), archive/restore, independent completion. | Partial | Order is oldest first; DEC-003 wants newest first (Done: latest completed first). "View linked work" and review-request menu items missing. | `captures.completed_at, archived_at, edited_text` | P1, RF | 1 |
+| §6.4 completion independence | Checking a capture sets only `completedAt`. | Built | — | trigger-free: no cascade | P1 | 1 |
+| §7 AI Review | `propose()` keyword rules, labeled as local rules; approve / approve all / "Keep in inbox" toast. | **Simulated** | No real AI. No reject, defer record, merge preview, undo, selective batch, "just a note", or "Unsorted work" prompt (DEC-002 not built). Approving a Task now sets an explicit `taskId` link. | `ai_proposals`, `audit_events` | P1 (approve path only) | 2 |
+| §7.7 proposal status/audit | `data.audit` records priority applies and outcome completions only. | Partial | Proposal states, actor, source version. | `ai_proposals.status`, `audit_events` | P1b (audit entry) | 2 |
+| §8.1–8.2 Map | Workstream → outcomes → steps; mobile list/detail; per-outcome Now/Next/Later actions. | Built | Related captures, ideas and decisions are not shown per outcome. | — | P1, P1b | 1 |
+| §8.3 relationships | Add / confirm / remove (`relationshipError`, `reachesByBlocks`); kinds `blocks / informs / related`; unconfirmed shown as "Suggestion" and ignored for blocking; self-block and cycles rejected. `Task.blockedBy` and `CAPTURE_TASKS` removed (migrated). | Built | Direction shown in words, not an arrow; no AI-created suggestions yet. | `relationships` with DB cycle check and `confirmed` flag | P1b | 1 / 2 |
+| §8.4 task actions | Add step, check/uncheck, rename, move to another outcome, reorder, archive/restore. | Partial | No step notes, per-step deadline/effort UI (fields allowed on the model, UI only on outcomes). | `tasks.notes, deadline, effort, archived_at` | P1b | 1 |
+| §8.5 progress | `progress()`/`laneProgress()` from real checked steps; archived steps excluded; no steps → "Not measured". | Built | — | pure function, unchanged | P1b, A11Y | 1 |
+| §8.4 / DEC-003 outcome completion | Done only after user confirms the definition of done; prompted when all steps are done and on leaving Focus Mode; frees the Now slot, never auto-fills; reopen goes to Later. | Built | Definition of done is the outcome description (no separate field). | `outcomes.done_at`; Now-cap trigger | P1b | 1 |
+| §9 Decisions | Create/edit decisions and options, Evidence (separate from notes), chosen option, rationale, dated log, reopen; resolving only *suggests* follow-up for items it blocks. | Built | Sorting by verified impact, linked outcome display, comparison criteria, unknowns, research findings. | `decisions` (+ `decision_options`, `decision_log`) | P1b | 1 / 3 |
+| §10 Priority Engine | `compareFacts`, `rankOutcomes`, `computeSuggestion` — pure, rule order from DEC-003, explanation text, no scores. Card with Apply (confirm with before/after) / Ignore (fingerprint) / Defer. Runs on task done, decision resolve/reopen, deadline/pin, relationship change, and "Review priorities"; never on capture. | Built | Effort is stored but not a rule (per DEC-003). Immediate-action ("I have 20 minutes", §10.5) not built. Pins/deadlines are entered on Map. | `priority_recommendations`; same pure functions | P1b, A11Y | 1 / 2 |
+| §10.4 / §16.6 Now cap | UI refuses a 4th Now (swap dialog); engine Apply checks the result ≤ 3. | Partial | Client-side only. | DB constraint/transaction: ≤3 Now, one current focus | P1, P1b | 1 (UI) / 2 (DB) |
+| §11 Focus / Mission Status | Heading, state line (`statusLine`), one current priority + other active priorities, Priority suggestion card, Next & Later row opening its own screen. | Built | Red blocked state on the current-priority card; "Why this?"; "Suggested next action". Blocked tasks do show a Blocked pill in checklists. | — | P1b, DS | 1 |
+| §11 state line / badges (DEC-003) | "1 current focus of up to 3 active. N awaiting AI Review. K blocked", zero parts omitted; K = unfinished blocked tasks + outcomes held by confirmed blocks. Inbox and AI Review badges = items awaiting AI Review. | Built | — | — | P1b | 1 |
+| §12 Focus Mode | Overlay with checklist, capture returns to it, Escape/focus trap. | Partial | Step-breakdown suggestions, blocked-state unblock options, "Why this action?". | — | CC, P1 | 1 / 3 |
+| §13 Research | — | Not built | Everything (Quick Answer, Guided Research, citations, permissions, quotas). Provider undecided (DEC-005). | `research_runs`, `research_findings`, `research_sources` | — | 4 |
+| §14 adaptation | Engine triggers on meaningful events; card is the contextual prompt. | Partial | Weekly review, "this decision is resolved; two tasks may be actionable" prompt on Focus (only on the Decisions screen). | `events` | P1b | 3 |
+| §15.1 search | Outcomes, tasks, decisions, original captures (incl. archived). | Partial | Ideas, folders, research findings; best-match ordering. | Postgres full-text | P1 | 2 |
+| §15.2–15.3 settings / backup | JSON export/import with version and shape check; imports run through `migrate()`; reset example. | Partial | Restore preview with counts and conflicts, size limits, rollback. No account, research or privacy settings. | `/workspace/export, import-preview, import-commit` | P1 | 2 |
+| §15.4 auth / sync | — | Not built | Auth, per-user storage, sync, conflict screen, offline queue (DEC-005 order: after the port). | Supabase Auth + RLS; `sync_mutations` | — | 2 |
+| §16.6 DB invariants | Client-side checks for Now cap, cycles, self-block, confirmed-only blocks. | Partial | None enforced by a database; AI-never-deletes/completes needs server rules (DEC-005). | constraints, triggers, RLS | P1b (client) | 2 |
+| §17 API | — | Not built | No backend. | `/captures`, `/ai-review/...`, `/focus/assignments`, `/priority/recommendations`, … | — | 2 |
+| §19 design system | Tokens in `exe-ui.css`; light default; frosted dock `rgba(255,255,255,.82)` + `blur(18px)` with opaque fallback. | Built | Dark alternate theme still present (DEC-003 says remove). | — | DS, A11Y, RF | 1 |
+| §19.4 / §23.4 devices | Checked headless Chromium at 320/375/390/430/768/1024/1280/1440. | Partial | Not tested on real iOS Safari or with a real virtual keyboard; Chromium only. | — | P1, P1b, RF | 1 (open) |
+| DEC-001 folders, DEC-002 empty start | Seed is the owner's Altr test data for everyone. | Not built | Folders, All notes view, empty first run. | `workstreams` (as folders) | — | 1 / 2 |
+
+## Open items that need the owner
+- AI provider and search provider (DEC-005).
+- Whether the "blocked" count in the state line should count tasks and outcomes separately (currently one number).
+- Dark theme removal, folders and the empty first run are decided (DEC-001/002/003) but not part of the Phase 1b build order given.
+- `tests/visual_conformance.py` and `tests/visual_compare.py` were not re-run; they compare against the old icon-only dock.

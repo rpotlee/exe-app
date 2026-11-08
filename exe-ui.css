@@ -785,7 +785,7 @@ body::before {
 
 .task-line { display: flex; align-items: center; gap: 4px; }
 .task-line .check-row { flex: 1; min-width: 0; }
-.task-edit { flex: none; color: var(--secondary); }
+.task-line .task-edit { flex: none; margin-top: 0; opacity: 1; color: var(--secondary); }  /* always visible: Map has no hover row */
 .archived-steps { margin-top: 10px; display: grid; gap: 6px; }
 .archived-step { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--secondary); }
 
