@@ -103,30 +103,36 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 4. **Process rules unchanged.** The master spec itself says repo process documents win for existing implementation detail [master header]; AGENTS.md process rules still apply: feature branch, tests, real screenshots, a PR per phase, no push or merge or deploy without owner approval.
 5. **Phase plan.** The master spec's Phases 0–5 (§24) are the roadmap. Work now is Phase 1; it ends with all locked V1 behavior tests passing [master §24].
 
-## DEC-005 — Phase 2 technical direction (2026-11-08)
-**Resolves:** T-01, T-02 (refines the inference in DEC-003). **Source:** the owner delegated these decisions on 2026-11-08. Each is a recommendation made by Claude, not a statement from the owner; the owner may overrule any line and the log will be amended. Nothing here is built yet. Anything not in the master spec is an inference.
+## DEC-005 — Phase 2 technical direction and AI model (2026-11-08)
+**Resolves:** T-01, T-02 (refines the inference in DEC-003); settles who pays for AI. **Source:** the owner delegated these decisions on 2026-11-08 and stated that the owner will spend nothing on AI. Each line is a recommendation made by Claude, not a statement from the owner; the owner may overrule any line and the log will be amended. Nothing here is built yet. Anything not in the master spec is an inference.
 
-**Guiding principle:** the rules that protect the user (three Now, confirmed blockers only, AI never changes work silently) must hold even if a screen has a bug, so they live in the database, not only in the interface.
+**Guiding principle:** the rules that protect the user (three Now, confirmed blockers only, AI never changes work silently) must hold even if a screen has a bug or a model misbehaves, so they live in the database and the server, not only in the interface.
+
+### AI is bring-your-own-key (supersedes any plan for the app to supply or pay for a model)
+- **Users connect their own AI provider, key and model in Settings and pay the provider directly.** The app has no AI bill. *Why:* the owner will not fund AI; this also keeps cost and provider choice with the person whose captures are being sent.
+- **The AI layer is provider-agnostic:** one internal interface with a small adapter per provider. **No model name is hard-coded** (the user picks or types the model). Support one or two providers first. *Why:* providers and models change quickly; an adapter is cheap to add, a hard-coded model is not.
+- **User keys are stored encrypted on the server only and never reach the browser** (DEC-003 P-18). AI calls run in server functions. *Why:* a key in the browser can be copied by any script on the page. **This still requires a backend**, so AI cannot ship before Phase 2.
+- **Model output is validated against a strict schema** (master §7.6, §16.5). Invalid output is dropped and the user falls back to manual organizing. Every valid result is stored as a **proposal** that needs approval; AI can never delete or complete anything.
+- **Before the first AI call, show a plain disclosure** that capture text goes to the provider the user chose, and what is sent (master §13.3). No call is made until the user has seen it and agreed.
+- **The app must work fully without AI** (master §1.3, §22). A user who never adds a key loses no feature except suggestions. The prototype's AI Review keyword rules stay labeled as a simulation until real AI exists.
 
 ### Order of work
 - **Finish Phase 1 on the prototype first.** Feature work does not pause for the backend. *Why:* Phase 1 is how the product behavior is verified with the owner; changing storage at the same time would hide which change broke what.
-- **The schema is the first Phase 2 deliverable, before any screen is ported.** It covers the eight entities (Capture, Workstream/Folder, Outcome, Task, Decision, Idea, Relationship, FocusAssignment) plus supporting tables for AI proposals, audit/undo history and idempotency keys (master §16.2; none is a ninth user-facing entity). Every row has an owner, created/updated timestamps and a revision number. *Why:* screens are only a view of the schema; getting it reviewed first is the cheapest place to find a mistake.
+- **The schema is the first Phase 2 deliverable, before any screen is ported.** It covers the eight entities (Capture, Workstream/Folder, Outcome, Task, Decision, Idea, Relationship, FocusAssignment) plus supporting tables for AI proposals, audit/undo history and idempotency keys (master §16.2; none is a ninth user-facing entity), and encrypted per-user provider settings. Every row has an owner, created/updated timestamps and a revision number. *Why:* screens are only a view of the schema; getting it reviewed first is the cheapest place to find a mistake.
 - **Sync and the offline queue come after the port**, built on idempotency keys and revision checks. When two versions conflict the user is shown both; nothing is overwritten silently (DEC-003 P-17). *Why:* sync is only correct if the storage rules under it are already enforced.
 
 ### Backend and stack
-- **Backend is Supabase:** Postgres, Auth, row-level security (every row visible only to its owner). *Why:* one service gives the database, sign-in and per-user isolation that master §15.4 and §21.2 require, without writing a server first.
+- **Backend is Supabase:** Postgres, Auth, row-level security (every row visible only to its owner). *Why:* one service gives the database, sign-in and per-user isolation that master §15.4 and §21.2 require, without writing a server first. **Verify the current free-tier limits before relying on them**; this was not checked here and pricing or limits may have changed.
 - **Stack is React + TypeScript + Vite**, with TypeScript types generated from the database schema, so a screen cannot disagree with the schema. *Why:* typed code catches a wrong field at build time; Vite avoids server rendering, which a signed-in app does not need.
+- **The Priority Engine and progress calculations stay pure functions** (data in, result out, no storage access), so they move to the new storage unchanged and keep their tests. The prototype's engine in `app.js` is written this way on purpose.
 
 ### Rules enforced in the database (master §16.6)
 - At most **three** Now outcomes per user, enforced in a transaction.
 - Exactly **one current focus**, and it must be a Now outcome.
 - **No dependency cycles** and no self-blocks among `blocks` relationships.
 - **Only confirmed `blocks`** relationships count as blocking; an unconfirmed (suggested) one never does.
-- **AI can never delete or complete anything.** AI-originated writes can only create proposals; completing a task, resolving a decision, deleting, moving a lane and confirming a blocker require a user-authorized write. *Why:* this makes the "AI suggests, user decides" principle (master §2.4) impossible to bypass from a bug or a bad model response.
+- **AI can never delete or complete anything.** AI-originated writes can only create proposals; completing a task, resolving a decision, deleting, moving a lane and confirming a blocker require a user-authorized write. *Why:* this makes "AI suggests, user decides" (master §2.4) impossible to bypass from a bug or a bad model response.
 
-### Logic and AI
-- **The Priority Engine and progress calculations stay pure functions** (data in, result out, no storage access), so they move to the new storage unchanged and keep their tests. The prototype's engine in `app.js` is written this way on purpose.
-- **AI calls run on the server only**, with strict schema-validated output, and every result is stored as a **proposal** that needs approval (master §7.6, §13, §18). API keys never reach the browser.
-
-### Still open (needs the owner or verified pricing)
-- **AI provider.** **Search provider** for research. Both need verified capability and cost before they are chosen (master §26).
+### Still open (needs the owner)
+- **Which AI providers to support first** (one or two adapters).
+- **The search provider for Phase 4** research. It also needs verified capability and cost (master §26); under the bring-your-own-key model, whether search is also user-supplied is part of this question.
