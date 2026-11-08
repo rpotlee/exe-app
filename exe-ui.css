@@ -930,3 +930,27 @@ body::before {
   .mini-title { font-size: 15px; line-height: 20px; font-weight: 600; }
   .mini-idle { font-size: 13px; }
 }
+
+/* ---------- 14. progressive disclosure on small screens ----------
+   Map and Decisions show one thing at a time. The current workstream / decision is a row that opens to reveal the
+   others; each Map outcome shows its steps only when opened. No horizontal scrollers, no truncated titles. */
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  .workstream-list, .decision-list { display: flex; flex-direction: column; overflow: visible; gap: 4px; padding: 8px; }
+  .stream-row, .decision-item { position: relative; width: 100%; min-width: 0; flex: none; min-height: 56px; padding: 12px 44px 12px 14px; white-space: normal; text-align: left; }
+  .stream-row strong, .decision-item strong { display: block; white-space: normal; overflow: visible; text-overflow: clip; }
+  .stream-row .chevron, .decision-item .chevron { display: none; }
+  .workstream-list:not(.open) .stream-row:not(.active), .decision-list:not(.open) .decision-item:not(.active) { display: none; }
+  .stream-row.active .chevron, .decision-item.active .chevron { display: block; position: absolute; right: 14px; top: 50%; width: 20px; height: 20px; margin-top: -10px; transform: rotate(90deg); transition: transform .2s; }
+  .open > .active .chevron { transform: rotate(-90deg); }
+  /* outcomes: flat rows separated by a hairline; only the open one shows its steps */
+  .outcome-block { border: 0; border-radius: 0; background: none; box-shadow: none; margin-top: 0; overflow: visible; }
+  .outcome-block + .outcome-block { background: var(--hairline) top / 100% 1px no-repeat; }
+  .outcome-top { align-items: center; padding: 14px 0; cursor: pointer; }
+  .outcome-chevron { flex: none; width: 20px; height: 20px; color: var(--muted); transition: transform .2s; }
+  .outcome-block.open .outcome-chevron { transform: rotate(180deg); }
+  .outcome-block:not(.open) .outcome-tasks { display: none; }
+  .outcome-tasks { padding: 2px 0 12px; }
+}
+@media (min-width: 761px) and (not ((pointer: coarse) and (max-height: 500px))) {
+  .outcome-chevron { display: none; }
+}
