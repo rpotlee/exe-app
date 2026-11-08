@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map: folders, outcomes, steps and dependencies · Exe Help</title>
+<meta name="description" content="Organize real work: folders, outcomes, steps and what depends on what.">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="stylesheet" href="support.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><img src="../icons/icon-192.png" alt="" width="28" height="28">Exe <span>Help</span></a><a class="open-app" href="../">Open Exe</a></header>
+<div class="layout">
+<details class="topics"><summary>Help topics</summary><nav aria-label="Help topics"><ul><li><a href="index.html">Home</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="capture-and-inbox.html">Capture &amp; Inbox</a></li><li><a href="ai-review.html">AI Review</a></li><li><a href="map.html" aria-current="page">Map</a></li><li><a href="decisions.html">Decisions</a></li><li><a href="focus.html">Focus</a></li><li><a href="ideas-and-search.html">Ideas &amp; Search</a></li><li><a href="ai-setup.html">AI setup</a></li><li><a href="backup-and-settings.html">Settings &amp; backup</a></li><li><a href="account-and-privacy.html">Account &amp; privacy</a></li><li><a href="faq.html">FAQ</a></li></ul></nav></details>
+<main id="main" tabindex="-1">
+<h1>Map: folders, outcomes, steps and dependencies</h1>
+
+<p class="lead">The Map answers “how does my work fit together?”. You can use Exe without ever opening it, but it is where you build the structure that Focus uses.</p>
+<h2>The pieces</h2>
+<table class="table"><tbody>
+<tr><th scope="row">Folder</th><td>A group, like Home or Work. Optional.</td></tr>
+<tr><th scope="row">Outcome</th><td>A result you want, for example “Confirm business registration”. Outcomes are what you make active.</td></tr>
+<tr><th scope="row">Step</th><td>One small action that moves an outcome forward. A step can also be <em>loose</em> (no outcome).</td></tr>
+<tr><th scope="row">Relationship</th><td>A link between two things, such as “this must finish before that”.</td></tr>
+</tbody></table>
+<h2>Folders</h2>
+<ul>
+  <li><strong>All notes</strong> (top of the list) shows everything, including items not yet filed. On a phone, tap the highlighted folder to open the list.</li>
+  <li><strong>New folder</strong> creates one. <strong>Rename</strong> changes its name.</li>
+  <li><strong>Delete folder</strong> never deletes what is inside. If it holds items, Exe asks where they should go: another folder, or <em>All notes (not filed)</em>.</li>
+</ul>
+<h2>Outcomes</h2>
+<ul>
+  <li><strong>Add outcome</strong>: name it, and (optionally) write the <em>Definition of done</em>.</li>
+  <li><strong>Edit outcome</strong>: change the name, definition of done, folder, <strong>deadline</strong> and <strong>effort</strong>. Deadline and effort are your own entries. Exe never makes up a date.</li>
+  <li><strong>Pin as priority</strong> tells the priority suggestions to keep it ahead. <strong>Unpin</strong> removes that.</li>
+  <li><strong>Make active</strong>, <strong>Move to Next</strong> and <strong>Move to Later</strong> choose where it sits. At most three can be active. See <a href="focus.html#lanes">Next &amp; Later</a>.</li>
+  <li><strong>Mark outcome done…</strong> asks you to confirm using your own definition of done. Finishing every step only <em>asks</em>; it never marks the outcome done by itself. Completing frees an active slot, and nothing is moved in automatically. <strong>Reopen outcome</strong> puts it back in Later.</li>
+  <li>An outcome with no steps shows <em>Not measured</em>, never 0%.</li>
+</ul>
+<h2>Steps</h2>
+<ul>
+  <li><strong>Add step</strong>: one action. <strong>Break it down</strong>: type or paste several, one per line (see <a href="focus.html#breakdown">Break it down</a>).</li>
+  <li><strong>Tick</strong> a step when it is done. This records the step and when you last worked on the outcome.</li>
+  <li>The <strong>pencil</strong> opens <strong>Edit step</strong>: rename it; move it to another outcome (or make it loose); give it an <strong>Effort</strong> estimate such as <code>20 min</code> or <code>about 2 hours</code>; a <strong>Deadline</strong>; and <strong>Notes</strong>. <strong>Move up</strong> / <strong>Move down</strong> reorder; <strong>Archive step</strong> hides it from progress (a <strong>Restore</strong> button appears under <em>Archived steps</em>).</li>
+</ul>
+<h2>Relationships and dependencies</h2>
+<p>Press <strong>Add relationship</strong>, choose <em>From</em>, the kind, and <em>To</em>.</p>
+<table class="table"><thead><tr><th scope="col">Kind</th><th scope="col">Meaning</th></tr></thead><tbody>
+<tr><th scope="row">blocks</th><td>The “from” item must be finished first. Only a <strong>confirmed</strong> block holds anything up.</td></tr>
+<tr><th scope="row">informs</th><td>Useful context. It never holds anything up.</td></tr>
+<tr><th scope="row">related</th><td>Connected, with no order.</td></tr>
+</tbody></table>
+<ul>
+  <li>Tick <strong>Save as a suggestion only</strong> if you are not sure. It is labeled <em>Suggestion</em> and blocks nothing until you press <strong>Confirm</strong>. <strong>Remove</strong> deletes only the link, never the items.</li>
+  <li>Exe refuses a link to itself and any <strong>loop</strong> (A blocks B blocks A), and tells you why.</li>
+  <li>Items held up by a confirmed block show a red <em>Blocked</em> label. Red is used <strong>only</strong> for confirmed blocks.</li>
+</ul>
+<h2>Also in a folder</h2>
+<p>Ideas (<a href="ideas-and-search.html">see Ideas</a>) and captures you filed there are listed at the bottom.</p>
+<div class="pager"><a href="ai-review.html"><small>Previous</small>AI Review</a><a href="decisions.html"><small>Next</small>Decisions</a></div>
+</main>
+</div>
+<footer>Exe help center · last updated 2026-11-08</footer>
+<script>if (matchMedia('(min-width: 900px)').matches) document.querySelector('.topics').open = true;</script>
+</body>
+</html>

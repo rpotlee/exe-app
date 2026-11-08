@@ -51,7 +51,7 @@ export function Shell({ store, where, onSignOut, ai = null }: { store: Store; wh
   }, [queue]);
   const ws = api.ws;
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
@@ -75,6 +75,7 @@ export function Shell({ store, where, onSignOut, ai = null }: { store: Store; wh
               <Icon name={t.desktopIcon} /><span>{t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} awaiting AI Review`}>{badge(t.page)}</span>}</button>))}</nav>
           <div className="sidebar-bottom">
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'search' })}><Icon name="search" /><span>Search</span></button>
+            <a className="nav-link sidebar-search" href="/support/index.html" target="_blank" rel="noopener"><Icon name="circle-help" /><span>Help</span></a>
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'settings' })}><Icon name="settings" /><span>Settings</span></button>
             {onSignOut && <button className="nav-link sidebar-search" onClick={onSignOut}><Icon name="lock" /><span>Sign out</span></button>}
             <button className="workspace-switch" onClick={() => setModal({ kind: 'settings' })}><span className="avatar">{name.slice(0, 1).toUpperCase()}</span><span><strong>{name}</strong></span><Icon name="chevron-down" /></button>

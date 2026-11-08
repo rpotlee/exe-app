@@ -74,7 +74,7 @@ function CaptureSheet() {
 }
 
 function Settings() {
-  const { api, modal, where } = useApp();
+  const { api, modal, where, signOut } = useApp();
   const ws = api.ws;
   const [name, setName] = useState(ws.settings?.workspace_name ?? '');
   const [note, setNote] = useState('');
@@ -98,6 +98,9 @@ function Settings() {
         <label className="form-field"><span className="small-note">Backup file (.json)</span><input className="text-input" type="file" accept="application/json,.json" aria-label="Backup file" onChange={e => { const f = e.target.files?.[0]; if (!f) return; setNote(''); f.text().then(t => { const r = parseBackup(t); if (!r.ok) setNote(r.error); else modal({ kind: 'restore', parsed: r.parsed }); }).catch(() => setNote('Could not read that file.')); e.target.value = ''; }} /></label>
         {note && <p className="form-error" role="alert">{note}</p>}</div>
       <AiSection />
+      <div className="divider"></div>
+      <div className="recommendation"><span className="review-tag">HELP AND ACCOUNT</span><p>New to Exe, or stuck? The help center explains every feature.</p>
+        <div className="button-row"><a className="mini-button" href="/support/index.html" target="_blank" rel="noopener">Help &amp; support</a>{signOut && <button className="mini-button" onClick={() => { modal(null); signOut(); }}>Sign out</button>}</div></div>
     </Modal>
   );
 }

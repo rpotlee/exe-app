@@ -27,3 +27,6 @@ Read `AGENTS.md` and `V1-LOCKED-SPEC.md`. Inspect the baseline, produce a gap an
 - **All automated checks:** `npm test` (typecheck, unit tests including runs against the real schema, database tests). Browser tests need Playwright: `tests/app_react.py` (new app) and the older `tests/*.py` (prototype).
 - **Decisions and status:** `DECISIONS.md`, `HANDOFF.md`, `docs/REQUIREMENTS-MATRIX.md`.
 
+## Help center (`support/`)
+A static help site that ships with the app at `/support/`: a Getting started page and one page per feature, written in plain language. Edit the words in `support/pages.mjs` (and styles in `support/support.css`), then run `npm run build:support` (also run by `npm run build`). `support/support.test.ts` fails if the guide names a button the app does not have, or if an app button is not documented. `tests/support_site.py` opens every page (links, anchors, accessibility, phone and desktop widths).
+

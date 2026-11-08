@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Turning on AI with your own key · Exe Help</title>
+<meta name="description" content="Optional, private, and under your control.">
+<link rel="icon" type="image/png" sizes="32x32" href="../icons/favicon-32.png">
+<link rel="stylesheet" href="support.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><img src="../icons/icon-192.png" alt="" width="28" height="28">Exe <span>Help</span></a><a class="open-app" href="../">Open Exe</a></header>
+<div class="layout">
+<details class="topics"><summary>Help topics</summary><nav aria-label="Help topics"><ul><li><a href="index.html">Home</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="capture-and-inbox.html">Capture &amp; Inbox</a></li><li><a href="ai-review.html">AI Review</a></li><li><a href="map.html">Map</a></li><li><a href="decisions.html">Decisions</a></li><li><a href="focus.html">Focus</a></li><li><a href="ideas-and-search.html">Ideas &amp; Search</a></li><li><a href="ai-setup.html" aria-current="page">AI setup</a></li><li><a href="backup-and-settings.html">Settings &amp; backup</a></li><li><a href="account-and-privacy.html">Account &amp; privacy</a></li><li><a href="faq.html">FAQ</a></li></ul></nav></details>
+<main id="main" tabindex="-1">
+<h1>Turning on AI with your own key</h1>
+
+<p class="lead">Exe works fully without AI. If you want real suggestions, you connect your own account with an AI company and pay them directly. Exe itself has no AI bill and never sends anything on its own.</p>
+<h2>What AI can and cannot do</h2>
+<ul>
+  <li><strong>Can:</strong> suggest what a capture is (AI Review), and suggest steps to break a goal down.</li>
+  <li><strong>Cannot:</strong> delete, complete, resolve, move priorities or create dependencies. Every suggestion is only a proposal on a card. You approve it.</li>
+  <li>Every answer is checked against a strict format. If the AI answers badly, Exe ignores it and you organize by hand.</li>
+</ul>
+<h2>Set it up</h2>
+<ol class="steps"><li>Sign in (AI settings need an account, because your key is stored encrypted on the server).</li><li>Get an API key from <strong>Anthropic</strong>, <strong>OpenAI</strong> or <strong>Google Gemini</strong>, and note the <strong>model name</strong> your provider gives you. Exe does not choose a model for you.</li><li>Open <strong>Settings → AI (your own key)</strong>. Choose the provider, type the model name, paste the key, and press <strong>Save key</strong>.</li><li>Read the notice, then press <strong>I understand, turn on AI</strong>.</li><li>Press <strong>Test connection</strong>. It sends only a tiny test message, no personal text.</li></ol>
+<div class="callout warn"><strong>Careful.</strong> Your key is shown only as its last 4 characters after you save it. Treat it like a password. If you ever lose track of it, press <strong>Remove key</strong> and make a new one with your provider.</div>
+<h2>Using it</h2>
+<ul>
+  <li><strong>AI Review → Get AI suggestions</strong> sends the text of up to 20 waiting captures, plus your folder and outcome names, to your provider. Suggestions fill the cards, marked with who made them and what they were unsure about.</li>
+  <li><strong>Break it down → Suggest steps with AI</strong> sends that outcome's name, definition and step names.</li>
+  <li>Nothing is sent until you press one of those buttons.</li>
+</ul>
+<h2>Turning it off</h2>
+<p><strong>Turn off</strong> stops all AI. <strong>Remove key</strong> deletes the stored key. <strong>Replace key</strong> saves a new one, which asks you to accept the notice again.</p>
+<div class="callout note"><strong>Good to know.</strong> If you see “AI is not set up on the server yet”, the site owner has not finished setup. Everything else still works.</div>
+<div class="pager"><a href="ideas-and-search.html"><small>Previous</small>Ideas &amp; Search</a><a href="backup-and-settings.html"><small>Next</small>Settings &amp; backup</a></div>
+</main>
+</div>
+<footer>Exe help center · last updated 2026-11-08</footer>
+<script>if (matchMedia('(min-width: 900px)').matches) document.querySelector('.topics').open = true;</script>
+</body>
+</html>
