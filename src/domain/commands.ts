@@ -154,10 +154,13 @@ export const allStepsDone = (ws: Workspace, outcomeId: string): boolean => {
   const steps = stepsOf(ws, outcomeId), o = ws.outcomes.find(x => x.id === outcomeId);
   return !!o && !o.done_at && steps.length > 0 && steps.every(t => t.done_at !== null);
 };
-export function editTask(ws: Workspace, id: string, input: { name: string; outcomeId: string | null }): Result {
+export function editTask(ws: Workspace, id: string, input: { name: string; outcomeId: string | null; effort?: string | null; notes?: string; deadline?: string | null }): Result {
   const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
   const n = trimmed(input.name); if (!n) return fail('Write the step first.');
   const changes: Row = { name: n };
+  if (input.effort !== undefined) changes.effort = trimmed(input.effort ?? '').slice(0, 60) || null;     // the user's own estimate; never invented
+  if (input.notes !== undefined) changes.notes = input.notes;
+  if (input.deadline !== undefined) changes.deadline = input.deadline && /^\d{4}-\d{2}-\d{2}$/.test(input.deadline) ? input.deadline : null;
   if (input.outcomeId !== t.outcome_id) {
     if (input.outcomeId && ws.relationships.some(r => (r.from_id === id && r.to_id === input.outcomeId) || (r.to_id === id && r.from_id === input.outcomeId)))
       return fail('This step has a relationship with that outcome. Remove the relationship first.');
@@ -347,4 +350,52 @@ export function undoApproval(ws: Workspace, ctx: Ctx, captureId: string): Result
   if (alsoOutcome) writes.push({ table: 'outcomes', op: 'delete', row: { id: alsoOutcome } });
   writes.push(audit(ctx, 'approval-undo', 'capture', c.id, { type }));
   return done(writes, 'Approval undone. The capture is back in the review list.');
+}
+
+// ------------------------------------------------------------------ several steps at once (typed, pasted, or accepted AI suggestions)
+export function addTasks(ws: Workspace, ctx: Ctx, outcomeId: string | null, names: string[]): Result {
+  const clean = names.map(n => trimmed(n).slice(0, 200)).filter(Boolean);
+  if (!clean.length) return fail('Write at least one step.');
+  if (outcomeId && !ws.outcomes.some(o => o.id === outcomeId)) return fail('That outcome no longer exists.');
+  const taken = new Set(ws.tasks.filter(t => t.outcome_id === outcomeId && !t.archived_at).map(t => t.name.trim().toLowerCase()));
+  const fresh = clean.filter((n, i) => !taken.has(n.toLowerCase()) && clean.findIndex(x => x.toLowerCase() === n.toLowerCase()) === i);
+  if (!fresh.length) return fail('Those steps are already there.');
+  const start = ws.tasks.filter(t => t.outcome_id === outcomeId).reduce((m, t) => Math.max(m, t.position + 1), 0);
+  return done(fresh.map((name, i) => ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: start + i, sources: [] })),
+    fresh.length === 1 ? 'Step added.' : `${fresh.length} steps added.`);
+}
+
+// ------------------------------------------------------------------ prompts and the weekly review: dismissals are remembered by id
+export function dismissPrompt(ws: Workspace, ctx: Ctx, id: string): Result {
+  const list = ws.settings?.priority_dismissed ?? [];
+  if (list.includes(id)) return done([]);
+  return done([settingsWrite(ws, ctx, { priority_dismissed: [...list, id].slice(-300) })]);
+}
+
+// ------------------------------------------------------------------ ideas: capture a possibility without committing to it
+const idea = (ws: Workspace, id: string) => ws.ideas.find(i => i.id === id);
+export function createIdea(ws: Workspace, ctx: Ctx, input: { name: string; notes?: string; folderId: string | null }): Result {
+  void ws;
+  const name = trimmed(input.name).slice(0, 200); if (!name) return fail('Write the idea first.');
+  return done([ins('ideas', { ...baseRow(ctx), folder_id: input.folderId, name, notes: input.notes ?? '', archived_at: null, sources: [] })], 'Idea saved. It is not a commitment.');
+}
+export function editIdea(ws: Workspace, id: string, input: { name: string; notes: string; folderId: string | null }): Result {
+  const i = idea(ws, id); if (!i) return fail('That idea no longer exists.');
+  const name = trimmed(input.name).slice(0, 200); if (!name) return fail('Write the idea first.');
+  return done([upd('ideas', i, { name, notes: input.notes, folder_id: input.folderId })], 'Idea updated.');
+}
+export function archiveIdea(ws: Workspace, ctx: Ctx, id: string, archived: boolean): Result {
+  const i = idea(ws, id); if (!i) return fail('That idea no longer exists.');
+  return done([upd('ideas', i, { archived_at: archived ? ctx.now() : null })], archived ? 'Idea archived. Restore it any time.' : 'Idea restored.');
+}
+/** Promoting is always the user's explicit act. It creates an outcome in Later, links it back to the idea, and keeps the idea (archived). */
+export function promoteIdea(ws: Workspace, ctx: Ctx, id: string): Result {
+  const i = idea(ws, id); if (!i) return fail('That idea no longer exists.');
+  const oid = ctx.id();
+  return done([
+    ins('outcomes', { ...baseRow(ctx), id: oid, folder_id: i.folder_id, name: trimmed(i.name).slice(0, 200), description: i.notes.slice(0, 600), pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [i.id] }),
+    ins('focus_assignments', { ...baseRow(ctx), outcome_id: oid, lane: 'later', position: ws.focus.length }),
+    upd('ideas', i, { archived_at: ctx.now(), notes: `${i.notes}${i.notes ? '\n' : ''}Promoted to an outcome.` }),
+    audit(ctx, 'idea-promoted', 'idea', i.id, null, { outcome: oid }),
+  ], 'Promoted to an outcome in Later. The idea is kept, archived.');
 }

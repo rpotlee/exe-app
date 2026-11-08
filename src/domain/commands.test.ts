@@ -136,8 +136,27 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       await ok(C.reopenDecision(ws, ctx, dec.id)); await ok(C.removeOption(ws, ctx, opt2.id));
       expect((await d.query('select type from decision_log order by at')).rows.map((r: any) => r.type)).toEqual(['created', 'edited', 'resolved', 'reopened', 'edited']);
       expect(ws.tasks.every(t => t.done_at === null || t.id === s1.id || t.id === s3.id)).toBe(true);   // resolving never completed any work
+      // several steps at once, a step's own estimate, prompt dismissals, and ideas (create, edit, archive, promote)
+      await ok(C.addTasks(ws, ctx, o4.id, ['Draft the list', 'Call two venues', ' draft the list ', '']));
+      expect(ws.tasks.filter(t => t.outcome_id === o4.id).map(t => t.name)).toEqual(expect.arrayContaining(['Draft the list', 'Call two venues']));
+      expect(C.addTasks(ws, ctx, o4.id, ['Draft the list']).ok).toBe(false); expect(C.addTasks(ws, ctx, o4.id, ['  ']).ok).toBe(false);
+      const draft = ws.tasks.find(t => t.name === 'Draft the list')!;
+      await ok(C.editTask(ws, draft.id, { name: 'Draft the guest list', outcomeId: o4.id, effort: ' 15 min ', notes: 'start with family', deadline: '2027-04-01' }));
+      expect(ws.tasks.find(t => t.id === draft.id)).toMatchObject({ effort: '15 min', notes: 'start with family' });
+      await ok(C.dismissPrompt(ws, ctx, 'decision:abc:2027-01-01')); await ok(C.dismissPrompt(ws, ctx, 'decision:abc:2027-01-01'));
+      expect(ws.settings?.priority_dismissed.filter(x => x === 'decision:abc:2027-01-01')).toHaveLength(1);
+      await ok(C.createIdea(ws, ctx, { name: 'Offer Spanish materials', notes: 'later', folderId: null }));
+      expect(C.createIdea(ws, ctx, { name: '  ', folderId: null }).ok).toBe(false);
+      const ide = ws.ideas[0]!;
+      await ok(C.editIdea(ws, ide.id, { name: 'Offer Spanish-language materials', notes: 'after launch', folderId: work.id }));
+      await ok(C.archiveIdea(ws, ctx, ide.id, true)); expect(ws.ideas[0]!.archived_at).toBeTruthy(); await ok(C.archiveIdea(ws, ctx, ide.id, false));
+      const outcomesBefore = ws.outcomes.length;
+      await ok(C.promoteIdea(ws, ctx, ide.id));                                 // only on the user's explicit act
+      const promoted = ws.outcomes.find(o => o.sources.includes(ide.id))!;
+      expect(ws.outcomes).toHaveLength(outcomesBefore + 1); expect(promoted).toMatchObject({ name: 'Offer Spanish-language materials', folder_id: work.id, description: 'after launch' });
+      expect(ws.focus.find(f => f.outcome_id === promoted.id)?.lane).toBe('later'); expect(ws.ideas[0]!.archived_at).toBeTruthy();
       const audits = (await d.query('select action from audit_events order by at')).rows.map((r: any) => r.action);
-      expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done']));
+      expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done', 'idea-promoted']));
     });
   }, 120_000);
 });
