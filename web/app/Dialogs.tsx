@@ -7,6 +7,8 @@ import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { stepsOf, progressOf } from '../../src/domain/progress';
 import { captureText, propose } from '../../src/domain/review';
+import { search } from '../../src/domain/search';
+import { importWrites, parseBackup, type Parsed } from '../../src/domain/backup';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
 import { Modal, useDialog } from '../ui/Modal';
@@ -19,6 +21,8 @@ const DRAFT = 'exe-capture-draft';
 export function Dialogs({ m }: { m: ModalState }) {
   switch (m.kind) {
     case 'capture': return <CaptureSheet />;
+    case 'search': return <SearchDialog />;
+    case 'restore': return <RestoreDialog parsed={m.parsed} />;
     case 'placement': return <Placement id={m.id} folderId={m.folderId} mergeWith={m.mergeWith} />;
     case 'mergePreview': return <MergePreview id={m.id} otherId={m.otherId} folderId={m.folderId} type={m.type} />;
     case 'decisionForm': return <DecisionForm id={m.id} />;
@@ -63,6 +67,7 @@ function Settings() {
   const { api, modal, where } = useApp();
   const ws = api.ws;
   const [name, setName] = useState(ws.settings?.workspace_name ?? '');
+  const [note, setNote] = useState('');
   const exportJson = () => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(ws, null, 2)], { type: 'application/json' })); a.download = 'exe-backup.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 800);
   };
@@ -76,6 +81,10 @@ function Settings() {
       <div className="divider"></div>
       <div className="recommendation"><span className="review-tag">BACKUP</span><p>Download everything as a file. Supabase's free plan has no automatic backups, so keep one.</p>
         <div className="button-row"><button className="primary-button" onClick={exportJson}>Download JSON backup</button></div></div>
+      <div className="divider"></div>
+      <div className="recommendation"><span className="review-tag">RESTORE OR IMPORT</span><p>Load a backup from this app, or the file the old prototype exported. You see what is in it first, and nothing changes until you confirm.</p>
+        <label className="form-field"><span className="small-note">Backup file (.json)</span><input className="text-input" type="file" accept="application/json,.json" aria-label="Backup file" onChange={e => { const f = e.target.files?.[0]; if (!f) return; setNote(''); f.text().then(t => { const r = parseBackup(t); if (!r.ok) setNote(r.error); else modal({ kind: 'restore', parsed: r.parsed }); }).catch(() => setNote('Could not read that file.')); e.target.value = ''; }} /></label>
+        {note && <p className="form-error" role="alert">{note}</p>}</div>
     </Modal>
   );
 }
@@ -400,3 +409,49 @@ function MergePreview({ id, otherId, folderId, type }: { id: string; otherId: st
     </Modal>
   );
 }
+
+function SearchDialog() {
+  const { api, modal, go, setFolderSel, setDecisionSel } = useApp();
+  const [q, setQ] = useState('');
+  const hits = search(api.ws, q);
+  const open = (h: ReturnType<typeof search>[number]) => {
+    modal(null);
+    if (h.kind === 'Decision') { setDecisionSel(h.id); go('decisions'); }
+    else if (h.kind === 'Capture') go('inbox');
+    else { setFolderSel(h.kind === 'Folder' ? h.id : h.folderId ?? 'all'); go('map'); }
+  };
+  return (
+    <Modal title="Search Exe" onClose={() => modal(null)}>
+      <p className="helper">Find captures, steps, outcomes, decisions, ideas and folders. Plain text matching; nothing is guessed.</p>
+      <input className="text-input" aria-label="Search all work" placeholder="Try pricing, plumber, venue…" value={q} onChange={e => setQ(e.target.value)} />
+      <div className="search-results" role="status">
+        {!q.trim() ? <p className="small-note">Start typing to search your work.</p> : hits.length ? hits.map(h => (
+          <button key={h.kind + h.id} className="search-result" onClick={() => open(h)}><strong>{h.title}</strong><small>{h.kind}{h.archived ? ' (archived)' : ''} · {h.context}</small></button>)) : <p className="small-note">No matches found.</p>}
+      </div>
+    </Modal>
+  );
+}
+
+function RestoreDialog({ parsed }: { parsed: Parsed }) {
+  const { api, modal } = useApp();
+  const [mode, setMode] = useState<'add' | 'replace'>('add');
+  const c = parsed.counts, cur = api.ws;
+  const download = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(cur, null, 2)], { type: 'application/json' })); a.download = 'exe-backup-before-restore.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 800); };
+  const go = () => {
+    const r = importWrites(api.get(), api.ctx, parsed.ws, mode);
+    if (api.run(() => ({ ok: true as const, writes: r.writes, note: mode === 'replace' ? 'Backup restored. Your previous workspace was replaced.' : 'Backup added to your workspace.' }))) modal(null);
+  };
+  const list = Object.entries(c).filter(([, n]) => n > 0).map(([k, n]) => `${n} ${k}`).join(', ') || 'nothing';
+  return (
+    <Modal title="Restore from backup" onClose={() => modal(null)}>
+      <p className="helper">This file is {parsed.kind === 'prototype' ? 'from the old prototype' : 'an Exe backup'} and contains: <strong>{list}</strong>. Original wording is kept, and nothing is marked done that was not.</p>
+      {parsed.warnings.length > 0 && <ul className="small-note">{parsed.warnings.map(w => <li key={w}>{w}</li>)}</ul>}
+      <fieldset className="stack"><legend className="small-note">How should it be added?</legend>
+        <label className="check-row"><input type="radio" name="mode" checked={mode === 'add'} onChange={() => setMode('add')} /><span>Add to what I have (keeps everything already here)</span></label>
+        <label className="check-row"><input type="radio" name="mode" checked={mode === 'replace'} onChange={() => setMode('replace')} /><span>Replace everything with this backup</span></label></fieldset>
+      {mode === 'replace' && <div className="recommendation"><span className="review-tag">BEFORE YOU REPLACE</span><p>Your current workspace ({Object.values(countsOfWs(cur)).reduce((a, b) => a + b, 0)} items) will be removed. Download a copy first so you can undo this.</p><div className="button-row"><button type="button" className="mini-button" onClick={download}>Download a copy of my current workspace</button></div></div>}
+      <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Cancel</button><button className="primary-button" onClick={go}>{mode === 'replace' ? 'Replace everything' : 'Add to my workspace'}</button></div>
+    </Modal>
+  );
+}
+const countsOfWs = (w: { folders: unknown[]; outcomes: unknown[]; tasks: unknown[]; captures: unknown[]; decisions: unknown[]; ideas: unknown[] }) => ({ f: w.folders.length, o: w.outcomes.length, t: w.tasks.length, c: w.captures.length, d: w.decisions.length, i: w.ideas.length });

@@ -134,6 +134,22 @@ with sync_playwright() as p:
         assert [l['type'] for l in sorted(S(page)['decisionLog'], key=lambda x: x['at'])] == ['created', 'resolved', 'reopened']
         # persistence: a reload keeps everything
         before = S(page); page.reload(); nav(page, 'inbox'); expect(page.locator('.raw-row')).to_have_count(6); assert S(page)['outcomes'] == before['outcomes']
+        # search: plain matching across kinds; picking a result goes there
+        page.locator('[aria-label="Search"], .sidebar-search:has-text("Search")').filter(visible=True).first.click()
+        page.get_by_label('Search all work').fill('reunion'); expect(page.locator('.search-result').first).to_contain_text('Plan reunion')
+        page.get_by_label('Search all work').fill('zzzz'); expect(page.locator('#modal-root')).to_contain_text('No matches found')
+        page.get_by_label('Search all work').fill('reunion'); page.locator('.search-result', has_text='Outcome').first.click()
+        expect(page.get_by_role('heading', name='Map', exact=True)).to_be_visible()
+        # restore / import: the prototype's own export, previewed first, added without touching what is there
+        (page.get_by_role('button', name='Settings') if not mobile else page.get_by_role('button', name='Account and settings')).filter(visible=True).first.click()
+        page.get_by_label('Backup file').set_input_files(os.path.join(os.path.dirname(__file__), '..', 'docs', 'baseline-example.json'))
+        expect(page.locator('#modal-root')).to_contain_text('from the old prototype'); expect(page.locator('#modal-root')).to_contain_text('18 captures')
+        n_before = len(S(page)['captures']); page.get_by_role('button', name='Cancel').click(); assert len(S(page)['captures']) == n_before, 'a preview changes nothing'
+        page.get_by_label('Backup file').set_input_files(os.path.join(os.path.dirname(__file__), '..', 'docs', 'baseline-example.json'))
+        page.get_by_role('button', name='Add to my workspace').click(); page.wait_for_timeout(200)
+        d = S(page); assert len(d['captures']) == n_before + 18 and len(d['outcomes']) == 5 + 12 and len([f for f in d['focus'] if f['lane'] == 'now']) <= 3
+        assert any(c['text'] == 'Register the business in NYC' for c in d['captures']) and all(c['owner_id'] == 'local' for c in d['captures'])
+        page.keyboard.press('Escape')
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
             for r in ['focus', 'inbox', 'map', 'decisions', 'review']:

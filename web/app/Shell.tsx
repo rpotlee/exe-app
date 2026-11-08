@@ -33,7 +33,8 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
   const go = useCallback((p: Page) => { location.hash = `#/${p}`; window.scrollTo({ top: 0 }); }, []);
   useEffect(() => { document.body.classList.toggle('page-is-focus', page === 'focus'); document.title = 'Exe — ' + ({ focus: 'Focus', lanes: 'Next & Later', inbox: 'Inbox', review: 'AI Review', map: 'Map', decisions: 'Decisions' })[page]; }, [page]);
   useEffect(() => {
-    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setModal({ kind: 'capture' }); } };
+    const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setModal({ kind: 'capture' }); }
+      else if (e.key === '/' && !(e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) && !document.getElementById('root')?.hasAttribute('inert')) { e.preventDefault(); setModal({ kind: 'search' }); } };
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   }, [setModal]);
 
@@ -62,6 +63,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
             <button key={t.page} className={`nav-link ${navPage === t.page ? 'active' : ''}`} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
               <Icon name={t.desktopIcon} /><span>{t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} awaiting AI Review`}>{badge(t.page)}</span>}</button>))}</nav>
           <div className="sidebar-bottom">
+            <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'search' })}><Icon name="search" /><span>Search</span></button>
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'settings' })}><Icon name="settings" /><span>Settings</span></button>
             {onSignOut && <button className="nav-link sidebar-search" onClick={onSignOut}><Icon name="lock" /><span>Sign out</span></button>}
             <button className="workspace-switch" onClick={() => setModal({ kind: 'settings' })}><span className="avatar">{name.slice(0, 1).toUpperCase()}</span><span><strong>{name}</strong></span><Icon name="chevron-down" /></button>

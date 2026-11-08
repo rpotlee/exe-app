@@ -30,6 +30,8 @@ export async function generate() {
   out += `    };\n    Views: {\n`;
   for (const [name, t] of views) out += `      ${name}: {\n        Row: {\n${t.cols.map(c => `          ${c.column_name}: ${tsType(c.udt_name)} | null;`).join('\n')}\n        };\n        Relationships: [];\n      };\n`;
   out += `    };\n    Functions: {\n      exe_apply_writes: { Args: { p_writes: Json }; Returns: undefined };\n    };\n    Enums: { [_ in never]: never };\n    CompositeTypes: { [_ in never]: never };\n  };\n}\n\nexport type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];\nexport type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];\nexport type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];\n`;
+  const names = [...tables].filter(([, t]) => !t.view);
+  out += `\n/** Real column names per table, for code that must refuse anything unexpected (imports). */\nexport const COLUMNS = {\n${names.map(([n, t]) => `  ${n}: [${t.cols.map(c => `'${c.column_name}'`).join(', ')}],`).join('\n')}\n} as const;\nexport type TableName = keyof typeof COLUMNS;\n`;
   return out;
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
