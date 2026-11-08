@@ -25,3 +25,7 @@ Nothing here creates an account or holds a secret. The owner (or whoever holds t
 2. Run `supabase link` then `supabase db push` from this folder, or paste the migration into the SQL editor.
 3. Give the app `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` through an untracked `.env` file (see `.env.example`).
 4. For AI later: server functions use the **service role** key (server only, never in the browser) to store the encrypted user key.
+
+## Free-tier facts (checked 2026-11-08, see DEC-009; recheck before signing up)
+500 MB database, 1 GB storage, 50,000 monthly active users, 2 active projects, **no automatic backups**, and **free projects are paused after 1 week of inactivity** (Resume button in the dashboard). Pro is from $25 a month. Use the app's JSON export as your backup on the free plan.
+

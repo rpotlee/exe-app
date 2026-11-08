@@ -179,3 +179,14 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **The AI key is stored encrypted by a server function and the browser role cannot read it.** Only Anthropic, OpenAI and Gemini are allowed as providers (owner decision); the model name is a free-text field the user fills in.
 - **Testing without Docker:** the schema is verified in an in-process Postgres (PGlite) with the same roles Supabase has. Run it against a real Supabase project before relying on it.
 
+## DEC-009 — Supabase free-tier facts checked, and what they mean for Exe (2026-11-08)
+**Source:** Claude read the [Supabase pricing page](https://supabase.com/pricing) and the [project pausing docs](https://supabase.com/docs/guides/platform/project-pausing) on 2026-11-08. Limits change; recheck before signing up. Completes the "verify the free-tier limits" condition in DEC-005. Whether to stay on Supabase is a delegated recommendation: **yes, keep it.**
+
+**Free plan, as published:** 500 MB database, 1 GB file storage, 50,000 monthly active users, 5 GB egress, 500,000 edge-function calls a month, 2 active projects, **no automatic backups**, and **projects are paused after 1 week of inactivity** (restorable for up to a year from the dashboard; a few requests a day keep it awake). Pro starts at $25 a month, is never paused, and keeps 7 days of backups.
+
+**What this means for Exe (one person's notes and tasks, not media):**
+- Size and user limits are far above what a personal workspace needs. Not a concern.
+- **No automatic backups on Free.** The app's JSON export/import (master §15.3) is therefore the backup, and the app should remind the user to export. Keep that feature, and test the restore.
+- **Pausing:** a free project the owner has not opened for a week goes to sleep and the app stops working until someone clicks Resume. Fine for a personal tool that is opened most weeks; upgrade to Pro ($25 a month) if that becomes a problem. The owner decides when.
+- **AI costs nothing to the app** (bring-your-own-key, DEC-005). AI calls run in edge functions; 500,000 a month is more than enough.
+
