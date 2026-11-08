@@ -1,0 +1,28 @@
+<!-- @dsCard height=300 -->
+<style>
+body{margin:0;background:var(--grouped)}
+.cv{position:relative;width:960px;height:300px;overflow:hidden;background:var(--grouped)}
+.nm{position:absolute;left:32px;bottom:28px;width:420px}
+.nm h1{font:700 120px/.95 var(--font-sans);letter-spacing:-4px;margin:0;color:var(--label)}
+.nm p{font:400 14px/20px var(--font-sans);margin:8px 0 0;color:var(--label-secondary);letter-spacing:-.15px}
+svg{position:absolute;left:0;top:0}
+.b1{fill:var(--tint-fill)}.b2{fill:var(--ai)}.b3{fill:var(--label)}.b4{fill:var(--caution)}.b5{fill:var(--positive)}.b6{fill:var(--fill)}
+.w{fill:var(--grouped)}
+</style>
+<div class="cv">
+<svg width="960" height="300" viewBox="0 0 960 300">
+<!-- blocks: tint-fill 280x230 (radius-xl 34), ai 160x160, label (ink) 200x120, caution disc 80, positive pill 160x48, fill tint 120x120
+ arrangement: one tall slab at x=500 with satellites tucked right and below, all right of x=480
+ pattern: discs and pills (soft, large radii; the system is capsule-and-card), pitch 8
+ radii: 34, 22, pill = half short side -->
+<rect class="b1" x="500" y="24" width="280" height="252" rx="34"/>
+<rect class="b2" x="796" y="24" width="140" height="140" rx="22"/>
+<rect class="b3" x="796" y="180" width="140" height="96" rx="22"/>
+<circle class="b4" cx="580" cy="104" r="40"/>
+<rect class="w" x="532" y="188" width="160" height="48" rx="24"/>
+<circle class="b5" cx="716" cy="212" r="24"/>
+<circle class="w" cx="866" cy="94" r="24"/>
+<rect class="b6" x="820" y="200" width="92" height="24" rx="12"/>
+</svg>
+<div class="nm"><h1>Exe</h1><p>Capture it. Decide it. Do it.</p></div>
+</div>
