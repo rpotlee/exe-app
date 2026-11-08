@@ -1,32 +1,36 @@
 # Exe — Personal Execution System
 
-**Status: V1 implementation baseline — not production-ready.**
+Write everything on your mind as a plain to-do list. Exe (optionally, with your own AI key) finds what belongs together, what has to happen first, and where it can help: an email draft to copy, official sources to check, a quick answer. Then it shows you the few things to work on now, and why.
 
-This repository contains the existing Exe browser prototype and the locked V1 product specification. It has not yet been connected to a database, real AI service, or mobile/desktop synchronization.
+**Status: a working prototype, not a finished product.** Sign-in, saving, offline queue and the AI functions are built; the AI help has been tested only against a fake AI so far, and the app has not had a real-device or multi-user trial.
 
-## Run the prototype
+## How it works
 
-Open `index.html` in a browser, or use a small static development server for local testing. The current build stores data only in browser local storage. Do not use it for critical information until persistent storage and backups are verified.
+- **Inbox:** a raw, checkable to-do list. Works with no AI.
+- **AI Review:** suggestions to organize captures; nothing changes until you approve.
+- **Map / Decisions / Focus:** folders, outcomes, steps, blockers and decisions; at most three active priorities, ranked by explainable rules.
+- AI is optional and bring-your-own-key (Anthropic, OpenAI or Google Gemini). Keys are stored encrypted on the server and never reach the browser again.
 
-## Files
-- `index.html`, `styles.css`, `app.js`: extracted from the previously built self-contained Exe Mission Status V2 prototype without intentional workflow changes.
-- `V1-LOCKED-SPEC.md`: authoritative functional, architecture, design, and acceptance criteria.
-- `START-HERE.md`: engineering handoff and proposed Codex stages.
-- `AGENTS.md`: development guardrails.
+Help for users is in the app's help center (`/support/`, built from `support/pages.mjs`).
 
-## First Codex task
+## Run it
 
-Read `AGENTS.md` and `V1-LOCKED-SPEC.md`. Inspect the baseline, produce a gap analysis, then work in a branch and open a pull request for **Phase 1 only** (mobile/desktop navigation, the raw checkable Inbox, Quick Capture, and layout parity). Do not replace existing models or workflows. Show before/after real browser screenshots and tests.
+```bash
+npm install
+npm run dev            # http://localhost:5173 ; add ?local=1 to run on this device only, with no account
+npm run build          # builds the help pages and the site into dist/
+npm test               # types, unit tests, database rule tests
+```
 
-**Approved design references:** see [`assets/design-reference/`](assets/design-reference/README.md), which now contains the actual full-resolution mockups. Use both images during desktop/mobile visual comparison, with [`V1-LOCKED-SPEC.md`](V1-LOCKED-SPEC.md) authoritative for functionality and architecture.
+Copy `.env.example` to `.env` and fill in your Supabase project's public URL and anon key to use sign-in and cloud saving. Never put a service-role key in `.env` or in the browser.
 
-## Two apps live in this repository (2026-11-08)
-- **The new app (`web/`, React + TypeScript + Vite).** Sign-in, a real Supabase database, offline saving, search, backup restore, bring-your-own-key AI. Run it with `npm install`, copy `.env.example` to `.env`, then `npm run dev` (add `?local=1` to run on one device without an account). Build with `npm run build` (output in `dist/`).
-- **The prototype (`index.html`, `app.js`, `exe-ui.css`).** The original browser-only version. Kept so its tests and screenshots still run; the new app imports its exported backups.
-- **Database:** `supabase/` (see `supabase/README.md`). Rules live in the database, with tests: `npm run test:db`.
-- **All automated checks:** `npm test` (typecheck, unit tests including runs against the real schema, database tests). Browser tests need Playwright: `tests/app_react.py` (new app) and the older `tests/*.py` (prototype).
-- **Decisions and status:** `DECISIONS.md`, `HANDOFF.md`, `docs/REQUIREMENTS-MATRIX.md`.
+## Layout
 
-## Help center (`support/`)
-A static help site that ships with the app at `/support/`: a Getting started page and one page per feature, written in plain language. Edit the words in `support/pages.mjs` (and styles in `support/support.css`), then run `npm run build:support` (also run by `npm run build`). `support/support.test.ts` fails if the guide names a button the app does not have, or if an app button is not documented. `tests/support_site.py` opens every page (links, anchors, accessibility, phone and desktop widths).
+- `web/` the React app · `src/` shared domain logic, stores and generated database types · `supabase/` migrations, tests and edge functions
+- `ui-kit/` the design system (Apple HIG based) · `support/` help-center content · `test-data/` sample files for Settings → Import
+- `DECISIONS.md` why things are the way they are · `HANDOFF.md` current state · `AGENTS.md` engineering guardrails
+- `index.html`, `app.js`, `styles.css` are the original single-file prototype, kept for reference.
 
+## License
+
+Copyright © the Exe authors. All rights reserved: you may read the code, but no license to copy, modify or redistribute it is granted unless one is added to this repository. The Inter font in `design-master/fonts/` is © its authors under the SIL Open Font License (see `design-master/fonts/OFL.txt`).
