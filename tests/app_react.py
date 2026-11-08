@@ -83,7 +83,9 @@ with sync_playwright() as p:
         page.get_by_role('button', name='Enter Focus Mode').click(); page.get_by_role('dialog', name='Focus Mode').wait_for()
         page.get_by_role('button', name='Capture thought').click(); page.get_by_label('Capture text').fill('Interruption'); page.locator('.modal-sheet button[type=submit]').click()
         page.get_by_role('dialog', name='Focus Mode').wait_for(); assert any(c['text'] == 'Interruption' for c in S(page)['captures'])
-        page.keyboard.press('Escape'); assert page.get_by_role('dialog').count() == 0
+        page.keyboard.press('Escape'); page.wait_for_timeout(150)
+        if page.get_by_role('heading', name='All steps are done').count(): page.get_by_role('button', name='Not yet').click()   # leaving Focus Mode on a finished outcome asks again; it never decides
+        expect(page.get_by_role('dialog')).to_have_count(0)
         # completion by confirmation frees the slot; delete folder asks where things go
         nav(page, 'map'); blk = outcome_block(page, w, 'Plan reunion'); blk.get_by_role('button', name='Mark outcome done…').click(); page.get_by_role('button', name='Yes, it’s done').click()
         d = S(page); assert next(o for o in d['outcomes'] if o['name'] == 'Plan reunion')['done_at'] and len([f for f in d['focus'] if f['lane'] == 'now']) == 2
