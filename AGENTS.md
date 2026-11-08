@@ -22,16 +22,14 @@
 
 ## Visual direction (current)
 
-- **Default theme (owner direction, 2026-11-08): a clean white canvas with cards that float through shadow alone.** The steel-blue canvas was tried and rejected. Ordinary cards are white with a faint gradient, no outline, and large soft blue-tinted layered shadows (a tight contact shadow plus a long soft one) so they look lifted off the page; very round corners. The current-priority card is **pearl optical glass** (owner direction, 2026-11-08): a nearly opaque neutral surface, soft layered neutral shadows, a narrow masked silver-white rim, and a restrained accent light on the left edge only. The light's color is `--exe-priority-accent`, set from the priority icon's *rendered* color by `syncPriorityGlassAccent()` (`web/ui/pearl.ts`, mirrored in `app.js`; call it after the card renders and when the active priority changes, no observers). Never hard-code a separate color for it. See `exe-ui.css`. The mobile dock is a dark graphite bar with visible labels, floating on a layered shadow. Action buttons are flat cobalt. The deep dark theme remains as an alternate (`?theme=dark`). Text on the canvas must keep at least 4.5:1 contrast.
-- Cobalt is the single accent, used for actions and the active state. Red is for verified blockers only.
-- **Glass recipe:** backdrop blur with saturation, a translucent fill, one 1px bright edge, a faint top specular highlight, and a soft ambient shadow. Keep it restrained: no stacked bevels, no colored glows, no glossy gradients, and no loud or "goofy" saturated backdrops.
-- **True glass refraction is a Chromium-only progressive enhancement** (`REFRACT` in `app.js`): an SVG displacement map, generated to each element's exact rounded shape, is applied as `backdrop-filter: url(#...)` on the current-priority card only (the dock is plain graphite). Safari (including every iPhone browser) and Firefox cannot do this and keep the blur-only glass, which must always look right on its own. Never apply `filter: url()` to a card; it would distort its content. Content slides dimmed under the dock (scroll mask) and the dark backdrop has crisp rings and discs so there is something to bend.
-- **All theme colors are tokens at the top of `exe-ui.css`** (one set for dark, one for light). Components must use tokens, never hard-coded theme colors.
-- Concentric radii: 28 (cards), 20 (rows and fields), 16 (buttons and inner panels), 24 (dock), pill (chips).
-- Typeface is Inter (bundled in `design-master/fonts/`, loaded in `design-tokens.css`).
-- **Focus Mode** keeps its own deeper, warmer smoky-glass backdrop in both themes, so entering it still reads as a change of state.
-- Readable darker secondary text, accessible contrast, 44px touch targets, honor `prefers-reduced-motion` and `prefers-reduced-transparency`.
-- Wording and copy are **placeholders** pending a full copy pass after the design is settled. Do not rename labels while iterating on visuals.
+- **The Exe UI kit governs the look (owner direction, 2026-11-08, replacing the earlier pearl/graphite/cobalt direction).** Source of truth: `ui-kit/` (`tokens.json`, component rules, README principles) and its implementation in `exe-ui.css`. The older sections of this file and DEC-004/DEC-007 visual details are superseded.
+- Two layers: **content is opaque** (cards, rows, the priority card on `grouped`/`background`); **Liquid-Glass-style blur is only for floating controls** (mobile tab bar and capture bar, desktop sidebar and toolbar button). Never glass a card.
+- Mobile: a floating glass **capture bar** (bottom accessory) directly above a glass **tab bar** with five labeled tabs. Selected tab = tint icon + label + a quiet fill. Capture is never a tab. Desktop: sidebar + toolbar Quick Capture (`Cmd/Ctrl+K`).
+- Appearance follows the system (`index.html` script); `?theme=light|dark` overrides. Light, dark and increased-contrast values live in the kit tokens.
+- Color meaning: tint blue = interactive/selected; red = verified blockers and destructive only; orange = decision needed; green = ready/done; indigo = AI. Always a glyph and a word as well. Text keeps 4.5:1.
+- Tokens are at the top of `exe-ui.css`; components use tokens, never hard-coded theme colors. Radii: 34 sheets, 22 cards, 14 inner panels/rows, pill for capsules. System font stack (SF Pro on Apple devices).
+- Focus Mode keeps its own deeper backdrop. Honor `prefers-reduced-motion` and `prefers-reduced-transparency`; 44px targets.
+- Wording and copy are placeholders; do not rename labels while iterating on visuals.
 
 ## Where the styling lives
 

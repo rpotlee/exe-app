@@ -97,7 +97,7 @@ export function Shell({ store, where, onSignOut, ai = null }: { store: Store; wh
         <nav className="mobile-dock" aria-label="Mobile primary navigation">{TABS.map(t => (
           <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
             <Icon name={t.icon} /><small>{t.label}</small>{bubble(badge(t.page))}</button>))}</nav>
-        <button className="mobile-capture" aria-label="Quick Capture" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
+        <button className="mobile-capture" aria-label="Quick Capture" onClick={() => setModal({ kind: 'capture' })}><span className="capture-label">Capture something</span><span className="capture-go" aria-hidden="true"><Icon name="plus" /></span></button>
       </div>
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
       {stack.map((m, i) => <Dialogs key={i} m={m} />)}

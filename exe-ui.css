@@ -14,217 +14,180 @@
    No component below hard-codes a theme color: change tokens, not rules.
    ========================================================================== */
 
-/* ---------- 0. tokens ---------- */
+/* ---------- 0. tokens (Exe UI kit, ui-kit/tokens.json) ----------
+   Light is the default; dark follows the system (see index.html) and ?theme=dark. Semantic roles: grouped background
+   with white cards, one tint for action, red only for verified blockers, indigo for AI. */
 :root {
-  color-scheme: dark;
-
-  /* shape + layout (theme independent) */
-  --r-xl: 28px;
-  --r-lg: 20px;
-  --r-md: 16px;
+  --r-xl: 34px;     /* sheets */
+  --r-lg: 22px;     /* cards */
+  --r-md: 14px;     /* inner panels, rows, buttons */
   --dock-height: 64px;
   --dock-bottom: 12px;
+  --capture-height: 48px;
   --mobile-inset: 16px;
-  --mobile-clearance: calc(var(--dock-bottom) + var(--dock-height) + 76px + env(safe-area-inset-bottom));
-  --accent-fill: linear-gradient(160deg, #4c72ff 0%, #2d46e0 100%);
-
-  /* base-stylesheet tokens, re-pointed for the dark theme */
-  --canvas: #090b11;
-  --surface: #12151f;
-  --surface-soft: #161a26;
-  --surface-blue: rgba(255, 255, 255, .07);
-  --ink: #eef1fb;
-  --text: #d6dbec;
-  --secondary: #a4adc8;
-  --muted: #8c96b2;
-  --blue: #7b94ff;
-  --blue-dark: #9db1ff;
-  --blue-light: rgba(91, 124, 255, .16);
-  --red: #ff8a9b;
-  --red-bg: rgba(255, 90, 110, .12);
-  --edge: rgba(255, 255, 255, .1);
-  --edge-strong: rgba(255, 255, 255, .18);
-  --control-border: rgba(255, 255, 255, .35);
-  --track: rgba(255, 255, 255, .12);
-  --overlay-surface: rgba(3, 5, 10, .5);
-
-  /* Exe tokens */
-  --canvas-base: #07090e;
-  --mesh:
-    /* fine film grain on top, then a vignette, soft beams, cool light from above,
-       teal in the shadows, a hint of warmth low right, over a deep blue-black base */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    radial-gradient(130% 95% at 50% 40%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .6) 100%),
-    linear-gradient(112deg, rgba(0, 0, 0, 0) 16%, rgba(140, 165, 220, .055) 32%, rgba(0, 0, 0, 0) 50%),
-    linear-gradient(122deg, rgba(0, 0, 0, 0) 52%, rgba(140, 165, 220, .04) 68%, rgba(0, 0, 0, 0) 84%),
-    radial-gradient(70vmax 55vmax at 50% -8%, rgba(110, 140, 210, .22), rgba(110, 140, 210, 0) 65%),
-    radial-gradient(55vmax 48vmax at 0% 72%, rgba(50, 110, 130, .16), rgba(50, 110, 130, 0) 65%),
-    radial-gradient(60vmax 42vmax at 90% 106%, rgba(190, 140, 110, .09), rgba(190, 140, 110, 0) 65%),
-    linear-gradient(180deg, #0b0f18 0%, #07090e 100%);
-  --logo-ink: #f2f4ff;
-  --exe-muted: #9aa4bf;
-  --exe-slate: #a9b2cc;
-  --exe-accent: #5b7cff;
-  --exe-accent-ink: #8ba3ff;
-  --exe-badge: #4262f2;
-  --ring: #0b0d14;
-
-  --glass-card: rgba(255, 255, 255, .07);
-  --glass-soft: rgba(255, 255, 255, .05);
-  --glass-inner: rgba(255, 255, 255, .06);
-  --glass-edge: 1px solid rgba(255, 255, 255, .16);
-  --glass-hair: 0 0 0 1px rgba(0, 0, 0, .28);
-  --glass-shadow: 0 18px 40px -14px rgba(0, 0, 0, .6);
-  --specular: inset 0 1px 0 rgba(255, 255, 255, .2);
-  --hairline: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .14) 14%, rgba(255, 255, 255, .14) 86%, rgba(255, 255, 255, 0) 100%);
-  --rim: linear-gradient(135deg, rgba(255, 255, 255, .7) 0%, rgba(255, 255, 255, .12) 28%, rgba(255, 255, 255, .02) 55%, rgba(255, 255, 255, .38) 100%);
-  --hero-rim: var(--rim);
-  --hero-solid: #161a26;
-  --accent-gloss: inset 0 1px 0 rgba(255, 255, 255, .3);
-  --checkbox-inset: inset 0 1px 2px rgba(0, 0, 0, .4);
-
-  --hero-fill: rgba(255, 255, 255, .06);
-  --hero-shadow: 0 26px 50px -16px rgba(0, 0, 0, .65);
-  --hero-hi-1: rgba(255, 255, 255, .26);
-  --hero-hi-2: rgba(255, 255, 255, .08);
-  --hero-hi-3: rgba(255, 255, 255, .14);
-  --hero-cool: rgba(91, 124, 255, .22);
-  --hero-sheen-a: rgba(255, 255, 255, .12);
-  --hero-sheen-b: rgba(255, 255, 255, .05);
-  --glow-a: rgba(86, 108, 176, .20);
-  --glow-b: rgba(120, 104, 176, .14);
-
-  --dock-bg: rgba(255, 255, 255, .07);
-  --dock-bg-fallback: rgba(26, 30, 40, .97);
-  --dock-edge: 1px solid rgba(255, 255, 255, .16);
-  --dock-shadow: 0 22px 44px -14px rgba(0, 0, 0, .7);
-  --sidebar-edge: rgba(255, 255, 255, .1);
-
-  --checkbox-bg: rgba(255, 255, 255, .06);
-  --checkbox-edge: rgba(255, 255, 255, .4);
-  --mini-icon-bg: rgba(255, 255, 255, .08);
-  --mini-icon-edge: rgba(255, 255, 255, .14);
-  --chip-bg: rgba(255, 255, 255, .09);
-  --track-bg: rgba(255, 255, 255, .12);
-  --tick: rgba(9, 11, 17, .9);
-  --raw-more: #6f7898;
-  --avatar-bg: rgba(255, 255, 255, .1);
-  --avatar-ink: #cfd6f5;
-
-  --blocked-bg: rgba(255, 90, 110, .10);
-  --blocked-pill-bg: rgba(255, 90, 110, .16);
-  --blocked-pill-edge: rgba(255, 130, 150, .4);
-
-  --input-bg: rgba(255, 255, 255, .06);
-  --input-edge: 1px solid rgba(255, 255, 255, .14);
-  --focus-edge: rgba(139, 163, 255, .7);
-  --focus-glow: rgba(91, 124, 255, .22);
-  --sheet-bg: rgba(18, 22, 34, .76);
-  --sheet-handle: rgba(255, 255, 255, .28);
-  --sheet-lift: 0 -16px 48px rgba(0, 0, 0, .55);
-  --scrim: rgba(3, 5, 10, .5);
-  --toast-bg: rgba(38, 44, 64, .96);
-  --toast-ink: #eef1fb;
-}
-
-/* ---- alternate: the earlier light look ---- */
-/* ---- light (default): clean white canvas, white acrylic cards (hero included) ---- */
-:root[data-theme="light"] {
-  color-scheme: light;
-
-  --canvas: #ffffff;
-  --surface: #ffffff;
-  --surface-soft: #f8fafc;
-  --surface-blue: #eef2ff;
-  --ink: #0f172a;
-  --text: #1e293b;
-  --secondary: #36445a;
-  --muted: #56657f;
-  --blue: #2f54eb;
-  --blue-dark: #2442c9;
-  --blue-light: #eef2ff;
-  --red: #b42339;
-  --red-bg: #fff0f2;
-  --edge: #e2e8f0;
-  --edge-strong: #cbd5e1;
-  --control-border: #94a3b8;
-  --track: #e2e8f0;
-  --overlay-surface: rgba(15, 23, 42, .36);
-  --accent-fill: linear-gradient(180deg, #4a6df0 0%, #2f54eb 100%);
-  --accent-gloss: inset 0 1px 0 rgba(255, 255, 255, .45);
-
-  --canvas-base: #ffffff;
+  --mobile-clearance: calc(var(--dock-bottom) + var(--dock-height) + var(--capture-height) + 36px + env(safe-area-inset-bottom));
+  --accent-fill: var(--exe-accent);
+  --accent-gloss: none;
   --mesh: none;
-  --logo-ink: #0f1020;
-  --exe-muted: #5b6b86;
-  --exe-slate: #475569;
-  --exe-accent: #2f54eb;
-  --exe-accent-ink: #2a4be0;
-  --exe-badge: #2f54eb;
+  --specular: none;
+  --glass-hair: 0 0 0 0 transparent;
+  --glass-edge: 1px solid transparent;
+  --hero-rim: none;
+  --dock-hair: 0 0 0 0 transparent;
+  --dock-spec: 0 0 0 0 transparent;
+  --checkbox-inset: none;
+  --exe-priority-accent: var(--exe-accent);
+}
+:root, :root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #f2f2f7;
+  --canvas-base: #f2f2f7;
+  --surface: #ffffff;
+  --surface-soft: #f2f2f7;
+  --surface-blue: rgba(10, 103, 216, .1);
+  --ink: #000000;
+  --text: #000000;
+  --secondary: #55555a;
+  --muted: #6c6c72;
+  --blue: #0a62cc;
+  --blue-dark: #0a4fae;
+  --blue-light: rgba(10, 103, 216, .12);
+  --red: #c4231a;
+  --red-bg: rgba(255, 59, 48, .12);
+  --edge: rgba(60, 60, 67, .22);
+  --edge-strong: #c6c6c8;
+  --control-border: #8e8e93;
+  --track: rgba(120, 120, 128, .2);
+  --overlay-surface: rgba(0, 0, 0, .4);
+
+  --logo-ink: #000000;
+  --exe-muted: #6c6c72;
+  --exe-slate: #55555a;
+  --exe-accent: #0a62cc;
+  --exe-accent-ink: #0a62cc;
+  --exe-badge: #5856d6;
   --ring: #ffffff;
 
-  /* white acrylic: high-opacity frosted fill, a bright lit top-left edge, layered soft shadows */
-  --glass-card: linear-gradient(150deg, #ffffff 0%, #f5f7fb 100%);
-  --glass-soft: linear-gradient(150deg, #ffffff 0%, #f6f8fb 100%);
-  --glass-inner: rgba(255, 255, 255, .7);
-  --glass-edge: 1px solid rgba(255, 255, 255, .7);
-  --glass-hair: 0 0 0 0 transparent;
-  --glass-shadow: 0 1px 2px rgba(36, 52, 98, .08), 0 24px 38px -16px rgba(36, 52, 98, .26), 0 6px 16px -6px rgba(36, 52, 98, .12);
-  --specular: inset 0 1px 0 rgba(255, 255, 255, .95);
-  --hairline: linear-gradient(90deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, .12) 14%, rgba(15, 23, 42, .12) 86%, rgba(15, 23, 42, 0) 100%);
-  --rim: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, .35) 30%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, .8) 100%);
-
-  /* the priority card: the same white acrylic, with a brighter lit edge and a soft sheen */
-  --hero-fill: rgba(255, 255, 255, .34);
+  --glass-card: #ffffff;
+  --glass-soft: #ffffff;
+  --glass-inner: #f2f2f7;
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 14px rgba(0, 0, 0, .04);
+  --hairline: linear-gradient(90deg, rgba(60, 60, 67, .22), rgba(60, 60, 67, .22));
+  --hero-fill: #ffffff;
   --hero-solid: #ffffff;
-  --hero-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), inset 0 -1px 1px -.5px rgba(110, 145, 255, .4), 0 1px 2px rgba(30, 44, 86, .12), 0 10px 18px -6px rgba(30, 44, 86, .16), 0 28px 42px -16px rgba(30, 44, 86, .30), 0 48px 64px -30px rgba(30, 44, 86, .24);
-  --hero-hi-1: rgba(255, 255, 255, 1);
-  --hero-hi-2: rgba(255, 255, 255, .6);
-  --hero-hi-3: rgba(255, 255, 255, .8);
-  --hero-cool: rgba(80, 110, 255, .10);
-  --hero-sheen-a: rgba(255, 255, 255, .9);
-  --hero-sheen-b: rgba(255, 255, 255, 0);
-  --hero-rim: linear-gradient(45deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .04) 38%, rgba(255, 255, 255, .04) 62%, rgba(214, 224, 255, 1) 100%);
-  --glow-a: rgba(99, 102, 241, 0);
-  --glow-b: rgba(168, 85, 247, 0);
+  --hero-shadow: var(--glass-shadow);
 
-  --dock-bg: linear-gradient(135deg, #373e49 0%, #2f3640 100%);
-  --dock-bg-fallback: #2f3640;
-  --dock-edge: 1px solid transparent;
-  --dock-hair: 0 0 0 0 transparent;
-  --dock-spec: inset 0 0 0 0 transparent;
-  --dock-shadow: 0 2px 4px rgba(15, 20, 30, .16), 0 14px 22px -6px rgba(15, 20, 30, .34), 0 30px 44px -18px rgba(20, 28, 45, .38);
-  --dock-ink: rgba(255, 255, 255, .72);
-  --dock-active: #9fb3ff;
-  --dock-ring: #2b313b;
-  --sidebar-edge: rgba(15, 23, 42, .08);
+  --dock-bg: rgba(255, 255, 255, .68);
+  --dock-bg-fallback: #ffffff;
+  --dock-edge: 1px solid rgba(255, 255, 255, .85);
+  --dock-shadow: 0 6px 24px rgba(0, 0, 0, .14), 0 1px 3px rgba(0, 0, 0, .1);
+  --dock-ink: #55555a;
+  --dock-active: #0a62cc;
+  --dock-selected-bg: rgba(118, 118, 128, .1);
+  --dock-ring: #ffffff;
+  --dock-edge-color: rgba(255, 255, 255, .85);
+  --sidebar-edge: rgba(60, 60, 67, .22);
+  --sidebar-bg: rgba(249, 249, 249, .8);
 
   --checkbox-bg: #ffffff;
-  --checkbox-edge: #8590a6;
-  --checkbox-inset: none;
-  --mini-icon-bg: rgba(255, 255, 255, .8);
-  --mini-icon-edge: rgba(15, 23, 42, .06);
-  --chip-bg: rgba(47, 84, 235, .08);
-  --track-bg: rgba(15, 23, 42, .08);
-  --tick: rgba(255, 255, 255, .95);
-  --raw-more: #56657f;
-  --avatar-bg: #e4e6fd;
-  --avatar-ink: #353d8b;
+  --checkbox-edge: #8e8e93;
+  --mini-icon-bg: #f2f2f7;
+  --mini-icon-edge: transparent;
+  --chip-bg: rgba(118, 118, 128, .12);
+  --track-bg: rgba(120, 120, 128, .2);
+  --tick: #ffffff;
+  --raw-more: #6c6c72;
+  --avatar-bg: rgba(10, 103, 216, .12);
+  --avatar-ink: #0a4fae;
 
-  --blocked-bg: #fff1f3;
-  --blocked-pill-bg: #ffe2e7;
-  --blocked-pill-edge: rgba(180, 35, 57, .3);
+  --blocked-bg: rgba(255, 59, 48, .12);
+  --blocked-pill-bg: rgba(255, 59, 48, .16);
+  --blocked-pill-edge: rgba(196, 35, 26, .35);
 
-  --input-bg: rgba(255, 255, 255, .8);
-  --input-edge: 1px solid #e2e8f0;
-  --focus-edge: rgba(47, 84, 235, .6);
-  --focus-glow: rgba(47, 84, 235, .14);
-  --sheet-bg: rgba(255, 255, 255, .86);
-  --sheet-handle: rgba(15, 23, 42, .25);
-  --sheet-lift: 0 -16px 48px rgba(15, 23, 42, .14);
-  --scrim: rgba(15, 23, 42, .22);
-  --toast-bg: #0f172a;
+  --input-bg: rgba(118, 118, 128, .12);
+  --input-edge: 1px solid transparent;
+  --focus-edge: #0a62cc;
+  --focus-glow: rgba(10, 103, 216, .2);
+  --sheet-bg: #ffffff;
+  --sheet-handle: #c6c6c8;
+  --sheet-lift: 0 -2px 30px rgba(0, 0, 0, .15);
+  --scrim: rgba(0, 0, 0, .4);
+  --toast-bg: #1c1c1e;
   --toast-ink: #ffffff;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #000000;
+  --canvas-base: #000000;
+  --surface: #1c1c1e;
+  --surface-soft: #2c2c2e;
+  --surface-blue: rgba(77, 163, 255, .14);
+  --ink: #ffffff;
+  --text: #ffffff;
+  --secondary: #aeaeb2;
+  --muted: #8e8e93;
+  --blue: #4da3ff;
+  --blue-dark: #7dbcff;
+  --blue-light: rgba(77, 163, 255, .16);
+  --red: #ff6961;
+  --red-bg: rgba(255, 69, 58, .18);
+  --edge: rgba(84, 84, 88, .6);
+  --edge-strong: #48484a;
+  --control-border: #8e8e93;
+  --track: rgba(120, 120, 128, .36);
+  --overlay-surface: rgba(0, 0, 0, .6);
+
+  --logo-ink: #ffffff;
+  --exe-muted: #8e8e93;
+  --exe-slate: #aeaeb2;
+  --exe-accent: #0a6fd8;
+  --exe-accent-ink: #4da3ff;
+  --exe-badge: #5e5ce6;
+  --ring: #000000;
+
+  --glass-card: #1c1c1e;
+  --glass-soft: #1c1c1e;
+  --glass-inner: #2c2c2e;
+  --glass-shadow: none;
+  --hairline: linear-gradient(90deg, rgba(84, 84, 88, .6), rgba(84, 84, 88, .6));
+  --hero-fill: #1c1c1e;
+  --hero-solid: #1c1c1e;
+  --hero-shadow: none;
+
+  --dock-bg: rgba(44, 44, 46, .62);
+  --dock-bg-fallback: #2c2c2e;
+  --dock-edge: 1px solid rgba(255, 255, 255, .16);
+  --dock-shadow: 0 8px 28px rgba(0, 0, 0, .6), 0 1px 3px rgba(0, 0, 0, .8);
+  --dock-ink: #aeaeb2;
+  --dock-active: #4da3ff;
+  --dock-selected-bg: rgba(118, 118, 128, .24);
+  --dock-ring: #2c2c2e;
+  --dock-edge-color: rgba(255, 255, 255, .16);
+  --sidebar-edge: rgba(84, 84, 88, .6);
+  --sidebar-bg: rgba(28, 28, 30, .82);
+
+  --checkbox-bg: transparent;
+  --checkbox-edge: #8e8e93;
+  --mini-icon-bg: #2c2c2e;
+  --chip-bg: rgba(118, 118, 128, .24);
+  --track-bg: rgba(120, 120, 128, .36);
+  --tick: #1c1c1e;
+  --raw-more: #8e8e93;
+  --avatar-bg: rgba(77, 163, 255, .2);
+  --avatar-ink: #9ccbff;
+
+  --blocked-bg: rgba(255, 69, 58, .18);
+  --blocked-pill-bg: rgba(255, 69, 58, .24);
+  --blocked-pill-edge: rgba(255, 105, 97, .45);
+
+  --input-bg: rgba(118, 118, 128, .24);
+  --focus-edge: #4da3ff;
+  --focus-glow: rgba(77, 163, 255, .25);
+  --sheet-bg: #1c1c1e;
+  --sheet-handle: #48484a;
+  --sheet-lift: 0 -2px 30px rgba(0, 0, 0, .7);
+  --scrim: rgba(0, 0, 0, .6);
+  --toast-bg: #2c2c2e;
 }
 
 /* ---------- 1. canvas: ambient mesh the glass refracts ---------- */
@@ -242,8 +205,8 @@ body::before {
 }
 
 /* ---------- 2. type + logo ---------- */
-.mission-heading h1, .page-heading h1 { font-size: 38px; line-height: 44px; letter-spacing: -1.6px; font-weight: 700; color: var(--ink); }
-.mission-sub, .page-sub { margin-top: 8px; font-size: 16.5px; line-height: 22px; letter-spacing: -.35px; color: var(--secondary); }
+.mission-heading h1, .page-heading h1 { font-size: 34px; line-height: 41px; letter-spacing: .4px; font-weight: 700; color: var(--ink); }
+.mission-sub, .page-sub { margin-top: 4px; font-size: 17px; line-height: 22px; letter-spacing: -.43px; color: var(--secondary); }
 .page-heading .eyebrow, .page-heading .period { display: none; }
 
 .brand { gap: .24em; font-weight: 800; letter-spacing: -.04em; color: var(--logo-ink); }
@@ -262,166 +225,30 @@ body::before {
 .brand-mobile .brand-symbol { width: 1.32em; height: .9em; margin-right: 0; }
 .brand-mobile .brand-symbol i { width: .4em; height: .9em; }
 
-/* ---------- 3. glass surfaces ---------- */
-/* light theme: these surfaces are 90%+ opaque, so a blur is invisible but costs GPU time while scrolling */
-:root[data-theme="light"] :is(.card, .priority-mini, .inbox-filters button, .inbox-add, .quiet-button, .top-capture, .workspace-switch, .sidebar) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-.card {
-  position: relative;
-  border-radius: var(--r-xl);
-  background: var(--glass-card);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-  border: var(--glass-edge);
-  box-shadow: var(--glass-hair), var(--glass-shadow), var(--specular);
-}
-
-/* The "current priority" card: liquid glass.
-   Translucent body over a strong blur + saturation, a lit gradient edge drawn as a
-   masked border (::before), inner lighting that reads as glass thickness (lit upper-left,
-   cool lower-right), and a diagonal sheen where light bends across the surface (::after). */
-.priority-hero {
-  color: var(--ink);
-  position: relative;
-  border-radius: var(--r-xl);
-  background: var(--hero-fill);
-  -webkit-backdrop-filter: blur(6px) saturate(150%);
-  backdrop-filter: blur(6px) saturate(150%);
-  border: 1px solid transparent;
-  box-shadow: var(--hero-shadow);
-}
-.priority-hero::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: var(--hero-rim);
-  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-.priority-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(46px 46px at 5% 4%, var(--hero-sheen-a) 0%, var(--hero-sheen-b) 100%),
-    radial-gradient(70% 62% at 78% 56%, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, 0) 100%),
-    linear-gradient(180deg, rgba(120, 135, 170, .06) 0%, rgba(120, 135, 170, 0) 34%);
-  pointer-events: none;
-}
-/* light theme: light sits behind the upper-right of the pane. It edge-lights the rim on that side, scatters inward
-   across the frosted face, blooms slightly past the edge and throws a tinted shadow away from itself. */
-:root[data-theme="light"] .hero-stack { position: relative; isolation: isolate; }
-/* Current Priority card, light theme: pearl optical glass. A nearly opaque, neutral surface; soft layered neutral shadows;
-   a narrow masked silver-white rim; and a restrained accent light on the left edge only (a thin reflection, a faint bloom
-   inward, and a hint on the curved perimeter). The accent is --exe-priority-accent. syncPriorityGlassAccent() sets it from
-   the priority icon's rendered color, so the light follows the icon; until it runs it is the app's own accent token. */
-:root[data-theme="light"] .priority-hero {
-  --exe-priority-accent: var(--exe-accent);
-  --glass-light: color-mix(in srgb, var(--exe-priority-accent) 10%, transparent);
-  --glass-reflection: color-mix(in srgb, var(--exe-priority-accent) 58%, transparent);
-  --glass-rim-tint: color-mix(in srgb, var(--exe-priority-accent) 36%, transparent);
-  isolation: isolate;
-  overflow: hidden;
-  border: 1px solid rgba(190, 197, 209, .34);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background:
-    radial-gradient(ellipse 200px 230px at -12% 48%, var(--glass-light) 0%, transparent 79%),
-    linear-gradient(153deg, #ffffff 0%, #fdfdfe 35%, #fafafb 75%, #f8f9fa 100%);
-  box-shadow:
-    0 25px 42px -26px rgba(47, 53, 72, .26),
-    0 9px 18px -11px rgba(45, 52, 76, .14),
-    0 2px 5px rgba(45, 52, 76, .025),
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    inset 0 -2px 2px rgba(255, 255, 255, .88);
-}
-/* the optical rim: a masked 1.5px ring, neutral silver and white, with the accent confined to the left-hand curve */
-:root[data-theme="light"] .priority-hero::before {
-  inset: 0;
-  z-index: 1;
-  padding: 1.5px;
-  background:
-    radial-gradient(ellipse 130px 58% at 0% 50%, var(--glass-rim-tint) 0%, transparent 100%),
-    linear-gradient(137deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, .95) 19%, rgba(207, 215, 226, .39) 43%, rgba(255, 255, 255, .97) 70%, rgba(210, 219, 233, .58) 88%, rgba(255, 255, 255, 1) 100%);
-}
-/* the colored reflection: a thin line of light along part of the left edge */
-:root[data-theme="light"] .priority-hero::after {
-  display: block;
-  inset: auto;
-  left: 0;
-  top: 16%;
-  bottom: 10%;
-  width: 2px;
-  z-index: 1;
-  border-radius: 999px;
-  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--exe-priority-accent) 28%, transparent) 19%, var(--glass-reflection) 49%, color-mix(in srgb, var(--exe-priority-accent) 25%, transparent) 81%, transparent 100%);
-  box-shadow: 2px 0 12px var(--glass-light);
-  filter: blur(.4px);
-}
-/* the slab: the glass has visible thickness. A rear contour offset down and to the left shows only where it extends past the
-   face (a few px at the bottom, a hairline on the left), shaded like polished silver glass catching light. Neutral on purpose:
-   the colored light stays on the face's left edge. */
-:root[data-theme="light"] .hero-stack::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translate(-1px, 6px);
-  border-radius: inherit;
-  box-sizing: border-box;
-  padding: 0 0 6px 1.5px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .5) 100%),
-    linear-gradient(118deg, rgba(146, 158, 182, .92) 0%, rgba(214, 221, 236, .95) 26%, rgba(138, 151, 177, .88) 54%, rgba(218, 225, 238, .95) 80%, rgba(146, 158, 182, .92) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  z-index: -1;
-  pointer-events: none;
-}
-@supports not (color: color-mix(in srgb, red 10%, transparent)) {
-  :root[data-theme="light"] .priority-hero { --glass-light: transparent; --glass-reflection: transparent; --glass-rim-tint: transparent; }
-  :root[data-theme="light"] .priority-hero::after { background: none; box-shadow: none; }
-}
-@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
-  :root[data-theme="light"] .hero-stack { border-radius: 26px; }
-  :root[data-theme="light"] .priority-hero {
-    border-radius: 26px;
-    box-shadow:
-      0 20px 34px -23px rgba(47, 53, 72, .25),
-      0 8px 15px -11px rgba(45, 52, 76, .13),
-      inset 0 1px 0 #ffffff,
-      inset 0 -2px 2px rgba(255, 255, 255, .88);
-  }
-}
-.priority-hero > * { position: relative; z-index: 2; }   /* content above the optical layers */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .priority-hero { background: var(--hero-solid); border: 1px solid var(--edge); }
-  .priority-hero::before, .priority-hero::after { display: none; }
-}
-.priority-mini {
+/* ---------- 3. surfaces ----------
+   Content is opaque (cards, rows, the priority card). Glass is only for the floating controls: the tab bar and the
+   capture bar on phones, the sidebar and the toolbar button on desktop. */
+.card, .priority-hero, .priority-mini {
   position: relative;
   border-radius: var(--r-lg);
-  background: var(--glass-soft);
+  background: var(--glass-card);
+  border: 0;
+  box-shadow: var(--glass-shadow);
+  color: var(--ink);
+}
+.priority-hero { border-radius: var(--r-lg); }
+.priority-hero > * { position: relative; }
+.priority-mini { border-radius: var(--r-md); }
+.inbox-filters button, .inbox-add, .quiet-button, .top-capture, .workspace-switch {
+  background: var(--input-bg);
+  border: 0;
+  box-shadow: none;
+}
+.top-capture {
+  background: var(--dock-bg);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
-  border: var(--glass-edge);
-  box-shadow: var(--glass-hair), var(--glass-shadow), var(--specular);
-}
-.inbox-filters button, .inbox-add, .quiet-button, .top-capture, .workspace-switch {
-  background: var(--glass-soft);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  backdrop-filter: blur(18px) saturate(160%);
-  border: var(--glass-edge);
-  box-shadow: var(--glass-hair), var(--specular);
+  box-shadow: inset 0 0 0 1px var(--dock-edge-color, rgba(255, 255, 255, .6)), var(--dock-shadow);
 }
 
 /* glass round checkboxes */
@@ -483,14 +310,13 @@ body::before {
     pointer-events: none;
     z-index: 70;
   }
-  :root[data-theme="dark"] body::after { display: none; }
   .mission-heading { margin-bottom: 26px; }
   .page-heading { margin-bottom: 22px; }
   .page-heading h1 { margin-top: 0; }
   .priority-mini { padding-block: 8px; }
 
-  /* Five labeled tabs in one frosted dock. Quick Capture is a separate cobalt button above the dock's right end,
-     so it never covers a tab (the centre tab is AI Review). */
+  /* The floating controls layer (Liquid Glass): the capture bar sits directly above the tab bar as a bottom accessory,
+     and the five labeled tabs are one glass capsule. Capture is an action, never a sixth tab. */
   .mobile-dock {
     left: 12px;
     right: 12px;
@@ -498,17 +324,17 @@ body::before {
     max-width: 520px;
     margin-inline: auto;
     height: var(--dock-height);
-    padding: 6px 4px;
+    padding: 5px;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: stretch;
     gap: 0;
-    border-radius: 24px;
+    border-radius: 999px;
     background: var(--dock-bg);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
     border: var(--dock-edge);
-    box-shadow: var(--dock-hair, var(--glass-hair)), var(--dock-shadow), var(--dock-spec, var(--specular));
+    box-shadow: var(--dock-shadow);
   }
   .dock-item {
     position: relative;
@@ -516,63 +342,71 @@ body::before {
     min-width: 0;
     height: auto;
     padding: 4px 0 2px;
-    gap: 3px;
+    gap: 2px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 18px;
+    border-radius: 999px;
     background: none;
-    color: var(--dock-ink, var(--exe-slate));
+    color: var(--dock-ink);
   }
-  .dock-item svg { width: 22px; height: 22px; stroke-width: 1.7; }
-  .dock-item small { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip: auto; font-size: 10.5px; line-height: 12px; font-weight: 500; letter-spacing: -.1px; white-space: nowrap; }
+  .dock-item svg { width: 24px; height: 24px; stroke-width: 1.75; }
+  .dock-item small { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip: auto; font-size: 10px; line-height: 12px; font-weight: 500; letter-spacing: .1px; white-space: nowrap; }
   .dock-item:hover { background: none; }
-  .dock-item.active { color: var(--dock-active, var(--exe-accent-ink)); background: none; }
+  .dock-item.active { color: var(--dock-active); background: var(--dock-selected-bg); }
   .dock-bubble {
     position: absolute;
     top: 1px;
-    left: calc(50% + 5px);
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
+    left: calc(50% + 4px);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
     border-radius: 999px;
     background: var(--exe-badge);
     color: #fff;
-    font-size: 9.5px;
-    font-weight: 700;
-    line-height: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
     text-align: center;
-    box-shadow: 0 0 0 1.5px var(--dock-ring, var(--ring));
   }
   .dock-bubble[hidden] { display: none; }
 
-  /* Quick Capture: elevated cobalt circle, outside the dock, above its right end */
   .mobile-capture {
     position: fixed;
-    right: calc(max(12px, (100vw - 520px) / 2) + 8px);
-    bottom: calc(var(--dock-bottom) + var(--dock-height) + 12px + env(safe-area-inset-bottom));
-    left: auto;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: 520px;
+    margin-inline: auto;
+    bottom: calc(var(--dock-bottom) + var(--dock-height) + 8px + env(safe-area-inset-bottom));
     z-index: 76;
-    display: grid;
-    place-items: center;
-    width: 52px;
-    height: 52px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--exe-accent);
-    color: #ffffff;
-    box-shadow: 0 2px 4px rgba(30, 44, 86, .18), 0 10px 20px -6px rgba(47, 84, 235, .5), 0 0 0 3px var(--canvas-base);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--capture-height);
+    padding: 0 6px 0 16px;
+    border: var(--dock-edge);
+    border-radius: 999px;
+    background: var(--dock-bg);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: var(--dock-shadow);
+    color: var(--secondary);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -.43px;
+    text-align: left;
     transform: none;
     transition: transform .16s cubic-bezier(.2, .8, .2, 1);
   }
-  .mobile-capture:active { transform: scale(.94); }
-  .mobile-capture svg { width: 24px; height: 24px; stroke-width: 2.2; }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .mobile-dock { background: var(--dock-bg-fallback); } }
+  .mobile-capture:active { transform: scale(.985); }
+  .mobile-capture .capture-label { flex: 1; }
+  .mobile-capture .capture-go { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--exe-accent); color: #fff; }
+  .mobile-capture .capture-go svg { width: 20px; height: 20px; stroke-width: 2.2; }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .mobile-dock, .mobile-capture { background: var(--dock-bg-fallback); } }
 
-  .toast { bottom: calc(var(--floating-inset) + var(--dock-height) + 72px); }
+  .toast { bottom: calc(var(--dock-bottom) + var(--dock-height) + var(--capture-height) + 24px + env(safe-area-inset-bottom)); }
 }
 @media (max-width: 360px) {
   .view { padding-inline: max(var(--mobile-inset), env(safe-area-inset-left)) max(var(--mobile-inset), env(safe-area-inset-right)); }
@@ -583,21 +417,21 @@ body::before {
 
 /* ---------- 5. desktop shell ---------- */
 @media (min-width: 761px) and (not ((pointer: coarse) and (max-height: 500px))) {
-  .mission-heading h1, .page-heading h1 { font-size: 43px; line-height: 49px; letter-spacing: -1.5px; }
-  .mission-sub, .page-sub { font-size: 18.5px; line-height: 24px; margin-top: 6px; }
+  .mission-heading h1, .page-heading h1 { font-size: 34px; line-height: 41px; letter-spacing: .4px; }
+  .mission-sub, .page-sub { font-size: 17px; line-height: 22px; margin-top: 4px; }
   .sidebar .brand { font-size: 30px; }
 
   .sidebar {
-    background: var(--glass-soft);
-    -webkit-backdrop-filter: blur(26px) saturate(170%);
-    backdrop-filter: blur(26px) saturate(170%);
+    background: var(--sidebar-bg);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    backdrop-filter: blur(30px) saturate(160%);
     border-right: 1px solid var(--sidebar-edge);
-    box-shadow: 1px 0 0 rgba(0, 0, 0, .12);
   }
   .sidebar-menu { gap: 6px; }
-  .nav-link { height: 44px; gap: 12px; border-radius: 14px; font-size: 16px; font-weight: 500; letter-spacing: -.3px; color: var(--exe-slate); }
+  .nav-link { height: 44px; gap: 12px; border-radius: 10px; font-size: 16px; font-weight: 500; letter-spacing: -.3px; color: var(--ink); }
+  .nav-link:hover { background: var(--chip-bg); }
   .nav-link svg { width: 22px; height: 22px; }
-  .nav-link.active { color: var(--exe-accent-ink); font-weight: 600; background: none; }
+  .nav-link.active { color: var(--exe-accent-ink); font-weight: 600; background: var(--dock-selected-bg); }
   .nav-count { min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--exe-badge); color: #fff; font-size: 11px; font-weight: 700; line-height: 19px; }
   .workspace-switch { height: 46px; padding: 6px 12px 6px 8px; border-radius: 23px; gap: 8px; }
   .workspace-switch .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); }
@@ -607,7 +441,7 @@ body::before {
 }
 
 /* ---------- 6. Focus page ---------- */
-.hero-stack { position: relative; isolation: isolate; border-radius: var(--r-xl); margin: 24px 0; }
+.hero-stack { position: relative; isolation: isolate; border-radius: var(--r-lg); margin: 24px 0; }
 .hero-icon { width: 53px; height: 53px; border-radius: var(--r-md); background: var(--glass-inner); border: 1px solid var(--mini-icon-edge); }
 .overline { margin-bottom: 6px; font-size: 12.5px; line-height: 14px; font-weight: 600; letter-spacing: .02em; color: var(--exe-muted); }
 #current-priority-title, .hero-heading h2 { font-size: 20px; line-height: 23px; font-weight: 600; letter-spacing: -.65px; }
@@ -621,9 +455,8 @@ body::before {
   inset: 0 auto 0 0;
   width: calc(var(--pct, 0) * 1%);
   border-radius: inherit;
-  background: linear-gradient(90deg, #4f7bff 0%, #7a4dff 55%, #34d399 100%);
-  background-size: calc(10000% / var(--pbg, 1)) 100%;
-  transition: width .7s cubic-bezier(.2, .8, .2, 1);
+  background: var(--exe-accent);
+    transition: width .7s cubic-bezier(.2, .8, .2, 1);
 }
 .hero-track .tick { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--tick); }
 .hero-cap { display: flex; align-items: baseline; justify-content: space-between; margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--exe-muted); }
@@ -634,9 +467,9 @@ body::before {
   min-height: 60px;
   padding: 14px;
   gap: 12px;
-  border: 1px solid rgba(60, 72, 130, .09);
+  border: 0;
   border-radius: var(--r-md);
-  background: rgba(255, 255, 255, .92);
+  background: var(--surface-soft);
   box-shadow: none;
   font-size: 17px;
   font-weight: 500;
@@ -679,7 +512,7 @@ body::before {
 .mini-idle { font-size: 12px; font-weight: 600; color: var(--exe-muted); white-space: nowrap; }
 .mini-progress strong { font-size: 13px; font-weight: 600; letter-spacing: -.3px; }
 .mini-progress-track { width: 56px; height: 5px; border-radius: 999px; background: var(--track-bg); }
-.mini-progress-track > span { border-radius: 999px; background: linear-gradient(90deg, #4f7bff, #7a4dff); }
+.mini-progress-track > span { border-radius: 999px; background: var(--exe-accent); }
 
 /* Current Priority card, mobile composition. Compact: a header (eyebrow, title, category) with a progress ring
    at its right, one Next Step row, one button. No separate label rows, no progress bar line. */
@@ -696,7 +529,7 @@ body::before {
 .hero-ring { display: block; position: relative; width: 60px; height: 60px; }
 .hero-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .hero-ring circle { fill: none; stroke-width: 4.5; }
-.ring-track { stroke: rgba(60, 72, 130, .13); }
+.ring-track { stroke: var(--track); }
 .ring-fill { stroke: var(--exe-accent); stroke-linecap: round; }
 .ring-fill[style*="stroke-dasharray:0.00 "] { stroke-opacity: 0; }
 .hero-ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 600; letter-spacing: -.1px; color: var(--ink); font-variant-numeric: tabular-nums; text-align: center; }
@@ -708,8 +541,8 @@ body::before {
   align-items: center;
   border: 0;
   border-radius: 16px;
-  background: rgba(255, 255, 255, .72);
-  box-shadow: 0 0 0 1px rgba(60, 72, 130, .08);
+  background: var(--surface-soft);
+  box-shadow: none;
   font-size: 17px;
   font-weight: 500;
   line-height: 22px;
