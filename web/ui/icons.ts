@@ -1,5 +1,6 @@
 // Icon paths shared with the prototype (stroke icons, 24x24).
 export const ICONS: Record<string, string> = {
+  "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2.5\"/><path d=\"m3.5 7.5 8.5 6 8.5-6\"/>",
   "target": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>",
   "crosshair": "<circle cx=\"12\" cy=\"12\" r=\"6.6\"/><circle cx=\"12\" cy=\"12\" r=\"2.1\"/><path d=\"M12 2.4v3.2M12 18.4v3.2M2.4 12h3.2M18.4 12h3.2\"/>",
   "inbox": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2.5\"/><path d=\"m3.5 7.5 8.5 6 8.5-6\"/>",

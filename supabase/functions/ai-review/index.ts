@@ -1,7 +1,7 @@
 // Asks the user's own AI provider for SUGGESTIONS about their pending captures. Nothing is written to the workspace:
 // the result is validated against a strict schema and returned as proposals the person must approve.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
+import { ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
 
@@ -22,11 +22,19 @@ Deno.serve(async (req: Request) => {
   if (!test && (!s.enabled || !s.disclosure_accepted_at)) return json({ error: 'Turn on AI in Settings and accept the notice first.' }, 403);
   let apiKey: string; try { apiKey = await decryptKey(secret, hexToB64(String(s.key_ciphertext))); } catch { return json({ error: 'Your saved key could not be read. Save it again.' }, 500); }
 
-  const stepsMode = body.mode === 'steps';
+  const stepsMode = body.mode === 'steps', assistMode = body.mode === 'assist';
+  let assistIds = new Set<string>();
   let existingSteps: string[] = [];
   let system = SYSTEM, user = '', allowed = { captureIds: new Set<string>(), folderIds: new Set<string>(), outcomeIds: new Set<string>() };
   if (test) { system = 'Reply with exactly this JSON and nothing else: {"ok":true}'; user = 'ping'; }
-  else if (stepsMode) {
+  else if (assistMode) {
+    const ids = Array.isArray(body.captureIds) ? body.captureIds.filter((x): x is string => typeof x === 'string').slice(0, MAX_ASSIST) : [];
+    if (!ids.length) return json({ error: 'Nothing to look at.' }, 400);
+    const caps = await admin.from('captures').select('id, text, edited_text').eq('owner_id', uid).is('archived_at', null).is('completed_at', null).in('id', ids);
+    if (!caps.data?.length) return json({ error: 'Those to-dos were not found.' }, 400);
+    assistIds = new Set(caps.data.map(c => c.id)); system = ASSIST_SYSTEM;
+    user = buildAssistPrompt(caps.data.map(c => ({ id: c.id, text: c.edited_text ?? c.text })));
+  } else if (stepsMode) {
     if (typeof body.outcomeId !== 'string') return json({ error: 'Choose an outcome.' }, 400);
     const [o, t] = await Promise.all([admin.from('outcomes').select('id, name, description').eq('owner_id', uid).eq('id', body.outcomeId).maybeSingle(), admin.from('tasks').select('name').eq('owner_id', uid).eq('outcome_id', body.outcomeId).is('archived_at', null)]);
     if (!o.data) return json({ error: 'That outcome was not found.' }, 400);
@@ -43,7 +51,7 @@ Deno.serve(async (req: Request) => {
     user = buildPrompt({ captures: caps.data.map(c => ({ id: c.id, text: c.edited_text ?? c.text })), folders: folders.data ?? [], outcomes: outcomes.data ?? [] });
   }
 
-  const spec = buildRequest(s.provider as Provider, s.model, apiKey, system, user);
+  const spec = buildRequest(s.provider as Provider, s.model, apiKey, system, user, assistMode ? ASSIST_TOKENS : undefined);
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25_000);
   let res: Response;
   try { res = await fetch(spec.url, { method: 'POST', headers: spec.headers, body: JSON.stringify(spec.body), signal: ctl.signal }); }
@@ -55,6 +63,7 @@ Deno.serve(async (req: Request) => {
   }
   const text = extractText(s.provider as Provider, await res.json().catch(() => null));
   if (test) return json({ ok: /"ok"\s*:\s*true/.test(text), provider: s.provider, model: s.model });
+  if (assistMode) return json({ ...parseAssist(text, assistIds), provider: s.provider, model: s.model });
   if (stepsMode) return json({ steps: parseSteps(text, existingSteps), provider: s.provider, model: s.model });
   const { proposals, dropped } = parseProposals(text, allowed);
   return json({ proposals, dropped, provider: s.provider, model: s.model });

@@ -1,0 +1,9 @@
+# Research and sources
+
+This kit was built from Apple's Human Interface Guidelines (developer.apple.com/design/human-interface-guidelines) as published in the Liquid Glass era (Materials page updated September 2025). Pages read: Materials, Color, Dark Mode, Typography, Layout, Tab bars, Toolbars, Navigation bars, Buttons, Sheets, Lists and tables, Accessibility, Motion, SF Symbols, Alerts, Menus, Text fields, Search fields, Segmented controls, Toggles, Progress indicators, Onboarding, Feedback, Loading, Modality, Entering data, Searching, Undo and redo, Writing, Generative AI.
+
+**Taken directly from Apple:** the Dynamic Type Large (default) size/leading table; the 44x44pt minimum target; the rule that Liquid Glass belongs to the controls/navigation layer and not the content layer; regular vs clear glass; color only on a primary action's background; one prominent button per view; navigation-only tab bars with no hidden or disabled tabs; sheets with Cancel leading, grabber, medium/large detents; separate semantic background and label colors with light, dark and increased-contrast variants.
+
+**Our own decisions** (not Apple facts): the exact hex values (tint is a deeper blue than systemBlue so link-size text passes 4.5:1; label-secondary is a solid color instead of 60% alpha for the same reason), the status-color vocabulary (red blockers, orange decisions, green ready, indigo AI), the capture-bar-as-bottom-accessory placement, and all Exe patterns.
+
+**Not usable on the web:** SF Pro, New York and SF Symbols are Apple-licensed. The kit uses the system font stack (resolves to SF Pro on Apple devices) and a small set of drawn stand-in icons; each component README names the SF Symbol to use natively. Apple's hex values are reference only; native apps should use the system dynamic colors and let the OS supply P3 and contrast variants.

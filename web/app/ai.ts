@@ -5,6 +5,8 @@ export const PROVIDER_NAMES: Record<Provider, string> = { anthropic: 'Anthropic'
 export interface AiSettings { provider: Provider; model: string; key_last4: string; enabled: boolean; disclosure_accepted_at: string | null }
 export interface AiProposal { captureId: string; type: 'Task' | 'Outcome' | 'Decision' | 'Idea' | 'Note'; folderId: string | null; outcomeId: string | null; explanation: string; uncertainties: string[] }
 export interface Suggestions { proposals: AiProposal[]; dropped: number; provider: Provider; model: string }
+export interface AssistItem { captureId: string; kind: 'email' | 'research' | 'question'; next?: string; email?: { to: string; subject: string; body: string }; research?: { topic: string; sources: { title: string; domain: string; query: string }[] }; answer?: { text: string; sourceTitle: string; sourceDomain: string } }
+export interface Assist { items: AssistItem[]; groups: { name: string; ids: string[]; why: string }[]; dependencies: { before: string; after: string; why: string }[] }
 export type AiApi = ReturnType<typeof makeAi>;
 
 const NOT_READY = 'AI is not set up on the server yet, so nothing was sent anywhere.';
@@ -30,6 +32,7 @@ export function makeAi(db: Db, uid: string) {
     async turnOff(): Promise<void> { const { error } = await db.from('user_ai_settings').update({ enabled: false }).eq('owner_id', uid); if (error) throw new Error(error.message); },
     test: () => call<{ ok: boolean }>('ai-review', { test: true }),
     suggest: (captureIds: string[]) => call<Suggestions>('ai-review', { captureIds }),
+    assist: (captureIds: string[]) => call<Assist & { provider: Provider; model: string }>('ai-review', { mode: 'assist', captureIds }),
     suggestSteps: (outcomeId: string) => call<{ steps: string[]; provider: Provider; model: string }>('ai-review', { mode: 'steps', outcomeId }),
   };
 }

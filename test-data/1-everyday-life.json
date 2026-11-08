@@ -1,0 +1,187 @@
+{
+ "version": 1,
+ "workspaceName": "Everyday life",
+ "workstreams": [
+  {
+   "id": "w1",
+   "name": "Home",
+   "description": "House and moving",
+   "icon": "folder"
+  },
+  {
+   "id": "w2",
+   "name": "Work",
+   "description": "Job and money",
+   "icon": "folder"
+  },
+  {
+   "id": "w3",
+   "name": "Health",
+   "description": "Body and habits",
+   "icon": "folder"
+  }
+ ],
+ "outcomes": [
+  {
+   "id": "o1",
+   "name": "Move to Austin",
+   "stream": "w1",
+   "description": "Be settled by June",
+   "deadline": "2026-12-20"
+  },
+  {
+   "id": "o2",
+   "name": "Renew passport",
+   "stream": "w2",
+   "pinned": true,
+   "deadline": "2026-12-01"
+  },
+  {
+   "id": "o3",
+   "name": "Run a 10K",
+   "stream": "w3"
+  },
+  {
+   "id": "o4",
+   "name": "Finish tax filing",
+   "stream": "w2",
+   "deadline": "2027-04-10"
+  }
+ ],
+ "focusAssignments": [
+  {
+   "outcome": "o1",
+   "lane": "now"
+  },
+  {
+   "outcome": "o2",
+   "lane": "now"
+  },
+  {
+   "outcome": "o3",
+   "lane": "next"
+  },
+  {
+   "outcome": "o4",
+   "lane": "later"
+  }
+ ],
+ "currentPriority": "o1",
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Pick a neighborhood",
+   "outcome": "o1"
+  },
+  {
+   "id": "t2",
+   "name": "Sign the lease",
+   "outcome": "o1"
+  },
+  {
+   "id": "t3",
+   "name": "Hire movers",
+   "outcome": "o1"
+  },
+  {
+   "id": "t4",
+   "name": "Book passport appointment",
+   "outcome": "o2"
+  },
+  {
+   "id": "t5",
+   "name": "Take passport photo",
+   "outcome": "o2",
+   "done": true,
+   "doneAt": "2026-11-02T10:00:00Z"
+  },
+  {
+   "id": "t6",
+   "name": "Buy running shoes",
+   "outcome": "o3"
+  },
+  {
+   "id": "t7",
+   "name": "Run 3 miles",
+   "outcome": "o3"
+  }
+ ],
+ "relationships": [
+  {
+   "from": "d1",
+   "to": "t2",
+   "kind": "blocks"
+  },
+  {
+   "from": "t1",
+   "to": "t2",
+   "kind": "blocks"
+  },
+  {
+   "from": "t2",
+   "to": "t3",
+   "kind": "informs"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "d1",
+   "name": "Rent or buy in Austin",
+   "stream": "w1",
+   "options": [
+    "Rent for a year",
+    "Buy a condo"
+   ],
+   "criteria": "Cash on hand, how long we stay",
+   "status": "open"
+  }
+ ],
+ "ideas": [
+  {
+   "id": "i1",
+   "name": "Learn to sail",
+   "stream": "w3",
+   "notes": "Maybe after the move"
+  }
+ ],
+ "captures": [
+  {
+   "id": "c1",
+   "text": "Call the landlord about the deposit",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c2",
+   "text": "Why is the garage door loud?",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c3",
+   "text": "Buy milk, eggs, coffee",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c4",
+   "text": "Look into Austin movers",
+   "status": "pending",
+   "source": "Imported",
+   "folder": "w1"
+  },
+  {
+   "id": "c5",
+   "text": "Renew passport",
+   "status": "pending",
+   "source": "Imported",
+   "completedAt": "2026-11-03T09:00:00Z"
+  },
+  {
+   "id": "c6",
+   "text": "Look into movers in Austin",
+   "status": "pending",
+   "source": "Imported"
+  }
+ ]
+}

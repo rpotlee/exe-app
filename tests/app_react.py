@@ -11,6 +11,7 @@ def nav(page, route): page.locator(f'[data-nav="{route}"]').filter(visible=True)
 def cap(page, text):
     page.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
 def status(page):
+    if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the Inbox now
     page.locator('#status-line').wait_for(); page.wait_for_timeout(80)
     return ' '.join(page.locator('#status-line').inner_text().split())
 def pick(page, w, label):

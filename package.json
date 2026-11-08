@@ -7,10 +7,11 @@
     "gen:types": "node scripts/gen-types.mjs",
     "test:unit": "vitest run",
     "typecheck": "tsc --noEmit",
-    "dev": "vite web",
-    "build": "vite build web",
+    "dev": "vite",
+    "build": "node scripts/build-support.mjs && vite build",
     "test": "npm run typecheck && npm run test:unit && npm run test:db",
-    "check:supabase": "node scripts/check-supabase.mjs"
+    "check:supabase": "node scripts/check-supabase.mjs",
+    "build:support": "node scripts/build-support.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.15",

@@ -155,6 +155,16 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       const promoted = ws.outcomes.find(o => o.sources.includes(ide.id))!;
       expect(ws.outcomes).toHaveLength(outcomesBefore + 1); expect(promoted).toMatchObject({ name: 'Offer Spanish-language materials', folder_id: work.id, description: 'after launch' });
       expect(ws.focus.find(f => f.outcome_id === promoted.id)?.lane).toBe('later'); expect(ws.ideas[0]!.archived_at).toBeTruthy();
+      // group related to-dos (live help): one outcome in Later, the to-dos become its steps, suggested dependencies stay UNCONFIRMED
+      await ok(C.addCaptures(ws, ctx, 'Email Rachel about the open role\nPrepare interview questions\nBuy a standing desk'));
+      const g = ws.captures.filter(c => c.status === 'pending' && /Rachel|interview/.test(c.text)), desk = ws.captures.find(c => /standing desk/.test(c.text))!;
+      expect(C.groupCaptures(ws, ctx, { ids: [g[0]!.id], name: 'Hiring', deps: [] }).ok).toBe(false);          // needs two
+      expect(C.groupCaptures(ws, ctx, { ids: [g[0]!.id, g[1]!.id], name: ' ', deps: [] }).ok).toBe(false);     // needs a name
+      await ok(C.groupCaptures(ws, ctx, { ids: [g[0]!.id, g[1]!.id], name: 'Hiring', deps: [{ before: g[0]!.id, after: g[1]!.id, why: 'Reply first' }, { before: g[1]!.id, after: g[0]!.id, why: 'would loop' }] }));
+      const hiring = ws.outcomes.find(o => o.name === 'Hiring')!, steps = ws.tasks.filter(t => t.outcome_id === hiring.id);
+      expect(steps.map(t => t.name)).toEqual(['Email Rachel about the open role', 'Prepare interview questions']); expect(ws.focus.find(f => f.outcome_id === hiring.id)?.lane).toBe('later');
+      const link = ws.relationships.filter(r => steps.some(t => t.id === r.from_id)); expect(link).toHaveLength(1); expect(link[0]).toMatchObject({ kind: 'blocks', confirmed: false, source: 'ai' });
+      expect(ws.captures.find(c => c.id === g[0]!.id)!.status).toBe('organized'); expect(desk.status).toBe('pending');
       const audits = (await d.query('select action from audit_events order by at')).rows.map((r: any) => r.action);
       expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done', 'idea-promoted']));
     });

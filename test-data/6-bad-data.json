@@ -1,0 +1,105 @@
+{
+ "version": 1,
+ "workspaceName": "Bad data (should import with warnings)",
+ "workstreams": [
+  {
+   "id": "w1",
+   "name": "Only folder",
+   "description": "",
+   "icon": "folder"
+  }
+ ],
+ "outcomes": [
+  {
+   "id": "o1",
+   "name": "A",
+   "stream": "missing-folder"
+  },
+  {
+   "id": "o2",
+   "name": "B"
+  },
+  {
+   "id": "o3",
+   "name": "C"
+  },
+  {
+   "id": "o4",
+   "name": "D"
+  },
+  {
+   "id": "o5",
+   "name": "E"
+  }
+ ],
+ "focusAssignments": [
+  {
+   "outcome": "o1",
+   "lane": "now"
+  },
+  {
+   "outcome": "o2",
+   "lane": "now"
+  },
+  {
+   "outcome": "o3",
+   "lane": "now"
+  },
+  {
+   "outcome": "o4",
+   "lane": "now"
+  },
+  {
+   "outcome": "nope",
+   "lane": "now"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "X",
+   "outcome": "o1"
+  },
+  {
+   "id": "t2",
+   "name": "Y",
+   "outcome": "o1"
+  },
+  {
+   "id": "t3",
+   "name": ""
+  }
+ ],
+ "relationships": [
+  {
+   "from": "t1",
+   "to": "t2",
+   "kind": "blocks"
+  },
+  {
+   "from": "t2",
+   "to": "t1",
+   "kind": "blocks"
+  },
+  {
+   "from": "t1",
+   "to": "ghost",
+   "kind": "blocks"
+  }
+ ],
+ "decisions": [],
+ "ideas": [],
+ "captures": [
+  {
+   "id": "c1",
+   "text": "Valid capture",
+   "status": "pending",
+   "source": "Imported"
+  },
+  {
+   "id": "c2",
+   "text": ""
+  },
+  "junk"
+ ]
+}
