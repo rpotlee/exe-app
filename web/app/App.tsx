@@ -3,6 +3,7 @@ import { LocalStore } from '../../src/store/store';
 import { QueuedStore } from '../../src/store/queued';
 import { makeClient, SupabaseStore, type Db } from '../../src/store/supabase';
 import { AuthGate } from '../auth/AuthGate';
+import { makeAi } from './ai';
 import { Shell } from './Shell';
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined, anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -23,5 +24,6 @@ function RemoteApp({ db, owner, email }: { db: Db; owner: string; email: string 
   const store = useMemo(() => new QueuedStore(new SupabaseStore(db, owner), localStorage), [db, owner]);
   const [out, setOut] = useState(false);
   useEffect(() => { if (out) void db.auth.signOut(); }, [out, db]);
-  return <Shell store={store} where={email} onSignOut={() => setOut(true)} />;
+  const ai = useMemo(() => makeAi(db, owner), [db, owner]);
+  return <Shell store={store} where={email} onSignOut={() => setOut(true)} ai={ai} />;
 }

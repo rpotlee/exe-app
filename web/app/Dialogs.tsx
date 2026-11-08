@@ -11,6 +11,7 @@ import { search } from '../../src/domain/search';
 import { importWrites, parseBackup, type Parsed } from '../../src/domain/backup';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
+import { PROVIDER_NAMES, type AiSettings, type Provider } from './ai';
 import { Modal, useDialog } from '../ui/Modal';
 import { useApp, type ModalState } from './context';
 
@@ -85,6 +86,7 @@ function Settings() {
       <div className="recommendation"><span className="review-tag">RESTORE OR IMPORT</span><p>Load a backup from this app, or the file the old prototype exported. You see what is in it first, and nothing changes until you confirm.</p>
         <label className="form-field"><span className="small-note">Backup file (.json)</span><input className="text-input" type="file" accept="application/json,.json" aria-label="Backup file" onChange={e => { const f = e.target.files?.[0]; if (!f) return; setNote(''); f.text().then(t => { const r = parseBackup(t); if (!r.ok) setNote(r.error); else modal({ kind: 'restore', parsed: r.parsed }); }).catch(() => setNote('Could not read that file.')); e.target.value = ''; }} /></label>
         {note && <p className="form-error" role="alert">{note}</p>}</div>
+      <AiSection />
     </Modal>
   );
 }
@@ -455,3 +457,37 @@ function RestoreDialog({ parsed }: { parsed: Parsed }) {
   );
 }
 const countsOfWs = (w: { folders: unknown[]; outcomes: unknown[]; tasks: unknown[]; captures: unknown[]; decisions: unknown[]; ideas: unknown[] }) => ({ f: w.folders.length, o: w.outcomes.length, t: w.tasks.length, c: w.captures.length, d: w.decisions.length, i: w.ideas.length });
+
+/** Bring your own AI. The key is sent to the server once, encrypted there, and never shown again. Nothing is sent to a provider until you accept the notice. */
+function AiSection() {
+  const { ai } = useApp();
+  const [cfg, setCfg] = useState<AiSettings | null | undefined>(undefined), [msg, setMsg] = useState(''), [busy, setBusy] = useState(false);
+  const [provider, setProvider] = useState<Provider>('anthropic'), [model, setModel] = useState(''), [key, setKey] = useState('');
+  const load = () => { ai?.settings().then(setCfg).catch(e => { setCfg(null); setMsg((e as Error).message); }); };
+  useState(() => { load(); return 0; });
+  if (!ai) return <><div className="divider"></div><div className="recommendation"><span className="review-tag">AI (YOUR OWN KEY)</span><p>AI suggestions need an account, because your key is stored encrypted on the server. Sign in to set it up. Everything else works without AI.</p></div></>;
+  const act = async (fn: () => Promise<unknown>, ok: string) => { setBusy(true); setMsg(''); try { await fn(); setMsg(ok); load(); } catch (e) { setMsg((e as Error).message); } finally { setBusy(false); } };
+  return (
+    <>
+      <div className="divider"></div>
+      <div className="recommendation" aria-label="AI settings"><span className="review-tag">AI (YOUR OWN KEY)</span>
+        <p>Exe has no AI bill. You connect your own provider and pay them directly. The app works fully without AI.</p>
+        {cfg ? (<>
+          <p className="small-note"><strong>{PROVIDER_NAMES[cfg.provider]}</strong> · model <strong>{cfg.model}</strong> · key ending <strong>{cfg.key_last4}</strong> · {cfg.enabled ? 'turned on' : 'turned off'}</p>
+          {!cfg.enabled && <div className="followup"><strong>Before you turn AI on</strong><p className="small-note">When you ask for suggestions, the <strong>text of the captures you choose</strong>, plus the names of your folders and outcomes, is sent to <strong>{PROVIDER_NAMES[cfg.provider]}</strong> using your key. Exe never sends anything on its own. Your provider's terms apply to what they receive.</p>
+            <div className="button-row"><button className="primary-button" disabled={busy} onClick={() => act(() => ai.accept(), 'AI is on. Nothing is sent until you press "Get AI suggestions" in AI Review.')}>I understand, turn on AI</button></div></div>}
+          <div className="button-row"><button className="mini-button" disabled={busy} onClick={() => act(async () => { const r = await ai.test(); if (!r.ok) throw new Error('The provider answered, but not as expected. Check the model name.'); }, 'Connection works.')}>Test connection</button>
+            {cfg.enabled && <button className="mini-button" disabled={busy} onClick={() => act(() => ai.turnOff(), 'AI is off.')}>Turn off</button>}
+            <button className="mini-button" disabled={busy} onClick={() => act(() => ai.removeKey(), 'Key removed.')}>Remove key</button></div>
+        </>) : cfg === undefined ? <p className="small-note">Loading…</p> : null}
+        <form className="stack" onSubmit={e => { e.preventDefault(); void act(async () => { await ai.saveKey(provider, model.trim(), key); setKey(''); }, 'Key saved on the server. It is never shown again. Accept the notice to turn AI on.'); }}>
+          <label className="form-field"><span className="small-note">Provider</span><select className="select" value={provider} onChange={e => setProvider(e.target.value as Provider)}>{(Object.keys(PROVIDER_NAMES) as Provider[]).map(p => <option key={p} value={p}>{PROVIDER_NAMES[p]}</option>)}</select></label>
+          <label className="form-field"><span className="small-note">Model name (from your provider)</span><input className="text-input" value={model} onChange={e => setModel(e.target.value)} required maxLength={99} placeholder="Paste the model name you want to use" autoComplete="off" /></label>
+          <label className="form-field"><span className="small-note">API key</span><input className="text-input" type="password" value={key} onChange={e => setKey(e.target.value)} required autoComplete="off" spellCheck={false} placeholder="Stored encrypted on the server, never shown again" /></label>
+          <div className="button-row"><button className="mini-button" type="submit" disabled={busy}>{cfg ? 'Replace key' : 'Save key'}</button></div>
+        </form>
+        {msg && <p className="small-note" role="status">{msg}</p>}
+      </div>
+    </>
+  );
+}

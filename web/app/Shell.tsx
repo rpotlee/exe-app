@@ -3,6 +3,7 @@ import { currentFocusId } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
 import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
+import type { AiApi } from './ai';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
@@ -24,7 +25,7 @@ const TABS: { page: Page; label: string; icon: string; desktopIcon: string }[] =
   { page: 'decisions', label: 'Decisions', icon: 'git-branch', desktopIcon: 'git-branch' },
 ];
 
-export function Shell({ store, where, onSignOut }: { store: Store; where: string; onSignOut?: () => void }) {
+export function Shell({ store, where, onSignOut, ai = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null }) {
   const api = useWorkspace(store);
   const [page, setPage] = useState<Page>(fromHash);
   const [folderSel, setFolderSel] = useState('all');
@@ -50,7 +51,7 @@ export function Shell({ store, where, onSignOut }: { store: Store; where: string
   }, [queue]);
   const ws = api.ws;
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;

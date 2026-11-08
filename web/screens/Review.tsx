@@ -1,21 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as C from '../../src/domain/commands';
 import { captureText, duplicateOf, needsPlacement, pendingCaptures, propose, proposalFingerprint, rejectedBefore, setAside, type Proposal, type ProposalType } from '../../src/domain/review';
 import type { Capture } from '../../src/domain/model';
 import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
+import { PROVIDER_NAMES, type AiProposal, type AiSettings } from '../app/ai';
 
 const TYPES: ProposalType[] = ['Task', 'Outcome', 'Decision', 'Idea', 'Note'];
 
 /** AI Review. A SIMULATION: simple local keyword rules, not an AI model. Every action asks; nothing is applied silently. */
 export function Review() {
-  const { api, go, modal } = useApp();
+  const { api, go, modal, ai } = useApp();
   const ws = api.ws, [edits, setEdits] = useState<Record<string, Partial<Proposal>>>({});
+  const [cfg, setCfg] = useState<AiSettings | null>(null), [sug, setSug] = useState<Record<string, AiProposal>>({}), [who, setWho] = useState(''), [aiMsg, setAiMsg] = useState(''), [busy, setBusy] = useState(false);
+  useEffect(() => { ai?.settings().then(setCfg).catch(() => setCfg(null)); }, [ai]);
   const pending = pendingCaptures(ws), aside = setAside(ws);
   const recent = ws.captures.filter(c => c.status === 'organized' && c.organized_as && c.organized_as !== 'Merged').slice(-5).reverse();
   const merged = (id: string) => ws.captures.some(x => x.merged_into === id);
-  const prop = (c: Capture): Proposal => ({ ...propose(ws, c), ...edits[c.id] });
+  const prop = (c: Capture): Proposal => { const a = sug[c.id]; return { ...propose(ws, c), ...(a ? { type: a.type, folderId: a.folderId, outcomeId: a.outcomeId } : {}), ...edits[c.id] }; };
+  const ask = async () => {
+    if (!ai) return; setBusy(true); setAiMsg('');
+    try { const r = await ai.suggest(pending.map(c => c.id).slice(0, 20)); setSug(Object.fromEntries(r.proposals.map(p => [p.captureId, p]))); setWho(`${PROVIDER_NAMES[r.provider]} (${r.model})`); setAiMsg(r.proposals.length ? `${r.proposals.length} suggestion${r.proposals.length === 1 ? '' : 's'} received${r.dropped ? `; ${r.dropped} unusable ${r.dropped === 1 ? 'answer was' : 'answers were'} ignored` : ''}. Nothing is applied until you approve.` : 'The AI gave no usable suggestions. You can organize by hand.'); }
+    catch (e) { setAiMsg((e as Error).message + ' You can still organize by hand.'); } finally { setBusy(false); }
+  };
   const edit = (id: string, patch: Partial<Proposal>) => setEdits(e => ({ ...e, [id]: { ...e[id], ...patch } }));
   const toApproval = (p: Proposal): C.Approval => ({ type: p.type, folderId: p.folderId, outcomeId: p.outcomeId, title: p.title });
 
@@ -28,10 +36,11 @@ export function Review() {
 
   return (
     <>
-      <PageHeading label="AI REVIEW" title="AI Review" sub="Approve organization deliberately. This version uses local keyword rules (a simulation), not a live AI model."
+      <PageHeading label="AI REVIEW" title="AI Review" sub={cfg?.enabled ? `Approve organization deliberately. AI suggestions come from your own ${PROVIDER_NAMES[cfg.provider]} key, only when you ask.` : "Approve organization deliberately. Without AI turned on, this uses local keyword rules (a simulation), not an AI model."}
         extra={<div className="page-tools">{pending.length > 0 && <button className="primary-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({pending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
       <div className="review-layout">
         <section className="stack">
+          {pending.length > 0 && <div className="card review-aside">{cfg?.enabled ? <div className="button-row"><button className="primary-button" disabled={busy} onClick={ask}><Icon name="sparkles" /> {busy ? 'Asking…' : 'Get AI suggestions'}</button><span className="small-note">Sends the text of up to 20 waiting captures to {PROVIDER_NAMES[cfg.provider]} with your key.</span></div> : <p className="small-note">{ai ? 'Want real AI suggestions? Add your own key in Settings. Nothing is sent anywhere until you turn it on and ask.' : 'Real AI suggestions need an account (they use your own key, stored on the server).'}</p>}{aiMsg && <p className="small-note" role="status">{aiMsg}</p>}</div>}
           {pending.length ? pending.map(c => {
             const p = prop(c), dup = duplicateOf(ws, c), again = rejectedBefore(c, p);
             return (
@@ -42,6 +51,7 @@ export function Review() {
                   <div className="form-field"><label htmlFor={`type-${c.id}`}>Suggested type</label><select className="select" id={`type-${c.id}`} value={p.type} onChange={e => edit(c.id, { type: e.target.value as ProposalType })}>{TYPES.map(t => <option key={t} value={t}>{t === 'Note' ? 'Just a note' : t}</option>)}</select></div>
                   <div className="form-field"><label htmlFor={`folder-${c.id}`}>Suggested folder</label><select className="select" id={`folder-${c.id}`} value={p.folderId ?? ''} onChange={e => edit(c.id, { folderId: e.target.value || null })}><option value="">Not filed</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></div>
                 </div>
+                {sug[c.id] && <div className="review-reason"><Icon name="sparkles" /> <span><strong>Suggested by {who || 'your AI'}:</strong> {sug[c.id]?.explanation || 'No explanation given.'}{sug[c.id]?.uncertainties.length ? ` Unsure about: ${sug[c.id]?.uncertainties.join('; ')}.` : ''} Check it before approving.</span></div>}
                 <div className="review-reason"><Icon name="lightbulb" /> <span>{p.outcomeId ? 'Possibly related to existing work. Review the relationship before consolidating.' : 'Initial classification inferred from keywords. Please verify before applying.'}</span></div>
                 {again && <p className="form-error" role="status">You rejected this exact suggestion before. Change the type or folder to approve it.</p>}
                 {dup && <div className="review-dup"><strong>Possible duplicate.</strong> This looks like another capture waiting for review: <q>{captureText(dup)}</q> <button className="mini-button" onClick={() => modal({ kind: 'mergePreview', id: c.id, otherId: dup.id, folderId: p.folderId, type: p.type })}>Preview merge</button></div>}
