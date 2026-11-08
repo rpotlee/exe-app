@@ -707,10 +707,11 @@ body::before {
 .mission-inbox { display: none; }
 @media (min-width: 1100px) {
   .mission-layout { display: grid; grid-template-columns: minmax(0, 500px) minmax(0, 420px); gap: 28px 36px; max-width: none; align-items: start; }
-  .hero-stack { grid-column: 1; grid-row: 1 / span 3; align-self: start; }
+  .hero-stack { grid-column: 1; grid-row: 1 / span 4; align-self: start; }
   .mission-other { grid-column: 2; grid-row: 1; margin-top: 0; }
-  .mission-inbox { display: block; grid-column: 2; grid-row: 2; }
-  .mission-lanes { grid-column: 2; grid-row: 3; margin-top: 0; }
+  .mission-suggest { grid-column: 2; grid-row: 2; margin-top: 0; }
+  .mission-inbox { display: block; grid-column: 2; grid-row: 3; }
+  .mission-lanes { grid-column: 2; grid-row: 4; margin-top: 0; }
   .inbox-peek {
     list-style: none;
     margin: 12px 0 0;
@@ -740,6 +741,21 @@ body::before {
 .lane-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lane-empty { padding: 10px 0; }
 @media (min-width: 761px) { .lane-item { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; } }
+
+/* Priority Engine suggestion: a quiet card, or a single quiet button when nothing is suggested */
+.mission-suggest { margin-top: 22px; }
+.suggest-quiet { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.suggest-quiet .small-note { margin: 0; color: var(--secondary); }
+.suggest-card { padding: 20px; }
+.suggest-title { margin: 6px 0 4px; font-size: 19px; line-height: 24px; font-weight: 600; letter-spacing: -.4px; }
+.suggest-list { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 12px; }
+.suggest-what { margin: 0; font-size: 15.5px; line-height: 21px; }
+.suggest-why { margin: 4px 0 0; font-size: 14px; line-height: 19px; color: var(--secondary); }
+.suggest-why span { font-weight: 600; color: var(--ink); }
+.suggest-card .action-line { margin-top: 14px; }
+.confirm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0 18px; }
+.confirm-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 15px; line-height: 20px; }
+@media (max-width: 520px) { .confirm-grid { grid-template-columns: 1fr; } }
 
 /* ---------- 7. Inbox ---------- */
 .inbox-filters button { font-size: 13px; font-weight: 500; letter-spacing: -.2px; }

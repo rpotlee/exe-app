@@ -133,7 +133,9 @@
     focusAssignments:[{outcome:'registration',lane:'now'},{outcome:'market-select',lane:'now'},{outcome:'backend',lane:'now'},
       ...['insurance','pricing','hiring','communications','security','seo','locations'].map(outcome=>({outcome,lane:'next'})),
       ...['reviews','thumbtack'].map(outcome=>({outcome,lane:'later'}))], currentPriority:'registration',selectedStream:'foundation',selectedDecision:'decision-market',page:'focus'});
-  function load(){try{const v=JSON.parse(localStorage.getItem(STORE));if(v?.version===1&&Array.isArray(v.workstreams)&&Array.isArray(v.focusAssignments))return v;}catch{}return seed();}
+  /* Fills fields added after a workspace was saved; never removes or renames user data. */
+  function migrate(d){d.priorityReview=d.priorityReview||{suggestion:null,dismissed:[],lastRun:null};d.audit=d.audit||[];return d;}
+  function load(){try{const v=JSON.parse(localStorage.getItem(STORE));if(v?.version===1&&Array.isArray(v.workstreams)&&Array.isArray(v.focusAssignments))return migrate(v);}catch{}return migrate(seed());}
   let data=load();let overlay=null;let flashTimer;let lastFocus=null;let returnToFocus=null;let inboxFilter='all';let showArchived=false;let focusOrigin=null;let captureContext=null;const expandedCaptures=new Set();
   const persist=()=>{try{localStorage.setItem(STORE,JSON.stringify(data));}catch{ /* storage may be disabled */ }};
   const byOutcome=id=>data.outcomes.find(o=>o.id===id);
@@ -146,6 +148,9 @@
   const pending=()=>data.captures.filter(c=>c.status==='pending');
   const blocked=t=>!t.done&&!!t.blockedBy?.some(id=>!byTask(id)?.done);
   const blockedCount=()=>data.tasks.filter(blocked).length;
+  /* an outcome is blocked only by a user-confirmed 'blocks' relationship whose source is still unfinished */
+  const outcomeBlocker=id=>{const r=data.relationships.find(r=>r.kind==='blocks'&&r.confirmed!==false&&r.to===id&&!isDone(r.from));return r?(byTask(r.from)||byOutcome(r.from)||data.decisions.find(d=>d.id===r.from)):null;};
+  const isDone=id=>{const t=byTask(id);if(t)return t.done;const d=data.decisions.find(d=>d.id===id);if(d)return d.status!=='open';return false;};
   /* A raw capture is shown as Blocked only when it maps to a task with a user-declared, unfinished blocker. */
   const CAPTURE_TASKS={'original-13':'hiring-backend','original-16':'locations-site'};
   const captureTask=c=>byTask(c.taskId||CAPTURE_TASKS[c.id]);
@@ -211,6 +216,65 @@
     if(!refractObserver&&window.ResizeObserver){refractObserver=new ResizeObserver(()=>requestAnimationFrame(refreshRefraction));}
     if(refractObserver){refractObserver.disconnect();[hero,lens].forEach(e=>e&&refractObserver.observe(e));}
   }
+
+  /* ---------- Priority Engine (DEC-003 P-07) ----------
+     Suggestion-only. Fixed rule order, first rule that separates two outcomes wins, no numeric score:
+     1 pinned by the user · 2 not blocked by a confirmed blocker · 3 earliest user-entered deadline
+     4 unlocks the most confirmed dependent work · 5 has a ready next step · 6 most recently worked on.
+     Runs only on meaningful events (task done, decision resolved, deadline/pin set, blocker confirmed or cleared)
+     and when the user asks; never on a new capture. Ties keep the current Now outcomes in place. */
+  const fmtDate=d=>{try{return new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});}catch{return d;}};
+  const unlocksOf=id=>{const own=new Set([id,...getTasks(id).map(t=>t.id)]);return data.relationships.filter(r=>r.kind==='blocks'&&r.confirmed!==false&&own.has(r.from)&&!own.has(r.to)&&!(byTask(r.to)&&own.has(byTask(r.to).outcome))&&!(byTask(r.to)?.done)).length;};
+  const hasReadyStep=id=>getTasks(id).some(t=>!t.done&&!blocked(t));
+  const engineFacts=id=>{const o=byOutcome(id);return {id,pinned:!!o.pinned,blocked:!!outcomeBlocker(id),deadline:o.deadline||'',unlocks:unlocksOf(id),ready:hasReadyStep(id),worked:o.lastWorkedAt||''};};
+  const ruleWords={
+    pinned:()=>'You pinned it.',
+    unblocked:()=>'It is not held up by a confirmed blocker; the other one is.',
+    deadline:(w,l)=>l.deadline?`Its deadline (${fmtDate(w.deadline)}) comes before the other one's (${fmtDate(l.deadline)}).`:`It has a deadline you entered (${fmtDate(w.deadline)}); the other has none.`,
+    unlocks:(w,l)=>`Finishing it unlocks ${w.unlocks} confirmed dependent ${w.unlocks===1?'item':'items'}; the other unlocks ${l.unlocks}.`,
+    ready:()=>'It has a ready next step; the other does not.',
+    worked:()=>'You worked on it more recently.'
+  };
+  /* returns {win:1|-1|0, rule} comparing facts a and b; higher is better on every rule */
+  function compareFacts(a,b){
+    const rules=[['pinned',+a.pinned,+b.pinned],['unblocked',+!a.blocked,+!b.blocked],['deadline',a.deadline?-Date.parse(a.deadline):-Infinity,b.deadline?-Date.parse(b.deadline):-Infinity],['unlocks',a.unlocks,b.unlocks],['ready',+a.ready,+b.ready],['worked',a.worked?Date.parse(a.worked):0,b.worked?Date.parse(b.worked):0]];
+    for(const [rule,x,y] of rules)if(x!==y)return {win:x>y?1:-1,rule};
+    return {win:0,rule:null};
+  }
+  const whyWins=(w,l)=>{const c=compareFacts(w,l);return c.rule?ruleWords[c.rule](w,l):'';};
+  function rankOutcomes(){const now=new Set(activeIds());return data.outcomes.map((o,i)=>({f:engineFacts(o.id),i})).sort((x,y)=>{const c=compareFacts(x.f,y.f);if(c.win)return -c.win;const n=now.has(y.f.id)-now.has(x.f.id);return n||x.i-y.i;}).map(x=>x.f);}
+  /* the reason an outcome deserves an open Now slot even when nothing else is being replaced */
+  const openSlotReason=f=>f.blocked?'':f.pinned?'You pinned it.':f.deadline?`It has a deadline you entered (${fmtDate(f.deadline)}).`:f.unlocks?`Finishing it unlocks ${f.unlocks} confirmed dependent ${f.unlocks===1?'item':'items'}.`:'';
+  function computeSuggestion(){
+    const ranked=rankOutcomes(),top=ranked.slice(0,3).map(f=>f.id),now=activeIds();
+    const enter=top.filter(id=>!now.includes(id)),leave=now.filter(id=>!top.includes(id)),facts=Object.fromEntries(ranked.map(f=>[f.id,f])),changes=[];
+    enter.forEach(id=>{const out=leave.shift();if(out)changes.push({add:id,remove:out,why:whyWins(facts[id],facts[out])});else if(now.length+changes.filter(c=>!c.remove).length<3){const why=openSlotReason(facts[id]);if(why)changes.push({add:id,remove:null,why});}});
+    if(!changes.length)return null;
+    const fp=JSON.stringify(changes.map(c=>[c.add,c.remove,facts[c.add],c.remove&&facts[c.remove]]));
+    return {changes,fp,at:new Date().toISOString()};
+  }
+  function runPriorityEngine(manual=false){
+    const pr=data.priorityReview,next=computeSuggestion();
+    pr.lastRun=new Date().toISOString();
+    pr.suggestion=next&&!pr.dismissed.includes(next.fp)?next:null;
+    pr.lastResult=pr.suggestion?'suggestion':next?'ignored':'none';
+    return manual;
+  }
+  /* a stored suggestion is dropped when the board it was computed from no longer matches */
+  function liveSuggestion(){const pr=data.priorityReview,sg=pr.suggestion;if(!sg||sg.deferred)return null;const now=activeIds();return sg.changes.every(c=>byOutcome(c.add)&&!now.includes(c.add)&&(!c.remove||now.includes(c.remove)))?sg:null;}
+  function prioritySuggestionCard(){
+    const sg=liveSuggestion(),pr=data.priorityReview;
+    if(!sg){const note=!pr.lastRun?'':pr.suggestion?.deferred?'A suggestion is waiting. It returns after the next meaningful change.':pr.lastResult==='ignored'?'Nothing new since you ignored the last suggestion.':'No change suggested. Your active priorities already match the rules.';return `<section class="mission-suggest" aria-label="Priority suggestions"><div class="suggest-quiet"><button type="button" class="quiet-button" data-review-priorities>${icon('lightbulb')} Review priorities</button>${note?`<p class="small-note" role="status">${esc(note)}</p>`:''}</div></section>`;}
+    const line=c=>`<li class="suggest-change"><p class="suggest-what">${c.remove?`Move <strong>${esc(byOutcome(c.add).name)}</strong> into Now, replacing <strong>${esc(byOutcome(c.remove).name)}</strong>.`:`Add <strong>${esc(byOutcome(c.add).name)}</strong> to an open Now slot.`}</p><p class="suggest-why"><span>Why:</span> ${esc(c.why)}</p></li>`;
+    return `<section class="mission-suggest" aria-label="Priority suggestions"><div class="suggest-card card"><div class="overline">PRIORITY SUGGESTION</div><h2 class="suggest-title">A change to your active priorities</h2><ul class="suggest-list">${sg.changes.map(line).join('')}</ul><p class="small-note">Suggestion only. Nothing changes until you apply it. Rules, in order: pinned, not blocked, earliest deadline, unlocks the most work, has a ready step, most recently worked on.</p><div class="action-line"><button class="primary-button" data-priority-apply>${icon('check')} Apply…</button><button class="mini-button" data-priority-ignore>Ignore</button><button class="mini-button" data-priority-defer>Defer</button></div></div></section>`;
+  }
+  function showPriorityConfirm(){const sg=liveSuggestion();if(!sg)return;const before=activeIds(),after=before.filter(id=>!sg.changes.some(c=>c.remove===id)).concat(sg.changes.map(c=>c.add));const list=ids=>`<ul class="confirm-list">${ids.map(id=>`<li>${esc(byOutcome(id)?.name)}</li>`).join('')||'<li>(none)</li>'}</ul>`;showModal(`<header><h2>Apply this change?</h2><button class="close-button" data-close aria-label="Close">${icon('x')}</button></header><p class="helper">Your active priorities will change as shown. Removed outcomes move to Next; their tasks and progress are kept.</p><div class="confirm-grid"><div><div class="eyebrow">NOW, BEFORE</div>${list(before)}</div><div><div class="eyebrow">NOW, AFTER</div>${list(after)}</div></div><div class="capture-foot"><button class="quiet-button" data-close>Cancel</button><button class="primary-button" data-priority-confirm>Apply change</button></div>`,'Confirm priority change');}
+  function applyPriorityChange(){const sg=liveSuggestion();if(!sg)return false;const before=activeIds(),moves=sg.changes.slice();
+    const after=before.filter(id=>!moves.some(c=>c.remove===id)).concat(moves.map(c=>c.add));if(after.length>3)return false;
+    moves.forEach(c=>{if(c.remove){const old=data.focusAssignments.find(a=>a.outcome===c.remove);if(old)old.lane='next';}const a=data.focusAssignments.find(a=>a.outcome===c.add);if(a)a.lane='now';else data.focusAssignments.push({outcome:c.add,lane:'now'});});
+    if(!activeIds().includes(data.currentPriority))data.currentPriority=activeIds()[0]||null;
+    data.audit.push({at:new Date().toISOString(),type:'priority-apply',before,after:activeIds(),why:moves.map(c=>c.why)});
+    data.priorityReview.suggestion=null;data.priorityReview.lastResult='applied';return true;}
   const heroPrev={};
   function heroStat(id){const total=getTasks(id).length,done=completed(id),pct=progress(id),prev=heroPrev[id]??0;heroPrev[id]=pct;
     const ticks=total>1&&total<=12?Array.from({length:total-1},(_,n)=>`<i class="tick" style="left:${((n+1)/total*100).toFixed(2)}%"></i>`).join(''):'';
@@ -225,7 +289,7 @@
   function missionHeading(){return `${mobileTopline()}<div class="mission-heading"><div class="eyebrow mission-eyebrow">ALTR WORKSPACE</div><h1>Mission Status</h1><p class="mission-sub" id="status-line">${statusLine()}</p></div>`;}
   function renderFocus(){const ids=activeIds();if(!ids.includes(data.currentPriority))data.currentPriority=ids[0]||null;const primary=byOutcome(data.currentPriority);const others=ids.filter(id=>id!==data.currentPriority).map(byOutcome).filter(Boolean);const steps=primary?getTasks(primary.id):[];return `${missionHeading()}
     <div class="mission-layout">${primary?`<div class="hero-stack"><section class="priority-hero" aria-labelledby="current-priority-title"><div class="hero-head"><div class="hero-heading"><div class="hero-icon">${icon(primary.stream==='foundation'?'building':primary.stream==='market'?'map-pin':'layers')}</div><div class="hero-copy"><div class="overline">CURRENT PRIORITY</div><h2 id="current-priority-title">${esc(primary.name)}</h2><div class="type-label">${esc(byStream(primary.stream)?.name)}</div></div></div></div>${heroStat(primary.id)}<div class="hero-checks desktop-checks">${steps.map(t=>t.id===(steps.find(x=>!x.done)||{}).id?nextItem(t):checkItem(t)).join('')||`<p class="small-note">No checklist steps added yet.</p>`}</div><div class="hero-checks mobile-checks" id="mobile-steps">${steps.length?`<div class="step-eyebrow">${steps.every(t=>t.done)?'All steps done':'Next step'}</div>${nextItem(steps.find(t=>!t.done)||steps[0])}`:`<p class="small-note">No checklist steps added yet.</p>`}${steps.length>1?`<button class="show-steps" type="button" data-toggle-steps aria-expanded="false" aria-label="Show all checklist steps"><span>All steps</span><span class="step-count">${steps.length}</span>${icon('chevron-down')}</button><div class="mobile-more-steps">${steps.filter(t=>t.id!==(steps.find(s=>!s.done)||steps[0]).id).map(checkItem).join('')}</div>`:''}</div><div class="hero-bottom"><button class="primary-button" data-focus-mode="${esc(primary.id)}">${icon('crosshair')} Enter Focus Mode <span class="desktop-cta-arrow">${icon('chevron-right')}</span></button></div></section></div>`:`<div class="empty-state"><span class="empty-icon">${icon('target')}</span><h2>No active priorities</h2><p>Choose an outcome from Next when you're ready.</p></div>`}
-    <section class="mission-other" aria-label="Other active priorities"><div class="mission-other-head"><div class="mission-other-heading">Other active priorities</div></div><div class="side-priorities">${others.map(priorityCard).join('')||'<p class="small-note">No other active priorities.</p>'}</div></section>${inboxPreview()}${lanesLink()}</div>`;}
+    <section class="mission-other" aria-label="Other active priorities"><div class="mission-other-head"><div class="mission-other-heading">Other active priorities</div></div><div class="side-priorities">${others.map(priorityCard).join('')||'<p class="small-note">No other active priorities.</p>'}</div></section>${prioritySuggestionCard()}${inboxPreview()}${lanesLink()}</div>`;}
   const laneProgress=id=>{const n=getTasks(id).length;return n?`${completed(id)} of ${n} ${n===1?'step':'steps'} done`:'Not measured';};
   function lanesLink(){const nx=laneIds('next').length,lt=laneIds('later').length;return `<section class="mission-lanes" aria-label="Next and Later"><button type="button" class="priority-mini lanes-link" data-nav="lanes"><span class="mini-icon">${icon('layers')}</span><span class="mini-copy"><strong class="mini-title">Next &amp; Later</strong><span class="mini-kicker">${nx} next · ${lt} later</span></span>${icon('chevron-right','class="mini-arrow"')}</button></section>`;}
   function laneItem(id,lane){const o=byOutcome(id);if(!o)return '';return `<li class="lane-item"><div class="lane-copy"><strong>${esc(o.name)}</strong><span class="lane-meta">${esc(byStream(o.stream)?.name||'')} · ${laneProgress(id)}</span></div><div class="lane-actions"><button class="mini-button" data-set-lane="${esc(id)}" data-lane="now">Make active</button>${lane==='next'?`<button class="mini-button" data-set-lane="${esc(id)}" data-lane="later">Move to Later</button>`:`<button class="mini-button" data-set-lane="${esc(id)}" data-lane="next">Move to Next</button>`}</div></li>`;}
@@ -307,15 +371,20 @@
     if(closest('[data-add-option]')){showOptionForm(closest('[data-add-option]').dataset.addOption);return;}
     if(closest('[data-set-lane]')){const el=closest('[data-set-lane]');const wasOverlay=!!overlay;const toId=el.dataset.setLane,ln=el.dataset.lane;if(wasOverlay)closeModal();setLane(toId,ln);return;}
     if(closest('[data-swap-from]')){const el=closest('[data-swap-from]'),from=el.dataset.swapFrom,to=el.dataset.swapTo;closeModal();const old=data.focusAssignments.find(a=>a.outcome===from);old.lane='next';setLane(to,'now');return;}
+    if(closest('[data-review-priorities]')){runPriorityEngine(true);render();$('[data-review-priorities]')?.focus();return;}
+    if(closest('[data-priority-apply]')){showPriorityConfirm();return;}
+    if(closest('[data-priority-confirm]')){const ok=applyPriorityChange();closeModal();render();toast(ok?'Priorities updated. Recorded in history.':'That suggestion is out of date. Nothing was changed.');return;}
+    if(closest('[data-priority-ignore]')){const pr=data.priorityReview;if(pr.suggestion){pr.dismissed.push(pr.suggestion.fp);pr.suggestion=null;pr.lastResult='ignored';}render();toast('Ignored. It will not come back unless the facts change.');return;}
+    if(closest('[data-priority-defer]')){const sg=data.priorityReview.suggestion;if(sg)sg.deferred=true;render();toast('Deferred until your next meaningful change.');return;}
     if(closest('[data-approve]')){const id=closest('[data-approve]').dataset.approve,c=data.captures.find(c=>c.id===id);if(c&&c.status==='pending'){accept(c);render();toast('Capture organized. Original preserved.');}return;}
     if(closest('[data-approve-all]')){const pendingCount=pending().length;pending().forEach(accept);render();toast(`${pendingCount} captures organized. Originals preserved.`);return;}
     if(closest('[data-defer]')){toast('Kept in Inbox for a later review.');return;}
     if(closest('[data-resolve]')){showResolveDecision(closest('[data-resolve]').dataset.resolve);return;}
-    if(closest('[data-reopen]')){const d=data.decisions.find(d=>d.id===closest('[data-reopen]').dataset.reopen);if(d){d.status='open';render();toast('Decision reopened.');}return;}
+    if(closest('[data-reopen]')){const d=data.decisions.find(d=>d.id===closest('[data-reopen]').dataset.reopen);if(d){d.status='open';runPriorityEngine();render();toast('Decision reopened.');}return;}
     if(closest('[data-search-go]')){const el=closest('[data-search-go]');data.selectedStream=el.dataset.searchStream||data.selectedStream;if(el.dataset.searchDecision)data.selectedDecision=el.dataset.searchDecision;closeModal();navigate(el.dataset.searchGo);return;}
   }
   document.addEventListener('click',actionClick);
-  document.addEventListener('change',e=>{if(e.target.matches('[data-capture-check]')){const id=e.target.dataset.captureCheck,c=data.captures.find(c=>c.id===id);if(!c)return;c.completedAt=e.target.checked?new Date().toISOString():null;render();($(`[data-capture-check="${id}"]`)||$(`[data-inbox-filter="${inboxFilter}"]`)).focus();toast(c.completedAt?'To-do completed. Review and tasks unchanged.':'To-do reopened.');return;}if(e.target.matches('#import-backup')){const file=e.target.files?.[0];if(!file)return;file.text().then(source=>{let copy;try{copy=JSON.parse(source);}catch{toast('Not a valid JSON file.');return;}const required=['workstreams','outcomes','tasks','captures','decisions','ideas','relationships','focusAssignments'];if(copy?.version!==1||required.some(k=>!Array.isArray(copy[k]))){toast('Unsupported backup format.');return;}if(confirm('Replace the local Exe workspace with this backup?')){data=copy;closeModal();render();toast('Backup imported.');}}).catch(()=>toast('Could not read backup.'));return;}if(e.target.matches('[data-task-check]')){const t=byTask(e.target.dataset.taskCheck);if(!t)return;t.done=e.target.checked;persist();const isFocus=overlay==='focus';const focusId=data.currentPriority;if(isFocus)showFocusMode(focusId);else render();toast(t.done?'Step completed.':'Step reopened.');return;}
+  document.addEventListener('change',e=>{if(e.target.matches('[data-capture-check]')){const id=e.target.dataset.captureCheck,c=data.captures.find(c=>c.id===id);if(!c)return;c.completedAt=e.target.checked?new Date().toISOString():null;render();($(`[data-capture-check="${id}"]`)||$(`[data-inbox-filter="${inboxFilter}"]`)).focus();toast(c.completedAt?'To-do completed. Review and tasks unchanged.':'To-do reopened.');return;}if(e.target.matches('#import-backup')){const file=e.target.files?.[0];if(!file)return;file.text().then(source=>{let copy;try{copy=JSON.parse(source);}catch{toast('Not a valid JSON file.');return;}const required=['workstreams','outcomes','tasks','captures','decisions','ideas','relationships','focusAssignments'];if(copy?.version!==1||required.some(k=>!Array.isArray(copy[k]))){toast('Unsupported backup format.');return;}if(confirm('Replace the local Exe workspace with this backup?')){data=copy;closeModal();render();toast('Backup imported.');}}).catch(()=>toast('Could not read backup.'));return;}if(e.target.matches('[data-task-check]')){const t=byTask(e.target.dataset.taskCheck);if(!t)return;t.done=e.target.checked;if(t.done){const o=byOutcome(t.outcome);if(o)o.lastWorkedAt=new Date().toISOString();}runPriorityEngine();persist();const isFocus=overlay==='focus';const focusId=data.currentPriority;if(isFocus)showFocusMode(focusId);else render();toast(t.done?'Step completed.':'Step reopened.');return;}
     if(e.target.matches('[data-review-field]')){const c=data.captures.find(c=>c.id===e.target.dataset.reviewId);if(c){if(!c.proposal)c.proposal=propose(c.text);c.proposal[e.target.dataset.reviewField]=e.target.value;persist();}return;}
   });
   document.addEventListener('input',e=>{if(e.target.matches('[data-decision-notes]')){const d=data.decisions.find(d=>d.id===e.target.dataset.decisionNotes);if(d){d.notes=e.target.value;persist();}return;}if(e.target.matches('#workspace-search')){renderSearch(e.target.value);}});
@@ -323,7 +392,7 @@
     if(e.target.matches('#capture-edit')){e.preventDefault();const text=new FormData(e.target).get('text')?.trim(),c=data.captures.find(c=>c.id===e.target.dataset.id);if(c&&text){c.checklistText=text;closeModal();render();$(`[data-edit-capture="${c.id}"]`)?.focus();}return;}
     if(e.target.matches('#capture-form')){e.preventDefault();const textarea=$('#capture-text');const lines=textarea.value.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);if(!lines.length){textarea.focus();return;}lines.forEach(text=>data.captures.push({id:newId('capture'),text,status:'pending',createdAt:new Date().toISOString(),source:'Quick Capture',proposal:propose(text)}));persist();closeModal();render();if(captureContext){if($('#inbox-add input')&&captureContext.inboxDraft!==undefined)$('#inbox-add input').value=captureContext.inboxDraft;if(captureContext.stepsExpanded){$('#mobile-steps')?.classList.add('expanded');const toggle=$('[data-toggle-steps]');toggle?.setAttribute('aria-expanded','true');toggle?.setAttribute('aria-label','Show only the next step');}window.scrollTo({top:captureContext.scrollY,behavior:'instant'});$('#view').scrollTop=captureContext.viewScroll;captureContext=null;}toast(`${lines.length} ${lines.length===1?'thought':'thoughts'} saved to Inbox.`);return;}
     if(e.target.matches('#task-form')){e.preventDefault();const name=new FormData(e.target).get('task')?.trim();if(name){data.tasks.push({id:newId('task'),outcome:e.target.dataset.outcome,name,done:false});closeModal();render();toast('Step added.');}return;}
-    if(e.target.matches('#resolve-form')){e.preventDefault();const conclusion=new FormData(e.target).get('conclusion')?.trim();const d=data.decisions.find(d=>d.id===e.target.dataset.decision);if(conclusion&&d){d.selected=conclusion;d.status='resolved';closeModal();render();toast('Decision recorded. Priorities unchanged.');}return;}
+    if(e.target.matches('#resolve-form')){e.preventDefault();const conclusion=new FormData(e.target).get('conclusion')?.trim();const d=data.decisions.find(d=>d.id===e.target.dataset.decision);if(conclusion&&d){d.selected=conclusion;d.status='resolved';runPriorityEngine();closeModal();render();toast('Decision recorded. Priorities unchanged.');}return;}
     if(e.target.matches('#option-form')){e.preventDefault();const name=new FormData(e.target).get('option')?.trim();const d=data.decisions.find(d=>d.id===e.target.dataset.decision);if(name&&d){d.options.push(name);closeModal();render();toast('Option added.');}return;}
   });
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
