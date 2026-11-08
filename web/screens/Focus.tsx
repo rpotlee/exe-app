@@ -12,6 +12,7 @@ import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
+import { outcomeIn } from '../../src/domain/scope';
 import { syncPriorityGlassAccent } from '../ui/pearl';
 
 const folderOf = (ws: Workspace, o: Outcome) => ws.folders.find(f => f.id === o.folder_id)?.name ?? 'Not filed';
@@ -29,12 +30,13 @@ function HeroStat({ ws, id }: { ws: Workspace; id: string }) {
 }
 
 export function Focus() {
-  const { api, go, modal, awaitingReview, setFolderSel, setDecisionSel } = useApp();
+  const { api, go, modal, awaitingReview, setFolderSel, setDecisionSel, scope } = useApp();
   const [mins, setMins] = useState(0), [whyOpen, setWhyOpen] = useState(false);
   const ws = api.ws, ids = activeIds(ws), stored = currentFocusId(ws);
   const currentId = stored && ids.includes(stored) ? stored : ids[0] ?? null;
   const current = ws.outcomes.find(o => o.id === currentId) ?? null;
-  const others = ids.filter(i => i !== currentId).map(i => ws.outcomes.find(o => o.id === i)).filter((o): o is Outcome => !!o);
+  // the three active priorities are global; a folder view only filters which of them are shown (it never makes a separate three)
+  const others = ids.filter(i => i !== currentId).map(i => ws.outcomes.find(o => o.id === i)).filter((o): o is Outcome => !!o && outcomeIn(scope, o));
   const [expanded, setExpanded] = useState(false);
   const [deferred, setDeferred] = useState('');
   const sg = useMemo(() => computeSuggestion(ws), [ws]);
@@ -60,7 +62,7 @@ export function Focus() {
     <>
       <MobileTopline />
       <div className="mission-heading">
-        <div className="eyebrow mission-eyebrow">{(ws.settings?.workspace_name || 'My workspace').toUpperCase()}</div>
+        <div className="eyebrow mission-eyebrow">{(scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All').toUpperCase()}</div>
         <h1>Mission Status</h1>
         <p className="mission-sub" id="status-line">
           {empty ? 'Nothing here yet.' : <>
@@ -126,9 +128,12 @@ export function Focus() {
               ) : <p className="small-note quick-win-result" role="status">Nothing fits in {mins} minutes. Steps without an estimate are skipped when they are known to be longer. Add estimates with Edit step, or try a longer time.</p>)}</div>
             {weeklyDue && <div className="card prompt-card"><p className="prompt-text">Your weekly review is ready. It is optional.</p><div className="action-line"><button className="mini-button" onClick={() => modal({ kind: 'weekly' })}>Open</button><button className="mini-button" onClick={() => api.run((w, c) => dismissPrompt(w, c, weeklyId(week)))}>Skip this week</button></div></div>}
           </section>)}
-        {ws.outcomes.length > 0 && (
-          <section className="mission-lanes" aria-label="Next and Later"><button type="button" className="priority-mini lanes-link" onClick={() => go('lanes')}>
-            <span className="mini-icon"><Icon name="layers" /></span><span className="mini-copy"><strong className="mini-title">Next &amp; Later</strong><span className="mini-kicker">{nx} next · {lt} later</span></span><Icon name="chevron-right" className="mini-arrow" /></button></section>)}
+        <section className="mission-lanes" aria-label="Explore work"><h2 className="mission-other-heading">Explore work</h2>
+          <div className="side-priorities">
+            <button type="button" className="priority-mini lanes-link" onClick={() => go('map')}><span className="mini-icon"><Icon name="network" /></span><span className="mini-copy"><strong className="mini-title">Map</strong><span className="mini-kicker">Folders, outcomes, steps and what depends on what</span></span><Icon name="chevron-right" className="mini-arrow" /></button>
+            <button type="button" className="priority-mini lanes-link" onClick={() => go('decisions')}><span className="mini-icon"><Icon name="git-branch" /></span><span className="mini-copy"><strong className="mini-title">Decisions</strong><span className="mini-kicker">Open choices and their options</span></span><Icon name="chevron-right" className="mini-arrow" /></button>
+            {ws.outcomes.length > 0 && <button type="button" className="priority-mini lanes-link" onClick={() => go('lanes')}><span className="mini-icon"><Icon name="layers" /></span><span className="mini-copy"><strong className="mini-title">Next &amp; Later</strong><span className="mini-kicker">{nx} next · {lt} later</span></span><Icon name="chevron-right" className="mini-arrow" /></button>}
+          </div></section>
       </div>
     </>
   );

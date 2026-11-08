@@ -26,7 +26,7 @@ with sync_playwright() as p:
         if width>760:
             assert page.locator('.priority-hero').bounding_box()['width'] in (468,500)  # 500 in the two-column layout (>=1100px)
         else:
-            targets=page.locator('.dock-item').all();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
+            targets=page.locator('.dock-item').all();plus=page.locator('.dock-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
             assert plus['y']+plus['height']<=dock['y']  # Capture is separate: entirely above the dock
             assert page.locator('.mobile-dock .mobile-capture').count()==0
             for target in targets:

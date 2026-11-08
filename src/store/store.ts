@@ -14,12 +14,16 @@ export class ConflictError extends Error { constructor(message = 'This changed o
 type KV = Pick<Storage, 'getItem' | 'setItem'>;
 
 /** Keeps the whole workspace in browser storage: works with no account and no network. */
+/** Data saved on this device before the revamp lacks the new columns; fill them with what the database would use, changing nothing else. */
+function upgrade(ws: Workspace): Workspace {
+  return { ...ws, captures: ws.captures.map(c => (c.kind ? c : { ...c, kind: 'todo', display_title: null, user_priority: null })), tasks: ws.tasks.map(t => (t.folder_id === undefined ? { ...t, folder_id: null } : t)) };
+}
 export class LocalStore implements Store {
   readonly kind = 'local' as const;
   constructor(readonly owner: string, private readonly storage: KV, private readonly prefix = 'exe-v2') {}
   private get key() { return `${this.prefix}:${this.owner}`; }
   async load(): Promise<Workspace> {
-    try { const raw = this.storage.getItem(this.key); if (raw) return { ...emptyWorkspace(), ...(JSON.parse(raw) as Workspace) }; } catch { /* unreadable storage starts empty */ }
+    try { const raw = this.storage.getItem(this.key); if (raw) return upgrade({ ...emptyWorkspace(), ...(JSON.parse(raw) as Workspace) }); } catch { /* unreadable storage starts empty */ }
     return emptyWorkspace();
   }
   async apply(writes: Write[]): Promise<void> {

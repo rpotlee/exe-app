@@ -34,23 +34,23 @@ with sync_playwright() as p:
         if not WK:
             cdp = ctx.new_cdp_session(pg); cdp.send('Emulation.setSafeAreaInsetsOverride', {'insets': {'top': 20, 'bottom': 34, 'left': 0, 'right': 0}})
             assert float(pg.locator('.mobile-dock').evaluate('e=>parseFloat(getComputedStyle(e).bottom)')) == 46, 'dock sits above the home indicator'
-        pg.locator('.mobile-capture').click(); pg.get_by_label('Capture text').fill('Typing with the keyboard open')
+        pg.locator('.dock-capture').click(); pg.get_by_label('Capture text').fill('Typing with the keyboard open')
         pg.set_viewport_size({'width': w, 'height': 380})                       # the on-screen keyboard leaves little room
         save = pg.locator('.modal-sheet button[type=submit]'); save.scroll_into_view_if_needed(); box = save.bounding_box()
         assert box and box['y'] >= 0 and box['y'] + box['height'] <= 380, ('Save must stay reachable with the keyboard open', box)
         save.click(); pg.set_viewport_size({'width': w, 'height': 800}); pg.locator('[data-nav=inbox]').filter(visible=True).first.click()
         expect(pg.locator('.raw-row')).to_have_count(1)
-        dock = pg.locator('.mobile-dock').bounding_box(); plus = pg.locator('.mobile-capture').bounding_box()
-        assert plus['y'] + plus['height'] <= dock['y'] and dock['x'] >= 0 and dock['x'] + dock['width'] <= w
-        assert not errs, errs; ctx.close(); print(f'PASS {w}px keyboard-open capture, safe-area dock, + above dock')
+        dock = pg.locator('.mobile-dock').bounding_box(); plus = pg.locator('.dock-capture').bounding_box()
+        cx = plus['x'] + plus['width'] / 2; assert abs(cx - (dock['x'] + dock['width'] / 2)) <= 2 and plus['width'] >= 44 and dock['x'] >= 0 and dock['x'] + dock['width'] <= w   # the + is centered in the dock (revamp)
+        assert not errs, errs; ctx.close(); print(f'PASS {w}px keyboard-open capture, safe-area dock, + centered in the dock')
     # ---- a large workspace stays fast
     ws = big(); sizes = {k: len(v) for k, v in ws.items() if isinstance(v, list)}
     for w in [390, 1280]:
         ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); pg = ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.goto(URL); pg.evaluate(f"localStorage.setItem('{KEY}', arguments[0])" if False else "(d)=>localStorage.setItem('exe-v2:local', d)", json.dumps(ws)); t0 = time.time(); pg.reload(); pg.locator('#status-line').wait_for(); load = time.time() - t0
         times = {}
-        for r, title in [('inbox', 'Inbox'), ('map', 'Map'), ('decisions', 'Decisions'), ('review', 'AI Review'), ('focus', 'Mission Status')]:
-            t = time.time(); pg.locator(f'[data-nav={r}]').filter(visible=True).first.click(); pg.locator('#view h1', has_text=title).wait_for(); pg.evaluate('new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))'); times[r] = time.time() - t
+        for r, title in [('inbox', 'Executables'), ('map', 'Map'), ('decisions', 'Decisions'), ('review', 'AI Assistant'), ('focus', 'Mission Status')]:
+            t = time.time(); (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()); pg.locator('#view h1', has_text=title).wait_for(); pg.evaluate('new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))'); times[r] = time.time() - t
         t = time.time(); pg.keyboard.press('/'); pg.get_by_label('Search all work').fill('plumber 1999'); pg.locator('.search-result').first.wait_for(); times['search'] = time.time() - t
         assert load < 5 and all(v < 2.5 for v in times.values()), (w, load, times)
         assert pg.evaluate('document.documentElement.scrollWidth <= innerWidth') and not errs, errs
@@ -60,10 +60,10 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce', **({'has_touch': True, 'is_mobile': True} if (WK and w < 761) else {})); pg = ctx.new_page(); pg.goto(URL); pg.evaluate('localStorage.clear()'); pg.reload()
         def axe(label):
             pg.add_script_tag(path=os.environ['AXE_PATH']); v = pg.evaluate(RUN)['violations']; assert not v, (label, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
-        nav = lambda r: pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()
+        nav = lambda r: (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click())
         shot = lambda name: pg.screenshot(path=str(OUT / f"{'webkit-' if WK else ''}{w}-{name}.png"))
         shot('empty-focus')
-        pg.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); pg.locator('.modal-sheet').wait_for(); axe('capture dialog')   # dialogs load on demand now; pg.keyboard.press('Escape')
+        pg.locator('.dock-capture, .top-capture').filter(visible=True).last.click(); pg.locator('.modal-sheet').wait_for(); axe('capture dialog')   # dialogs load on demand now; pg.keyboard.press('Escape')
         pg.keyboard.press('Control+k'); pg.get_by_label('Capture text').fill('Order balloons for the party\nOrder the balloons for party\nBook the caterer'); pg.locator('.modal-sheet button[type=submit]').click()
         nav('map'); pg.get_by_role('button', name='New folder').click(); pg.locator('#modal-root input[name=name]').fill('Home'); axe('folder dialog'); pg.get_by_role('button', name='Create folder').click()
         pg.get_by_role('button', name='Add outcome').click(); pg.locator('#modal-root input[name=name]').fill('Plan the reunion'); axe('outcome dialog'); pg.locator('#modal-root button[type=submit]').click()

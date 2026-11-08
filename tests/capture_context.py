@@ -17,7 +17,7 @@ with sync_playwright() as p:
         page.locator('[data-nav=focus]').filter(visible=True).first.click()
         if width<761:
             page.locator('[data-toggle-steps]').click()
-            page.locator('.mobile-capture').click()
+            page.locator('.dock-capture').click()
             page.get_by_label('Capture text').fill('Another thought')
             page.locator('#capture-form button[type=submit]').click()
             assert page.locator('[data-toggle-steps]').get_attribute('aria-expanded')=='true'

@@ -7,9 +7,13 @@ KEY = 'exe-v2:local'
 def S(page):
     page.wait_for_timeout(80)   # let the save chain flush
     return json.loads(page.evaluate(f"localStorage.getItem('{KEY}')"))
-def nav(page, route): page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
+def _go(page, route):
+    # Map, Decisions and Next & Later are reached under Mission (revamp); the three primary tabs are clicked as before
+    if route in ('map', 'decisions', 'lanes'): page.evaluate(f"location.hash = '#/{route}'")
+    else: page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
+def nav(page, route): _go(page, route)
 def cap(page, text):
-    page.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
+    page.locator('.dock-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
 def status(page):
     if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the Inbox now
     page.locator('#status-line').wait_for(); page.wait_for_timeout(80)
@@ -35,15 +39,15 @@ with sync_playwright() as p:
         mobile = w < 761
         # empty first run
         assert status(page) == 'Nothing here yet.' and page.get_by_role('heading', name='Nothing here yet').count() == 1
-        labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span')).all_inner_texts() if t.strip()]
-        assert labels == ['Focus', 'Inbox', 'AI Review', 'Map', 'Decisions'], labels
+        labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span:not(.nav-scope):not(.nav-count)')).all_inner_texts() if t.strip()]
+        assert labels == (['Executables', 'Mission', 'AI', 'Folders'] if mobile else ['Executables', 'Mission Status', 'AI Assistant', 'Folders']), labels   # revamp: five positions, the + in the middle
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
         first = page.locator('.raw-row input[type=checkbox]').first; first.check()
         d = S(page); assert sum(1 for c in d['captures'] if c['completed_at']) == 1 and d['tasks'] == []
-        page.locator('.inbox-filters button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
-        page.locator('.inbox-filters button', has_text='All').click()
+        page.locator('.kind-strip button', has_text='To-dos').click(); page.locator('.status-strip button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
+        page.locator('.status-strip button', has_text='All').click(); page.locator('.kind-strip button', has_text='Everything').click()
         # folders and outcomes
         nav(page, 'map'); page.get_by_role('button', name='New folder').click(); page.locator('#modal-root input[name=name]').fill('Home'); page.get_by_role('button', name='Create folder').click()
         for name in ['Plan reunion', 'Fix garage', 'Book venue', 'Clean attic', 'Sort photos']:
@@ -79,7 +83,7 @@ with sync_playwright() as p:
         d = S(page); sp = next(o for o in d['outcomes'] if o['name'] == 'Sort photos')
         assert {'now'} == {f['lane'] for f in d['focus'] if f['outcome_id'] == sp['id']} and len([f for f in d['focus'] if f['lane'] == 'now']) == 3
         # Next & Later screen
-        page.locator('.lanes-link').click(); expect(page.get_by_role('heading', name='Next & Later')).to_have_count(1); expect(page.locator('.lane-item')).to_have_count(2)
+        page.locator('.lanes-link', has_text='Next').click(); expect(page.get_by_role('heading', name='Next & Later')).to_have_count(1); expect(page.locator('.lane-item')).to_have_count(2)
         page.get_by_role('button', name='Back to Focus').click()
         # Focus Mode: capture opens over it and returns to it
         page.get_by_role('button', name='Enter Focus Mode').click(); page.get_by_role('dialog', name='Focus Mode').wait_for()
@@ -166,7 +170,7 @@ with sync_playwright() as p:
         expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0); assert json.dumps(S(page)['tasks']) == tasks_before; page.reload()
         page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0)
         # weekly review: optional, real numbers, skipping/finishing hides it for the week
-        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(1); page.get_by_role('button', name='Open').click()
+        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(1); page.get_by_role('button', name='Open', exact=True).click()
         expect(page.locator('#modal-root')).to_contain_text('Still open'); expect(page.locator('#modal-root')).to_contain_text('captured'); page.get_by_role('button', name='Done').click()
         expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0); page.reload(); page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0)
         # persistence: a reload keeps everything
@@ -225,9 +229,9 @@ with sync_playwright() as p:
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
             for r in ['focus', 'inbox', 'map', 'decisions', 'review']:
-                nav(page, r); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
+                nav(page, r); page.wait_for_timeout(450); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [(n['target'], n['any'][0]['message']) for n in x['nodes']]) for x in v])
         for r in ['focus', 'inbox', 'review', 'map', 'decisions']:
-            nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r)
+            nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r, page.evaluate("[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,5).map(e=>e.tagName+'.'+e.className+' '+Math.round(e.getBoundingClientRect().right))"))
         assert not errors, errors
         ctx.close(); print(f'PASS {w}px: new app: empty start, capture, folders, outcomes, Now cap, steps, engine, lanes, Focus Mode, completion, folder delete, persistence, axe')
     b.close()

@@ -102,7 +102,7 @@ with sync_playwright() as p:
         nav(page,'focus')
         if width<761:
             assert page.locator('.mobile-dock [data-nav]').count()==5
-            dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
+            dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.dock-capture').bounding_box()
             assert plus['y']+plus['height']<=dock['y']  # Capture is a separate button above the dock
             assert page.locator('.mobile-dock .mobile-capture').count()==0
             for item in page.locator('.mobile-dock small').all(): assert item.is_visible()  # labels are drawn

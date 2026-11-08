@@ -165,6 +165,19 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       expect(steps.map(t => t.name)).toEqual(['Email Rachel about the open role', 'Prepare interview questions']); expect(ws.focus.find(f => f.outcome_id === hiring.id)?.lane).toBe('later');
       const link = ws.relationships.filter(r => steps.some(t => t.id === r.from_id)); expect(link).toHaveLength(1); expect(link[0]).toMatchObject({ kind: 'blocks', confirmed: false, source: 'ai' });
       expect(ws.captures.find(c => c.id === g[0]!.id)!.status).toBe('organized'); expect(desk.status).toBe('pending');
+      // revamp phase 1: kinds, scope on save, conversion, priority label, moving loose steps and outcomes
+      const fOne = ws.folders[0]!;
+      await ok(C.addCaptures(ws, ctx, 'First line\nSecond line kept as a note', 'Executables', { kind: 'note', folderId: fOne.id }));
+      const noteRow = ws.captures.find(c => c.kind === 'note')!; expect(noteRow).toMatchObject({ text: 'First line\nSecond line kept as a note', folder_id: fOne.id });   // one note, not split
+      expect(ws.captures.filter(c => c.kind === 'note')).toHaveLength(1);
+      await ok(C.addCaptures(ws, ctx, 'Call dentist', 'Executables', { kind: 'reminder' })); expect(ws.captures.find(c => c.text === 'Call dentist')!.kind).toBe('reminder');
+      expect(C.addCaptures(ws, ctx, 'x', 'Executables', { folderId: 'nope' }).ok).toBe(false);
+      await ok(C.convertKind(ws, noteRow.id, 'todo')); expect(ws.captures.find(c => c.id === noteRow.id)).toMatchObject({ kind: 'todo', text: noteRow.text, completed_at: null });
+      expect(C.convertKind(ws, noteRow.id, 'todo').ok).toBe(false);
+      await ok(C.setCapturePriority(ws, noteRow.id, 'high')); expect(ws.captures.find(c => c.id === noteRow.id)!.user_priority).toBe('high'); await ok(C.setCapturePriority(ws, noteRow.id, null));
+      const loose = ws.tasks.find(t => !t.outcome_id);
+      if (loose) { await ok(C.moveLooseTask(ws, loose.id, fOne.id)); expect(ws.tasks.find(t => t.id === loose.id)!.folder_id).toBe(fOne.id); }
+      const anOutcome = ws.outcomes[0]; if (anOutcome) { expect(C.moveLooseTask(ws, ws.tasks.find(t => t.outcome_id)?.id ?? 'x', fOne.id).ok).toBe(false); await ok(C.moveOutcome(ws, anOutcome.id, null)); }
       const audits = (await d.query('select action from audit_events order by at')).rows.map((r: any) => r.action);
       expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done', 'idea-promoted']));
     });

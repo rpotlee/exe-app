@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain JS content module
 import { pages } from './pages.mjs';
 
-const LABELS = ['Group these', 'Email draft', 'Open in email', 'Turn on AI help', 'AI help paused', 'Create an account', 'Create account', 'Sign in', 'Add a to-do', 'Show 200 more', 'File in', 'Archive', 'View archived', 'Approve & organize', 'Not now', 'Reject', 'Split…', 'Preview merge', 'Approve selected', 'Approve all', 'Review again',
+const LABELS = ['Group these', 'Email draft', 'Open in email', 'Turn on AI help', 'AI help paused', 'Create an account', 'Create account', 'Sign in', 'Add a to-do', 'Show 200 more', 'Folder', 'Archive', 'View archived', 'Approve & organize', 'Not now', 'Reject', 'Split…', 'Preview merge', 'Approve selected', 'Approve all', 'Review again',
   'Get AI suggestions', 'New folder', 'Create folder', 'Delete folder', 'Add outcome', 'Edit outcome', 'Pin as priority', 'Make active', 'Move to Next', 'Move to Later', 'Mark outcome done…', 'Reopen outcome', 'Add step', 'Break it down', 'Move up', 'Move down',
   'Archive step', 'Add relationship', 'New decision', 'Edit question', 'Add option', 'Mark resolved', 'Confirm decision', 'Reopen decision', 'Enter Focus Mode', 'All steps', 'Why this?', 'Apply…', 'Start in Focus Mode', 'Skip this week', 'Capture thought',
   'Return to Exe', 'Finish session', 'Add steps', 'Suggest steps with AI', 'Add idea', 'Promote', 'Show archived ideas', 'Save name', 'Download JSON backup', 'Open history', 'Test connection', 'I understand, turn on AI', 'Remove key', 'Replace key', 'Save key',

@@ -105,7 +105,7 @@ ${note('The limit of three is on purpose. Exe is built to help you finish a few 
 </ul>
 <h3>Row actions</h3>
 <ul>
-  <li><strong>File in</strong>: put it in a folder (or leave it <em>Not filed</em>).</li>
+  <li><strong>Folder</strong>: put it in a folder (or leave it <em>Unfiled</em>).</li>
   <li><strong>Edit</strong>: change the text. Your original wording is always kept and shown as <em>Original capture</em>.</li>
   <li><strong>Archive</strong> hides it without deleting. <strong>View archived</strong> at the bottom shows archived items, where <strong>Restore</strong> brings one back.</li>
 </ul>

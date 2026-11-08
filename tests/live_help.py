@@ -8,7 +8,7 @@ with sync_playwright() as p:
     for w in [390, 1280]:
         pg = b.new_page(viewport={'width': w, 'height': 900}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.goto('http://127.0.0.1:5173/?local=1&fakeai=1'); pg.evaluate('localStorage.clear()'); pg.reload()
-        expect(pg.get_by_role('heading', name='Inbox')).to_be_visible()                       # a first visit opens the list
+        expect(pg.get_by_role('heading', name='Executables')).to_be_visible()                       # a first visit opens the list
         assert pg.locator('.welcome').count() == 0 and pg.locator('.assist-card').count() == 0       # no instructions on screen
         box = pg.get_by_label('Add a to-do')
         for t in ['Email Rachel about the open position at company A', 'Prepare interview questions for the open position', 'Research how to register a business in New York City', 'What is the capital of Australia?', 'Buy a standing desk']:

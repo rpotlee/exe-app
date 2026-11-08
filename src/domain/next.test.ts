@@ -5,7 +5,7 @@ import { isoWeek, weeklySummary } from './weekly';
 
 const base = { owner_id: 'u', created_at: '2027-03-01T00:00:00Z', updated_at: '', revision: 1 };
 const outcome = (id: string, x: Partial<Outcome> = {}): Outcome => ({ ...base, id, folder_id: null, name: id, description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [], ...x });
-const task = (id: string, o: string | null, x: Partial<Task> = {}): Task => ({ ...base, id, outcome_id: o, name: id, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...x });
+const task = (id: string, o: string | null, x: Partial<Task> = {}): Task => ({ ...base, id, outcome_id: o, name: id, notes: '', folder_id: null, done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...x });
 const rel = (id: string, from: string, to: string, x: Partial<Relationship> = {}): Relationship => ({ ...base, id, from_type: 'task', from_id: from, to_type: 'task', to_id: to, kind: 'blocks', description: '', confirmed: true, source: 'user', ...x });
 const lane = (o: string, l: string) => ({ ...base, id: 'f' + o, outcome_id: o, lane: l, position: 0 });
 const ws = (x: Partial<Workspace> = {}): Workspace => ({ ...emptyWorkspace(), ...x });
@@ -67,7 +67,7 @@ describe('weekly review', () => {
   it('reports only what really happened in the last 7 days', () => {
     const now = new Date('2027-03-10T12:00:00Z');
     const w = ws({ outcomes: [outcome('o', { done_at: '2027-03-08T00:00:00Z' })], tasks: [task('a', 'o', { done_at: '2027-03-09T00:00:00Z' }), task('b', 'o', { done_at: '2027-02-01T00:00:00Z' })],
-      captures: [{ ...base, id: 'c', created_at: '2027-03-09T00:00:00Z', text: 'x', edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null }] });
+      captures: [{ ...base, id: 'c', created_at: '2027-03-09T00:00:00Z', kind: 'todo', display_title: null, user_priority: null, text: 'x', edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null }] });
     const s = weeklySummary(w, now);
     expect(s.stepsDone).toEqual([{ outcomeId: 'o', name: 'o', count: 1 }]); expect(s.outcomesDone).toEqual(['o']); expect(s.capturesAdded).toBe(1); expect(s.waitingReview).toBe(1); expect(s.anything).toBe(true);
     expect(weeklySummary(ws(), now).anything).toBe(false);

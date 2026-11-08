@@ -24,15 +24,18 @@ function settingsWrite(ws: Workspace, ctx: Ctx, changes: Row): Write {
 const trimmed = (s: string): string => s.trim();
 
 // ------------------------------------------------------------------ captures
-export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture'): Result {
-  void ws;
-  const lines = segmentCapture(text);
+export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture', opts: { kind?: 'todo' | 'note' | 'reminder'; folderId?: string | null; keepAsOne?: boolean } = {}): Result {
+  const kind = opts.kind ?? 'todo', folderId = opts.folderId ?? null;
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  // To-dos split a pasted list into one item per line; a note or a reminder is never split, and a to-do can be kept whole on request
+  const lines = kind === 'todo' && !opts.keepAsOne ? segmentCapture(text) : trimmed(text) ? [text.replace(/\r\n/g, '\n').trim()] : [];
   if (!lines.length) return fail('Write something first.');
   const batch = lines.length > 1 ? ctx.id() : null;
+  const where = kind === 'todo' ? 'Executables' : kind === 'note' ? 'Executables as a note' : 'Executables as a reminder';
   return done(lines.map(line => ins('captures', {
-    ...baseRow(ctx), text: line, edited_text: null, source, folder_id: null, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
-    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null })),
-  lines.length === 1 ? 'Saved to Inbox.' : `${lines.length} thoughts saved to Inbox.`);
+    ...baseRow(ctx), text: line, edited_text: null, source, folder_id: folderId, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
+    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null })),
+  lines.length === 1 ? `Saved to ${where}.` : `${lines.length} to-dos saved to ${where}.`);
 }
 const capture = (ws: Workspace, id: string) => ws.captures.find(c => c.id === id);
 /** Raw completion is independent: it never touches tasks, decisions, the Focus board or AI review state. */
@@ -458,4 +461,33 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
     writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
   }
   return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in the Inbox.`);
+}
+
+// ------------------------------------------------------------------ kind, priority and moves (revamp phase 1)
+/** The user changes what an entry is. The original text, completion state and every link are kept; only `kind` changes. */
+export function convertKind(ws: Workspace, id: string, kind: 'todo' | 'note' | 'reminder'): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  if (c.kind === kind) return fail('It is already that type.');
+  return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a to-do' : kind === 'note' ? 'a note' : 'a reminder'}.`);
+}
+/** The person's own priority label. It never touches Now/Next/Later or the current focus. null clears it. */
+export function setCapturePriority(ws: Workspace, id: string, label: 'high' | 'normal' | 'low' | null): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  return done([upd('captures', c, { user_priority: label })]);
+}
+/** Move a loose step to a folder. A step inside an outcome follows its outcome instead. */
+export function moveLooseTask(ws: Workspace, id: string, folderId: string | null): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  if (t.outcome_id) return fail('This step follows its outcome. Move the outcome instead.');
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  return done([upd('tasks', t, { folder_id: folderId })]);
+}
+/** What moving an outcome would change, so the person can see it first (spec §3.3). */
+export function outcomeMovePreview(ws: Workspace, id: string): { steps: number; captures: number } {
+  return { steps: ws.tasks.filter(t => t.outcome_id === id && !t.archived_at).length, captures: ws.captures.filter(c => c.task_id && ws.tasks.some(t => t.id === c.task_id && t.outcome_id === id)).length };
+}
+export function moveOutcome(ws: Workspace, id: string, folderId: string | null): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o) return fail('That outcome no longer exists.');
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  return done([upd('outcomes', o, { folder_id: folderId })]);
 }

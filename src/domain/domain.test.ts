@@ -8,7 +8,7 @@ import { statusParts, statusText } from './status';
 
 const base = { created_at: '', updated_at: '', revision: 1, owner_id: 'u' };
 const outcome = (id: string, extra: Partial<Outcome> = {}): Outcome => ({ ...base, id, folder_id: null, name: id, description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [], ...extra });
-const task = (id: string, outcome_id: string | null, extra: Partial<Task> = {}): Task => ({ ...base, id, outcome_id, name: id, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...extra });
+const task = (id: string, outcome_id: string | null, extra: Partial<Task> = {}): Task => ({ ...base, id, outcome_id, name: id, notes: '', folder_id: null, done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...extra });
 const rel = (id: string, from: string, to: string, kind: Relationship['kind'] = 'blocks', confirmed = true): Relationship =>
   ({ ...base, id, from_type: 'task', from_id: from, to_type: 'task', to_id: to, kind, description: '', confirmed, source: 'user' });
 const ws = (over: Partial<Workspace> & { currentFocusOutcomeId?: string } = {}): Workspace => {

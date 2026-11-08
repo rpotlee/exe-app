@@ -19,9 +19,9 @@ with sync_playwright() as p:
    if route=='focus':
     metrics.append({'width':width,'card':page.locator('.priority-hero').bounding_box(),'ring':page.locator('.hero-stat').bounding_box(),'track':page.locator('.mini-progress-track').first.bounding_box(),'ringFont':page.locator('.ring-text strong').evaluate('e=>getComputedStyle(e).fontFamily')})
   if width<761:
-   dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.mobile-capture').bounding_box()
+   dock=page.locator('.mobile-dock').bounding_box();plus=page.locator('.dock-capture').bounding_box()
    page.screenshot(path=str(out/f'{width}-dock.png'),clip={'x':dock['x'],'y':plus['y'],'width':dock['width'],'height':dock['y']+dock['height']-plus['y']},animations='disabled')
-   page.locator('.mobile-capture').click();page.get_by_label('Capture text').fill('A captured interruption, not a new priority.')
+   page.locator('.dock-capture').click();page.get_by_label('Capture text').fill('A captured interruption, not a new priority.')
    page.wait_for_timeout(100)
    page.screenshot(path=str(out/f'{width}-capture.png'),animations='disabled')
    page.keyboard.press('Escape')

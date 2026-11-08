@@ -1,60 +1,72 @@
 import { useState } from 'react';
-import { addCaptures, archiveCapture, fileCapture, groupCaptures, setCaptureDone } from '../../src/domain/commands';
+import { addCaptures, archiveCapture, convertKind, fileCapture, groupCaptures, setCaptureDone, setCapturePriority } from '../../src/domain/commands';
+import { executables, kindCounts, kindOf, type CaptureKind, type KindFilter } from '../../src/domain/scope';
 import { useAssist } from '../app/useAssist';
 import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import type { AssistItem } from '../app/ai';
 import { Icon } from '../ui/Icon';
 
-type Filter = 'all' | 'active' | 'done';
 const niceDate = (iso: string) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
+const KIND_LABEL: Record<KindFilter, string> = { everything: 'Everything', todo: 'To-dos', note: 'Notes', reminder: 'Reminders' };
+type Status = 'all' | 'active' | 'done';
 
-/** The raw checklist: it works with no AI at all. Completing a to-do here changes nothing else. */
+/** Executables: everything captured, as To-dos, Notes and Reminders, for All or one folder. It works with no AI at all.
+ *  A type filter is only a view. Checking a to-do changes nothing else. */
 export function Inbox() {
-  const { api, go, modal, awaitingReview, assist: assistClient } = useApp();
+  const { api, go, modal, awaitingReview, assist: assistClient, scope } = useApp();
   const ws = api.ws, assist = useAssist(assistClient, ws);
-  const [filter, setFilter] = useState<Filter>(() => (sessionStorage.getItem('exe-inbox-filter') as Filter | null) ?? 'all');
-  const [archived, setArchived] = useState(false);
-  const [open, setOpen] = useState<Set<string>>(new Set());
-  const [draft, setDraft] = useState(''), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
-  const pick = (f: Filter) => { setFilter(f); try { sessionStorage.setItem('exe-inbox-filter', f); } catch { /* convenience only */ } };
-  const scope = ws.captures.filter(c => !!c.archived_at === archived);
-  const counts = { all: scope.length, active: scope.filter(c => !c.completed_at).length, done: scope.filter(c => c.completed_at).length };
-  const entries = scope.filter(c => filter === 'all' || (filter === 'done' ? c.completed_at : !c.completed_at)).slice().reverse();
-  if (filter === 'done') entries.sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)));
-  const live = ws.captures.filter(c => !c.archived_at).length;
-  const submit = (e: React.FormEvent) => { e.preventDefault(); if (api.run((w, c) => addCaptures(w, c, draft, 'Inbox'))) { setDraft(''); pick('all'); setArchived(false); } };
+  const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
+  const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
+  const [status, setStatus] = useState<Status>(() => (sessionStorage.getItem('exe-todo-status') as Status | null) ?? 'all');
+  const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set());
+  const [draft, setDraft] = useState(''), [addKind, setAddKind] = useState<'todo' | 'note'>('todo'), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
+  const remember = (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch { /* convenience only */ } };
+  const pickKind = (k: KindFilter) => { setKind(k); remember('exe-kind-filter', k); if (k === 'note') setAddKind('note'); else if (k === 'todo') setAddKind('todo'); };
+  const pickStatus = (v: Status) => { setStatus(v); remember('exe-todo-status', v); };
+  const counts = kindCounts(ws, scope);
+  let entries = executables(ws, scope, kind, { archived });
+  if (kind === 'todo' && !archived && status !== 'all') entries = entries.filter(c => (status === 'done' ? c.completed_at : !c.completed_at));
+  const live = counts.everything;
   const toggle = (id: string) => setOpen(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const submit = (e: React.FormEvent) => { e.preventDefault(); if (api.run((w, c) => addCaptures(w, c, draft, 'Executables', { kind: addKind, folderId: scope.kind === 'folder' ? scope.id : null }))) { setDraft(''); setArchived(false); } };
 
   return (
     <>
-      <PageHeading label="CAPTURE" title="Inbox" sub={archived ? `${counts.all} archived` : live ? `${live} to-dos` : 'Your list starts here'} extra={awaitingReview ? <button className="quiet-button" onClick={() => go('review')}>Review {awaitingReview} new</button> : null} />
-      <section className="raw-inbox" aria-label="Raw capture checklist">
+      <PageHeading label={scopeName.toUpperCase()} title="Executables" sub={archived ? `${entries.length} archived` : live ? `${live} ${live === 1 ? 'entry' : 'entries'}` : 'Type something and save it'} extra={awaitingReview ? <button className="quiet-button" onClick={() => go('review')}>{awaitingReview} for the AI Assistant</button> : null} />
+      <section className="raw-inbox" aria-label="Executables">
         <AssistBanner a={assist} onSettings={() => modal({ kind: 'settings' })} hasAi={!!assistClient} />
         <Suggestions a={assist} apply={g => api.run((w, c) => groupCaptures(w, c, { ids: g.ids, name: g.name, deps: assist.deps.filter(d => g.ids.includes(d.before) && g.ids.includes(d.after)) }))} />
-        <div className="inbox-toolbar"><div className="inbox-filters" role="group" aria-label="Filter to-dos">{(['all', 'active', 'done'] as const).map(f => (
-          <button key={f} aria-pressed={filter === f} onClick={() => pick(f)}>{f[0]?.toUpperCase()}{f.slice(1)} <span className="filter-count">{counts[f]}</span></button>))}</div></div>
+        <div className="inbox-toolbar"><div className="inbox-filters kind-strip" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
+          <button key={k} aria-pressed={kind === k} onClick={() => pickKind(k)}>{KIND_LABEL[k]} <span className="filter-count">{counts[k]}</span></button>))}</div></div>
+        {kind === 'todo' && <div className="inbox-filters status-strip" role="group" aria-label="To-do status">{(['all', 'active', 'done'] as const).map(v => (
+          <button key={v} aria-pressed={status === v} onClick={() => pickStatus(v)}>{v[0]?.toUpperCase()}{v.slice(1)}</button>))}</div>}
         <form className="inbox-add" onSubmit={submit}>
-          <span className="add-plus" aria-hidden="true"><Icon name="plus" /></span>
-          <textarea className="text-input" aria-label="Add a to-do" placeholder="Add a to-do, or paste a list…" required rows={1} maxLength={20000} value={draft}
+          <div className="kind-picker small" role="group" aria-label="Add as"><button type="button" aria-pressed={addKind === 'todo'} onClick={() => setAddKind('todo')}>To-do</button><button type="button" aria-pressed={addKind === 'note'} onClick={() => setAddKind('note')}>Note</button></div>
+          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : 'Add a to-do'} placeholder={addKind === 'note' ? 'Write a note…' : 'Add a to-do, or paste a list…'} required rows={1} maxLength={20000} value={draft}
             onChange={e => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 220) + 'px'; }}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
-          <button className="add-submit" type="submit" aria-label="Add to-do"><Icon name="corner-down-left" /></button></form>
+            onKeyDown={e => { if (addKind === 'todo' && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
+          <button className="add-submit" type="submit" aria-label={addKind === 'note' ? 'Add note' : 'Add to-do'}><Icon name="corner-down-left" /></button></form>
         <ul className="raw-list">
-          {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id); return (
-            <li key={c.id} className={`raw-row ${c.completed_at ? 'is-complete' : ''}`}>
-              <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span></label>
-              <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg></button>
+          {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
+            <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
+              {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}{c.user_priority && <span className={`pill prio prio-${c.user_priority}`}>{c.user_priority}</span>}</span></label>
+                : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{k === 'reminder' && <span className="pill">Not scheduled</span>}</div>}
+              <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
-                <p className="raw-meta">{niceDate(c.created_at)} · {c.source} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Not filed'}` : 'Not filed'} · {c.status === 'pending' ? 'Awaiting AI Review' : 'Organized'}{c.completed_at ? ' · Done' : ''}</p>
+                <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'To-do' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>
                 {c.edited_text && c.edited_text !== c.text && <p className="raw-original"><strong>Original capture</strong><br />{c.text}</p>}
-                <label className="file-field"><span className="small-note">File in</span><select className="select" aria-label={`File in folder: ${text}`} value={c.folder_id ?? ''} onChange={e => api.run(w => fileCapture(w, c.id, e.target.value || null))}><option value="">Not filed</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+                <div className="detail-fields">
+                  <label className="file-field"><span className="small-note">Type</span><select className="select" aria-label={`Type: ${text}`} value={k} onChange={e => api.run(w => convertKind(w, c.id, e.target.value as CaptureKind))}><option value="todo">To-do</option><option value="note">Note</option><option value="reminder" disabled>Reminder (needs a date; coming soon)</option></select></label>
+                  <label className="file-field"><span className="small-note">Folder</span><select className="select" aria-label={`Move to folder: ${text}`} value={c.folder_id ?? ''} onChange={e => api.run(w => fileCapture(w, c.id, e.target.value || null))}><option value="">Unfiled</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+                  {k === 'todo' && <label className="file-field"><span className="small-note">Priority</span><select className="select" aria-label={`Priority: ${text}`} value={c.user_priority ?? ''} onChange={e => api.run(w => setCapturePriority(w, c.id, (e.target.value || null) as 'high' | 'normal' | 'low' | null))}><option value="">None</option><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></label>}
+                </div>
                 <div className="raw-actions"><button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => archiveCapture(w, cx, c.id, !c.archived_at))}>{c.archived_at ? 'Restore' : 'Archive'}</button></div>
               </div>
               <Help item={assist.items[c.id]} text={text} />
             </li>); })}
-          {!entries.length && (scope.length || live || archived) ? <li className="empty-state">{scope.length ? 'No to-dos in this view.' : 'Nothing here.'}</li> : null}
+          {!entries.length && (live || archived) ? <li className="empty-state">{archived ? 'Nothing archived.' : `No ${kind === 'everything' ? 'entries' : KIND_LABEL[kind].toLowerCase()} here${scope.kind === 'folder' ? ` in ${scopeName}` : ''}.`}</li> : null}
         </ul>
         {entries.length > limit && <div className="inbox-footer"><button className="quiet-button" onClick={() => setLimit(n => n + 200)}>Show 200 more ({entries.length - limit} more)</button></div>}
         <div className="inbox-footer"><button className="quiet-button" aria-pressed={archived} onClick={() => setArchived(a => !a)}>{archived ? 'Back to list' : 'View archived'}</button></div>

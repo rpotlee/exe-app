@@ -38,7 +38,7 @@ with sync_playwright() as p:
         assert texts == ['Focus', 'Inbox', 'AI Review', 'Map', 'Decisions'], texts
         if mobile:
             for l in labels.all(): assert l.is_visible()
-            dock = page.locator('.mobile-dock').bounding_box(); plus = page.locator('.mobile-capture').bounding_box()
+            dock = page.locator('.mobile-dock').bounding_box(); plus = page.locator('.dock-capture').bounding_box()
             assert plus['y'] + plus['height'] <= dock['y'] + 1 and page.locator('.mobile-dock .mobile-capture').count() == 0
             assert page.locator('.mobile-dock [data-nav]').count() == 5
             for it in page.locator('.mobile-dock [data-nav]').all():

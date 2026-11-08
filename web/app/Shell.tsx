@@ -8,6 +8,7 @@ import type { AssistClient } from './useAssist';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
+import { ALL, validScope, type Scope } from '../../src/domain/scope';
 const Dialogs = lazy(() => import('./Dialogs').then(m => ({ default: m.Dialogs })));   // opened on demand, not part of the first load
 import { useWorkspace } from './useWorkspace';
 import { Focus } from '../screens/Focus';
@@ -19,25 +20,31 @@ const Decisions = lazy(() => import('../screens/Decisions').then(m => ({ default
 const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Review })));
 
 const PAGES: Page[] = ['focus', 'lanes', 'inbox', 'review', 'map', 'decisions'];
-const fromHash = (): Page => { const p = location.hash.replace(/^#\/?/, '') as Page; return PAGES.includes(p) ? p : 'inbox'; };
-const TABS: { page: Page; label: string; icon: string; desktopIcon: string }[] = [
-  { page: 'focus', label: 'Focus', icon: 'crosshair', desktopIcon: 'target' }, { page: 'inbox', label: 'Inbox', icon: 'inbox', desktopIcon: 'inbox' },
-  { page: 'review', label: 'AI Review', icon: 'sparkles', desktopIcon: 'sparkles' }, { page: 'map', label: 'Map', icon: 'network', desktopIcon: 'network' },
-  { page: 'decisions', label: 'Decisions', icon: 'git-branch', desktopIcon: 'git-branch' },
+// New names for the three primary screens; the old hashes still work and land on the same screens (revamp spec §2.3).
+const HASH_TO_PAGE: Record<string, Page> = { executables: 'inbox', mission: 'focus', assistant: 'review' };
+const PAGE_TO_HASH: Record<Page, string> = { inbox: 'executables', focus: 'mission', review: 'assistant', lanes: 'lanes', map: 'map', decisions: 'decisions' };
+const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, ''); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
+const PAGE_NAME: Record<Page, string> = { focus: 'Mission Status', lanes: 'Next & Later', inbox: 'Executables', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
+// The primary destinations. Map, Decisions and Next & Later are reached from Mission Status ("Explore work"), so Mission stays highlighted for them.
+const TABS: { page: Page; label: string; icon: string }[] = [
+  { page: 'inbox', label: 'Executables', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
 ];
+const SCOPE_KEY = 'exe-scope';
+const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem(SCOPE_KEY) ?? ''); if (j?.kind === 'folder' && typeof j.id === 'string') return j; } catch { /* All */ } return ALL; };
 
 export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null }) {
   const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
   const [page, setPage] = useState<Page>(fromHash);
-  const [folderSel, setFolderSel] = useState('all');
+  const [rawScope, setRawScope] = useState<Scope>(loadScope);
+  const setScope = useCallback((sc: Scope) => { setRawScope(sc); try { localStorage.setItem(SCOPE_KEY, JSON.stringify(sc)); } catch { /* convenience only */ } }, []);
   const [decisionSel, setDecisionSel] = useState('');
   const [stack, setStack] = useState<ModalState[]>([]);
   // the same dialog is never stacked on itself (a double tap while it loads must not open two)
   const setModal = useCallback((m: ModalState | null) => setStack(s => (m ? (JSON.stringify(s[s.length - 1]) === JSON.stringify(m) ? s : [...s, m]) : s.slice(0, -1))), []);
   useEffect(() => { const h = () => setPage(fromHash()); window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h); }, []);
-  const go = useCallback((p: Page) => { location.hash = `#/${p}`; window.scrollTo({ top: 0 }); }, []);
-  useEffect(() => { document.body.classList.toggle('page-is-focus', page === 'focus'); document.title = 'Exe — ' + ({ focus: 'Focus', lanes: 'Next & Later', inbox: 'Inbox', review: 'AI Review', map: 'Map', decisions: 'Decisions' })[page]; }, [page]);
+  const go = useCallback((p: Page) => { location.hash = `#/${PAGE_TO_HASH[p]}`; window.scrollTo({ top: 0 }); }, []);
+  useEffect(() => { document.body.classList.toggle('page-is-focus', page === 'focus'); document.title = 'Exe — ' + PAGE_NAME[page]; }, [page]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setModal({ kind: 'capture' }); }
       else if (e.key === '/' && !(e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) && !document.getElementById('root')?.hasAttribute('inert')) { e.preventDefault(); setModal({ kind: 'search' }); } };
@@ -53,20 +60,23 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
     return () => { off(); window.removeEventListener('online', on); };
   }, [queue]);
   const ws = api.ws;
+  const scope = ws ? validScope(ws, rawScope) : rawScope, folderSel = scope.kind === 'folder' ? scope.id : 'all';
+  const setFolderSel = useCallback((v: string) => setScope(v === 'all' ? ALL : { kind: 'folder', id: v }), [setScope]);
   const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
   useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, decisionSel, ai, assist, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, scope, setScope, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, scope, setScope, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
 
-  const navPage = page === 'lanes' ? 'focus' : page;
+  const navPage: Page = page === 'lanes' || page === 'map' || page === 'decisions' ? 'focus' : page;   // Map, Decisions and Next & Later live under Mission
+  const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const name = ws.settings?.workspace_name || 'My workspace';
   const save = qs?.conflict ? 'Needs your attention' : qs && qs.pending > 0 ? (qs.offline ? 'Saved on this device, not synced' : 'Saving…') : api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
   const screen = page === 'focus' ? <Focus /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Review /> : <Later which={page} />;
-  const badge = (p: Page) => (p === 'inbox' || p === 'review') && awaiting > 0 ? awaiting : 0;
-  const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} awaiting AI Review`}>{n > 99 ? '99+' : n}</span> : null);
+  const badge = (p: Page) => (p === 'review' && awaiting > 0 ? awaiting : 0);
+  const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} items for the AI Assistant`}>{n > 99 ? '99+' : n}</span> : null);
 
   return (
     <Ctx.Provider value={value}>
@@ -74,10 +84,10 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
       <div className="app-shell">
         <aside className="sidebar" aria-label="Primary navigation">
           <button className="brand" onClick={() => go('focus')} aria-label="Exe home"><span className="brand-symbol" aria-hidden="true"><i></i><i></i></span><span>Exe</span></button>
-          <div className="sidebar-label">WORKSPACE</div>
-          <nav className="sidebar-menu">{TABS.map(t => (
+                    <nav className="sidebar-menu">{TABS.map(t => (
             <button key={t.page} className={`nav-link ${navPage === t.page ? 'active' : ''}`} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.desktopIcon} /><span>{t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} awaiting AI Review`}>{badge(t.page)}</span>}</button>))}</nav>
+              <Icon name={t.icon} /><span>{t.page === 'focus' ? 'Mission Status' : t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} items for the AI Assistant`}>{badge(t.page)}</span>}</button>))}
+            <button className="nav-link" aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><span>Folders</span><span className="nav-scope">{scopeName}</span></button></nav>
           <div className="sidebar-bottom">
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'search' })}><Icon name="search" /><span>Search</span></button>
             <a className="nav-link sidebar-search" href="/support/index.html" target="_blank" rel="noopener"><Icon name="circle-help" /><span>Help</span></a>
@@ -88,10 +98,10 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
         </aside>
         <main className="main" id="main" tabIndex={-1}>
           <header className="desktop-topbar">
-            <div className="breadcrumb">Workspace <span>/</span> <em className="crumb-name">{name}</em> <span>/</span> <b>{({ focus: 'Focus', lanes: 'Next & Later', inbox: 'Inbox', review: 'AI Review', map: 'Map', decisions: 'Decisions' })[page]}</b></div>
+            <div className="breadcrumb"><button className="crumb-scope" onClick={() => setModal({ kind: 'folders' })} aria-haspopup="dialog">{scopeName}</button> <span>/</span> <b>{PAGE_NAME[page]}</b></div>
             <div className="top-actions">
               <span className="saved-indicator" role="status"><Icon name="cloud" /> {save}</span>
-              <button className="top-capture" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /> Quick capture <kbd>⌘ K</kbd></button>
+              <button className="top-capture" aria-label="Capture to-do, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /> Capture <kbd>⌘ K</kbd></button>
               <span className="desktop-avatar">{name.slice(0, 1).toUpperCase()}</span>
             </div>
           </header>
@@ -99,10 +109,16 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
         </main>
       </div>
       <div className="mobile-navigation">
-        <nav className="mobile-dock" aria-label="Mobile primary navigation">{TABS.map(t => (
-          <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-            <Icon name={t.icon} /><small>{t.label}</small>{bubble(badge(t.page))}</button>))}</nav>
-        <button className="mobile-capture" aria-label="Quick Capture" onClick={() => setModal({ kind: 'capture' })}><span className="capture-label">Capture something</span><span className="capture-go" aria-hidden="true"><Icon name="plus" /></span></button>
+        <nav className="mobile-dock" aria-label="Mobile primary navigation">
+          {TABS.slice(0, 2).map(t => (
+            <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
+              <Icon name={t.icon} /><small>{t.label}</small></button>))}
+          <button className="dock-capture" aria-label="Capture to-do, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
+          {TABS.slice(2).map(t => (
+            <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
+              <Icon name={t.icon} /><small>AI</small>{bubble(badge(t.page))}</button>))}
+          <button className="dock-item" aria-label={`Folders, showing ${scopeName}`} aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><small>Folders</small></button>
+        </nav>
       </div>
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
       <Suspense fallback={null}>{stack.map((m, i) => <Dialogs key={i} m={m} />)}</Suspense>

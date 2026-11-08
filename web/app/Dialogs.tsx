@@ -11,6 +11,8 @@ import { search } from '../../src/domain/search';
 import { importWrites, parseBackup, type Parsed } from '../../src/domain/backup';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
+import { folderCounts, type CaptureKind, type Scope } from '../../src/domain/scope';
+import { segmentCapture } from '../../src/domain/capture';
 import { PROVIDER_NAMES, type AiSettings, type Provider } from './ai';
 import { weeklyId, weeklySummary } from '../../src/domain/weekly';
 import { describeAudit } from '../../src/domain/insight';
@@ -52,23 +54,57 @@ export function Dialogs({ m }: { m: ModalState }) {
     case 'taskNew': return <TaskNew outcomeId={m.outcomeId} />;
     case 'relationship': return <RelationshipNew />;
     case 'captureEdit': return <CaptureEdit id={m.id} />;
+    case 'folders': return <FolderDrawer />;
   }
 }
 
 function CaptureSheet() {
-  const { api, modal } = useApp();
+  const { api, modal, scope } = useApp();
+  const ws = api.ws, scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [text, setText] = useState(() => { try { return sessionStorage.getItem(DRAFT) ?? ''; } catch { return ''; } });
-  const [error, setError] = useState('');
-  const change = (v: string) => { setText(v); setError(''); try { sessionStorage.setItem(DRAFT, v); } catch { /* a draft is a convenience */ } };
-  const submit = (e: FormEvent) => { e.preventDefault(); if (api.run((w, c) => C.addCaptures(w, c, text))) { try { sessionStorage.removeItem(DRAFT); } catch { /* ignore */ } modal(null); } else setError('Write something first.'); };
+  const [kind, setKind] = useState<CaptureKind>(() => { try { const k = sessionStorage.getItem(DRAFT + '-kind'); return k === 'note' ? 'note' : 'todo'; } catch { return 'todo'; } });
+  const [whole, setWhole] = useState(false), [error, setError] = useState('');
+  const keep = (v: string, k: CaptureKind) => { try { sessionStorage.setItem(DRAFT, v); sessionStorage.setItem(DRAFT + '-kind', k); } catch { /* a draft is a convenience */ } };
+  const change = (v: string) => { setText(v); setError(''); keep(v, kind); };
+  const pick = (k: CaptureKind) => { setKind(k); keep(text, k); };      // switching type never clears the text
+  const n = kind === 'todo' ? segmentCapture(text).length : 1;
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (api.run((w, c) => C.addCaptures(w, c, text, 'Executables', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
+  };
   return (
-    <Modal title="Quick Capture" onClose={() => modal(null)}>
-      <p className="helper">What's on your mind? An unsaved draft is kept if you close this.</p>
+    <Modal title="Capture" onClose={() => modal(null)}>
       <form onSubmit={submit}>
-        <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={'Capture a thought, task, or idea…\nOr paste several thoughts.'} />
+        <div className="kind-picker" role="group" aria-label="What are you capturing?">
+          <button type="button" aria-pressed={kind === 'todo'} onClick={() => pick('todo')}>To-do</button>
+          <button type="button" aria-pressed={kind === 'note'} onClick={() => pick('note')}>Note</button>
+          <button type="button" disabled aria-disabled="true" title="Reminders need a date and time, which arrive in a later update">Reminder</button>
+        </div>
+        <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={kind === 'note' ? 'Write a note…' : 'What needs doing?\nPaste a list to add several.'} />
+        {kind === 'todo' && n > 1 && <label className="split-note"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Keep as one to-do (otherwise {n} to-dos are added)</label>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        <div className="capture-foot"><span className="small-note">Saved to Inbox.</span><button className="primary-button" type="submit">Save</button></div>
+        <div className="capture-foot"><span className="small-note">Saving to {scopeName}{scope.kind === 'all' ? ' (Unfiled)' : ''}</span><button className="primary-button" type="submit">Save</button></div>
       </form>
+    </Modal>
+  );
+}
+
+/** Choose All or a folder, and create, rename or delete folders. All is a view, not a folder. */
+function FolderDrawer() {
+  const { api, modal, scope, setScope } = useApp();
+  const ws = api.ws, counts = folderCounts(ws);
+  const choose = (sc: Scope) => { setScope(sc); modal(null); };
+  return (
+    <Modal title="Folders" onClose={() => modal(null)}>
+      <ul className="folder-list">
+        <li><button className="folder-row" aria-current={scope.kind === 'all'} onClick={() => choose({ kind: 'all' })}><Icon name="layers" /><span>All</span><span className="small-note">{counts.all}</span></button></li>
+        {ws.folders.slice().sort((a, b) => a.position - b.position || a.name.localeCompare(b.name)).map(f => (
+          <li key={f.id} className="folder-item"><button className="folder-row" aria-current={scope.kind === 'folder' && scope.id === f.id} onClick={() => choose({ kind: 'folder', id: f.id })}><Icon name="folder" /><span>{f.name}</span><span className="small-note">{counts.byFolder[f.id] ?? 0}</span></button>
+            <button className="mini-button" aria-label={`Rename ${f.name}`} onClick={() => modal({ kind: 'folder', id: f.id })}>Rename</button>
+            <button className="mini-button" aria-label={`Delete ${f.name}`} onClick={() => modal({ kind: 'folderDelete', id: f.id })}>Delete</button></li>))}
+      </ul>
+      <div className="button-row"><button className="primary-button" onClick={() => modal({ kind: 'folder', id: null })}>New folder</button></div>
+      {counts.unfiled > 0 && <p className="small-note">{counts.unfiled} not in a folder. They show in All.</p>}
     </Modal>
   );
 }
