@@ -1,7 +1,7 @@
 """Assistant Phase 1 (assistant spec): compact status lines on task rows, the per-entry assistant panel (full-height on phones), one question at a time,
 drafts that refine in place with versions kept, adaptive actions that fit at 320px, quiet when there is nothing to add, nothing 'sent'.
 Uses the labeled DEMO assistant (?local=1&fakeai=1). Dev server :5173, EXE_CHROMIUM, AXE_PATH."""
-import os
+import os, re
 from playwright.sync_api import sync_playwright, expect
 RUN = "async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})"
 TASKS = ['Reach out to Rachel about invoices', 'Call the electrician about flickering lights', 'What is the tallest mountain in South America?', 'Mow the lawn', 'Dentist appt?', 'File taxes']
@@ -12,12 +12,12 @@ with sync_playwright() as p:
         pg.goto('http://127.0.0.1:5173/?local=1&fakeai=1'); pg.evaluate('localStorage.clear(); sessionStorage.clear()'); pg.reload()
         box = pg.get_by_label('Add a task')
         for t in TASKS: box.fill(t); box.press('Enter')
-        assert pg.locator('.t-status, .assist-help').count() == 0                                                 # the List carries no AI decoration
+        assert pg.locator('.ai-mark, .t-status, .assist-help').count() == 0                                                 # the List carries no AI decoration
         pg.evaluate("location.hash = '#/tasks'"); pg.get_by_role('heading', name='All tasks').wait_for()
         row = lambda s: pg.locator('.t-row', has_text=s)
-        expect(row('Rachel').locator('.t-status')).to_have_text('Needs a detail'); expect(row('tallest mountain').locator('.t-status')).to_have_text('Answer: Aconcagua')
-        expect(row('Dentist').locator('.t-status')).to_have_text('Needs a detail')
-        assert row('Mow the lawn').locator('.t-status').count() == 0 and row('electrician').locator('.t-status').count() == 0     # no filler status
+        expect(row('Rachel').locator('.ai-mark')).to_have_attribute('aria-label', 'AI: Needs a detail. Open details'); expect(row('tallest mountain').locator('.ai-mark')).to_have_attribute('aria-label', 'AI: Answer: Aconcagua. Open details')
+        expect(row('Dentist').locator('.ai-mark')).to_have_class(re.compile('ask'))
+        assert row('Mow the lawn').locator('.ai-mark').count() == 0 and row('electrician').locator('.ai-mark').count() == 0     # no filler status
         assert pg.evaluate('document.documentElement.scrollWidth <= innerWidth')
         # open Rachel: one question, no autofocus, dock hidden
         row('Rachel').get_by_role('button', name='Open Reach out').click(); dlg = pg.get_by_role('dialog'); expect(dlg).to_be_visible()
@@ -43,7 +43,7 @@ with sync_playwright() as p:
         pg.add_script_tag(path=os.environ['AXE_PATH']); v = pg.evaluate(RUN)['violations']; assert not v, [(x['id'], [n['target'] for n in x['nodes']]) for x in v]
         dlg.get_by_role('button', name='Close').click(); expect(pg.get_by_role('dialog')).to_have_count(0)
         # it persists after a reload (device-only demo storage)
-        pg.reload(); pg.evaluate("location.hash = '#/tasks'"); expect(row('Rachel').locator('.t-status')).to_have_text('Text ready')
+        pg.reload(); pg.evaluate("location.hash = '#/tasks'"); expect(row('Rachel').locator('.ai-mark')).to_have_attribute('aria-label', 'AI: Text ready. Open details')
         # electrician: the channel is chosen (call), so no email
         row('electrician').get_by_role('button', name='Open Call').click(); dlg = pg.get_by_role('dialog')
         expect(dlg.get_by_role('button', name='Prepare call notes')).to_be_visible(); assert 'email' not in dlg.inner_text().lower(); dlg.get_by_role('button', name='Close').click()
