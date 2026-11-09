@@ -3,11 +3,28 @@ import { groupCaptures, setCaptureDone, setTaskDone } from '../../src/domain/com
 import { countsOf, missionGroups, type MissionTask } from '../../src/domain/mission';
 import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
-import { AssistBanner, Help } from '../ui/AssistParts';
+import { AssistBanner } from '../ui/AssistParts';
+import { statusLine, useEntryState } from '../ui/EntryAssistant';
 import { Icon } from '../ui/Icon';
 import { PriorityCounts, PriorityDot } from '../ui/PriorityDot';
 
 const RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
+
+/** One task: its checkbox, its text (tap to open the assistant for it), its priority dot, and at most one quiet line when there is a real result. */
+function TaskRow({ t, labels, toggle }: { t: MissionTask; labels: boolean; toggle: (t: MissionTask, on: boolean) => void }) {
+  const { openEntry } = useApp();
+  const st = useEntryState(t.captureId ?? '', t.text), line = t.captureId ? statusLine(st) : null, open = () => t.captureId && openEntry(t.captureId);
+  return (
+    <li className={`t-row ${t.done ? 'is-complete' : ''}`}>
+      <div className="t-line">
+        <input type="checkbox" checked={t.done} aria-label={`${t.done ? 'Reopen' : 'Complete'} ${t.text}`} onChange={e => toggle(t, e.target.checked)} />
+        {t.captureId ? <button type="button" className="t-text" onClick={open} aria-label={`Open ${t.text}`}>{t.text}</button> : <span className="t-text">{t.text}</span>}
+        {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}
+      </div>
+      {line && <button type="button" className="t-status" onClick={open}>{line}</button>}
+    </li>
+  );
+}
 
 /** Every task, or one group's tasks, with the AI's help under each (email drafts, sources, answers). Used for "Show all" and for a group. */
 export function TaskScreen({ groupId }: { groupId?: string }) {
@@ -29,12 +46,7 @@ export function TaskScreen({ groupId }: { groupId?: string }) {
         {g.kind === 'suggested' && <button className="primary-button" onClick={() => api.run((w, cx) => groupCaptures(w, cx, { ids: g.captureIds, name: g.name, deps: assistState.deps.filter(d => g.captureIds.includes(d.before) && g.captureIds.includes(d.after)) }))}>Group these</button>}
       </div>}
       <AssistBanner a={assistState} onSettings={() => modal({ kind: 'settings' })} hasAi />
-      <ul className="t-list">{tasks.map(t => (
-        <li key={t.key} className={`t-row ${t.done ? 'is-complete' : ''}`}>
-          <label className="check-row"><input type="checkbox" checked={t.done} aria-label={`${t.done ? 'Reopen' : 'Complete'} ${t.text}`} onChange={e => toggle(t, e.target.checked)} /><span>{t.text}</span>
-            {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}</label>
-          {t.captureId && <Help item={assistState.items[t.captureId]} text={t.text} />}
-        </li>))}
+      <ul className="t-list">{tasks.map(t => <TaskRow key={t.key} t={t} labels={labels} toggle={toggle} />)}
         {!tasks.length && <li className="small-note">Nothing here.</li>}</ul>
     </>
   );

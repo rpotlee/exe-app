@@ -279,3 +279,13 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - The optional "Download calendar event" button for Reminders (revamp spec §5.3) is **not built and not planned for now**. No UI for it exists.
 - When it comes back, keep the spec's honesty rule: the button says "Download calendar event", never "Added to calendar", because the app cannot confirm that the person imported the file.
 - The rest of Phase 4 (real Reminder scheduling, snooze, in-app due alerts) is separate and still undecided. The Reminder type stays visible but disabled until then.
+
+## DEC-020 — Intelligent Assistant, phase 1: the shell on a labeled demo assistant (2026-11-08)
+**Source:** `EXE-INTELLIGENT-ASSISTANT-UX-CLAUDE-HANDOFF-v1.0.md`. Audit and conflicts: `docs/ASSISTANT-PHASE-0.md`.
+
+- **Task rows** show at most one quiet status line only when there is a real result or a real question ("Needs a detail", "Answer: …", "Text ready", "Email draft ready"). The Help dropdown and its "Next:" line are removed. The **List** still shows no AI decoration (DEC-017).
+- **Tapping a task on the task screens** opens that task's assistant: a full-height sheet on phones (dock hidden, no autofocus, composer follows the visual viewport) or a right-hand inspector on wide screens (list stays usable).
+- **One question at a time, at most three actions** (a width-based fit: all three with room, one plus More at 320px; 44px targets). Refinements rewrite the active draft in place and keep earlier versions. Copy never claims "sent".
+- **Demo assistant (`web/app/demoAssistant.ts`)**: keyword rules, device-only, always tagged "Demo". It exists only to prove the screens until the real service ships. On a real account the panel shows the existing prepared result read-only and says follow-ups are not connected.
+- **Not built yet (needs owner approval):** Phase 2 persistence (new migration: threads, turns, artifacts) and Phase 3 (new `ai-review` function modes). Verified-source retrieval does not exist; sources are labeled "Search this site".
+- **Open question:** should tapping a List row also open the assistant?
