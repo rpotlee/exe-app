@@ -3,6 +3,7 @@
 Run with a Vite server on port 5173. These checks exercise the same interaction
 in List and Status, in both themes, so a fix cannot silently land in one path.
 """
+import json
 import os
 from datetime import datetime, timezone
 from playwright.sync_api import sync_playwright, expect
@@ -44,21 +45,20 @@ def workspace():
     }
 
 
-def seed(page, url):
-    page.goto(url)
-    page.evaluate("localStorage.clear()")
-    page.evaluate("value => localStorage.setItem('exe-v2:local', JSON.stringify(value))", workspace())
-    page.reload()
-
-
 def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(args=["--no-sandbox"])
         for theme in ("light", "dark"):
             context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme=theme)
+            seeded = json.dumps(workspace())
+            context.add_init_script(f"""if (!sessionStorage.getItem('critical-flow-seeded')) {{
+                localStorage.clear();
+                localStorage.setItem('exe-v2:local', {json.dumps(seeded)});
+                sessionStorage.setItem('critical-flow-seeded', '1');
+            }}""")
             page = context.new_page()
             list_url = f"{BASE}&theme={theme}#/list"
-            seed(page, list_url)
+            page.goto(list_url)
             row = page.locator(".raw-row", has_text="List contract task")
             checkbox = row.get_by_role("checkbox")
             expect(checkbox).not_to_be_checked()
