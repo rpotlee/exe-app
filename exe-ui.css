@@ -1831,3 +1831,10 @@ body.assistant-open .mobile-navigation { display: none; }
   :root[data-theme="dark"] .workspace-switch .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); }
   :root[data-theme="dark"] .workspace-switch strong { font-size: 13.6px; white-space: nowrap; }
 }
+
+/* Final dark row treatment: match light mode's quiet cards. */
+:root[data-theme="dark"] :is(.raw-list.grouped .raw-row, .t-list > .t-row) {
+  background: var(--surface);
+  border: 1px solid rgba(210, 218, 255, .10);
+  box-shadow: none;
+}
