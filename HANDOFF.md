@@ -86,3 +86,4 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 - 2026-11-08: Sign-in page restyled; Settings > Appearance (Match device/Light/Dark, saved in this browser). PR #21.
 - 2026-11-08: Groq added as a 4th AI provider (migration 13 widens the provider check; same OpenAI-style request). Needs: apply migration 13, redeploy ai-review + assistant + ai-settings, merge.
 - 2026-11-09: List: every entry is its own card (dark gradient card with soft edge; light card with soft shadow). CSS only.
+- 2026-11-09: Phones: page can no longer slide sideways (overflow-x clip, no horizontal overscroll, pan-y touch, 16px fields so iOS doesn't zoom).
