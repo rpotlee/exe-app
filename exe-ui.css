@@ -653,6 +653,87 @@ body::before {
   .inbox-filters button { font-size: 14px; }
 }
 
+/* Shared mobile component geometry: both themes use the light kit's exact
+   type scale, spacing, row heights, and control geometry. Theme tokens above
+   provide the only intentional visual differences. */
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  #view .raw-inbox { padding-top: 0; }
+  #view .raw-inbox .add-row {
+    min-height: 56px; padding: 4px; margin-bottom: 22px; gap: 4px;
+    border: 1px solid var(--edge-strong); border-radius: 14px;
+    background: var(--surface); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  #view .raw-inbox .add-row:focus-within { border-color: var(--exe-accent); box-shadow: 0 0 0 3px var(--focus-glow); }
+  #view .raw-inbox .add-row .add-kind { min-height: 44px; padding-inline: 9px; border-radius: 9px; font-size: 12px; font-weight: 600; background: var(--surface-soft); color: var(--secondary); }
+  #view .raw-inbox .add-row textarea.text-input { height: 44px; min-height: 44px; padding: 11px 4px; font-size: 16px; line-height: 22px; letter-spacing: -.15px; }
+  #view .raw-inbox .add-submit { width: 44px; height: 44px; border-radius: 9px; }
+  #view .kind-menu { border-radius: 14px; box-shadow: 0 12px 32px rgba(32,39,45,.14), 0 0 0 1px var(--edge); }
+  #view .kind-menu button { font-size: 14px; font-weight: 600; }
+  #view .kind-menu button small { font-size: 12px; line-height: 17px; }
+  #view .raw-list.grouped .raw-row { padding: 0 4px 0 14px; background: var(--surface); }
+  #view .raw-list.grouped .raw-row:hover { background: var(--surface); }
+  #view .raw-list.grouped .raw-check { gap: 11px; min-height: 58px; padding: 15px 0; align-items: flex-start; font-size: 15px; line-height: 21px; letter-spacing: -.12px; }
+  #view .raw-list.grouped .raw-check .raw-text { line-height: 21px; overflow-wrap: anywhere; }
+  #view .raw-list.grouped .kind-body { display: grid; grid-template-columns: 19px minmax(0,1fr); column-gap: 11px; row-gap: 5px; }
+  #view .raw-list.grouped .kind-icon { grid-column: 1; grid-row: 1 / span 2; width: 19px; height: 19px; margin-top: 1px; color: var(--secondary); }
+  #view .raw-list.grouped .kind-body .raw-text { grid-column: 2; grid-row: 1; }
+  #view .raw-list.grouped .kind-body > .pill { grid-column: 2; grid-row: 2; justify-self: start; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; color: var(--secondary); font-size: 12px; line-height: 17px; font-weight: 400; letter-spacing: 0; white-space: normal; }
+  #view .raw-list.grouped .kind-body > .pill-due { color: var(--red); }
+  #view .raw-more { width: 44px; height: 44px; min-height: 44px; margin: 5px 0 0; align-self: flex-start; opacity: .65; color: var(--secondary); }
+  #view .raw-more svg { width: 17px; height: 17px; }
+  #view .prio-dot { width: 8px; height: 8px; min-width: 8px; margin-top: 7px; }
+  #view .prio-dot select { inset: -18px; }
+  #view .priority-hero { padding: 20px 18px 16px; }
+  #view .priority-hero .overline { font-size: 11px; line-height: 16px; letter-spacing: .07em; margin-bottom: 6px; }
+  #view .hero-heading h2 { font-size: 23px; line-height: 29px; letter-spacing: -.5px; font-weight: 650; }
+  #view .m-counts { margin-top: 8px; }
+  #view .prio-counts { font-size: 12px; line-height: 17px; font-weight: 500; gap: 9px; }
+  #view .hero-checks { margin-top: 18px; }
+  #view .hero-checks .check-row { min-height: 58px; padding: 14px 0; gap: 11px; align-items: flex-start; font-size: 15px; line-height: 21px; letter-spacing: -.12px; }
+  #view .m-more { margin-top: 8px; font-size: 12px; line-height: 17px; }
+  #view .hero-bottom { margin-top: 16px; }
+  #view .hero-bottom .primary-button { height: 44px; min-height: 44px; border-radius: 11px; font-size: 14px; line-height: 20px; letter-spacing: 0; background: var(--surface-blue); color: var(--exe-accent-ink); box-shadow: none; }
+  #view .mission-other { margin-top: 28px; }
+  #view .mission-other-heading { margin-left: 0; font-size: 11px; line-height: 16px; letter-spacing: .08em; }
+  #view .g-head { padding: 14px; }
+  #view .g-head .mini-title { font-size: 15px; line-height: 21px; letter-spacing: -.1px; }
+  #view .g-head .mini-kicker { margin-top: 4px; font-size: 12px; line-height: 17px; }
+  #view .mini-icon { width: 34px; height: 34px; border-radius: 10px; background: var(--surface-soft); color: var(--secondary); }
+  #view .mini-icon svg { width: 19px; height: 19px; }
+  #view .t-sec h2 { font-size: 11px; line-height: 16px; letter-spacing: .07em; margin: 0 0 10px; }
+  #view .t-check { width: 44px; min-height: 44px; height: auto; align-self: stretch; padding-top: 0; }
+  #view .t-row { padding-right: 12px; min-height: 58px; }
+  #view .t-text { padding: 15px 6px 15px 0; font-size: 15px; line-height: 21px; letter-spacing: -.12px; }
+  #view .t-row .prio-dot { align-self: center; margin-top: 0; }
+  #view .back-link { font-size: 14px; }
+  #view .tl-day { padding-left: 18px; }
+  #view .tl-day h2 { font-size: 13px; line-height: 18px; font-weight: 600; letter-spacing: 0; margin-bottom: 12px; }
+  #view .tl-day h2::before { width: 6px; height: 6px; left: -17px; top: 6px; }
+  #view .tl-day::before { left: 3px; background: var(--edge); }
+  #view .tl-entry { grid-template-columns: minmax(0,1fr) auto; row-gap: 5px; padding: 14px; border-radius: 12px; background: var(--surface); box-shadow: none; font-size: 14px; line-height: 20px; }
+  #view .tl-who { grid-column: 1; grid-row: 1; font-size: 11px; line-height: 16px; letter-spacing: .04em; }
+  #view .tl-time { grid-column: 2; grid-row: 1; font-size: 11px; line-height: 16px; }
+  #view .tl-what { grid-column: 1 / -1; grid-row: 2; }
+  .modal-sheet :is(h2,.modal-title) { font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -.4px; }
+  .modal-sheet h3 { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .modal-sheet .radio-row { min-height: 44px; font-size: 15px; line-height: 21px; }
+  .modal-sheet :is(.small-note,.helper,.settings-desc) { font-size: 13px; line-height: 19px; letter-spacing: 0; }
+  .modal-sheet .capture-textarea { min-height: 176px; padding: 16px; }
+  .modal-sheet :is(.kind-picker,.folder-list) { box-shadow: none; }
+  .modal-sheet .kind-picker { background: var(--surface-soft); border-radius: 12px; padding: 4px; }
+  .modal-sheet .kind-picker button { min-height: 44px; font-size: 14px; border-radius: 9px; font-weight: 550; }
+  .modal-sheet :is(.primary-button,.mini-button,.quiet-button) { font-size: 14px; line-height: 20px; font-weight: 600; min-height: 44px; border-radius: 12px; box-shadow: none; }
+  .modal-sheet .folder-row { font-size: 15px; line-height: 21px; min-height: 52px; }
+  .modal-sheet .folder-item { flex-wrap: wrap; }
+  .ax-panel { font-family: var(--font-ui); }
+  .ax-panel .ax-entry-text { font-size: 18px; line-height: 25px; font-weight: 600; letter-spacing: -.3px; }
+  .ax-panel :is(.ax-body,.ax-choice,.ax-btn,.ax-question p) { font-size: 15px; line-height: 22px; }
+  .ax-panel .ax-artifact { border-radius: 14px; box-shadow: none; }
+  #view .due-row { background: var(--surface); box-shadow: none; border: 1px solid var(--edge); border-left: 3px solid var(--exe-accent); border-radius: 14px; }
+  #view .due-body strong { font-size: 14px; line-height: 20px; font-weight: 600; }
+  #view .due-body small { font-size: 12px; line-height: 17px; }
+}
+
 /* ---------- 6. Focus page ---------- */
 .hero-stack { position: relative; isolation: isolate; border-radius: var(--r-lg); margin: 24px 0; }
 .hero-icon { width: 53px; height: 53px; border-radius: var(--r-md); background: var(--glass-inner); border: 1px solid var(--mini-icon-edge); }
