@@ -8,16 +8,18 @@ const closers: (() => void)[] = [];      // the last one is the top-most dialog
 const onDocKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && closers.length) { e.stopPropagation(); closers[closers.length - 1]?.(); } };
 
 /** Background inert while any dialog is open, focus trapped inside, Escape closes, focus returns to where it was. */
-export function useDialog(ref: RefObject<HTMLElement | null>, onClose: () => void) {
+export function useDialog(ref: RefObject<HTMLElement | null>, onClose: () => void, opts: { focusFirst?: boolean; modal?: boolean } = {}) {
+  const { focusFirst = true, modal = true } = opts;
   const close = useRef(onClose); close.current = onClose;
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null, root = document.getElementById('root'), fn = () => close.current();
     if (openDialogs++ === 0) document.addEventListener('keydown', onDocKey, true);
-    closers.push(fn); root?.setAttribute('inert', ''); document.body.style.overflow = 'hidden';
-    (ref.current?.querySelector<HTMLElement>('textarea, input, select, button:not([data-close])') ?? ref.current)?.focus();
+    closers.push(fn); if (modal) { root?.setAttribute('inert', ''); document.body.style.overflow = 'hidden'; }
+    (focusFirst ? (ref.current?.querySelector<HTMLElement>('textarea, input, select, button:not([data-close])') ?? ref.current) : ref.current)?.focus({ preventScroll: true });
     return () => {
       closers.splice(closers.lastIndexOf(fn), 1);
       if (--openDialogs === 0) { root?.removeAttribute('inert'); document.body.style.overflow = ''; document.removeEventListener('keydown', onDocKey, true); }
+      else if (modal && closers.length === 0) { root?.removeAttribute('inert'); }
       before?.focus?.();
     };
   }, [ref]);

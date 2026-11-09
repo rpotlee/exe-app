@@ -16,6 +16,7 @@ const Dialogs = lazy(() => import('./Dialogs').then(m => ({ default: m.Dialogs }
 import { useWorkspace } from './useWorkspace';
 import { Focus } from '../screens/Focus';
 import { Mission } from '../screens/Mission';
+import { EntryAssistant } from '../ui/EntryAssistant';
 import { TaskScreen } from '../screens/TaskScreen';
 const Lanes = lazy(() => import('../screens/Lanes').then(m => ({ default: m.Lanes })));
 import { List } from '../screens/Inbox';
@@ -43,6 +44,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
+  const [entryOpen, openEntry] = useState<string | null>(null);
   const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi);   // one AI helper for the whole app, so two screens never ask twice
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
@@ -76,7 +78,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
   useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, assistState, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, assistState, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, assistState, assistantDemo: !!fakeAi, openEntry, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, assistState, fakeAi, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
@@ -131,6 +133,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
           <button className="dock-item" aria-label={`Folders, showing ${scopeName}`} aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><small>Folders</small></button>
         </nav>
       </div>
+      {entryOpen && <EntryAssistant id={entryOpen} onClose={() => openEntry(null)} />}
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
       <Suspense fallback={null}>{stack.map((m, i) => <Dialogs key={i} m={m} />)}</Suspense>
       {queue && qs?.conflict && <ConflictDialog queue={queue} entries={qs.conflict} reload={api.reload} />}

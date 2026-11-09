@@ -76,3 +76,4 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 - 2026-11-08: DEC-018 built (branch revamp/phase-3b): Activity Log (renamed from AI Assistant; timeline style, history icon); tests/activity_log.py; AI tab badge removed; old approvals at #/approvals (unlinked).
 - 2026-11-08: Wording pass (branch revamp/wording): Inbox->List, To-do->Task, Show all->View all tasks, Mission Status->Status (tab 'Status', hashes #/status #/list). Internal names unchanged.
 - 2026-11-08: DEC-019: calendar file (.ics) put on hold by the owner. Reminder scheduling/snooze/in-app alerts still undecided; Reminder type stays disabled.
+- 2026-11-08: Assistant phase 1 (branch assistant/phase-1, stacked on revamp/wording #17): panel + status lines on a labeled demo assistant; DEC-020; tests/assistant_phase1.py. Needs owner approval for the persistence migration and the real assistant function.
