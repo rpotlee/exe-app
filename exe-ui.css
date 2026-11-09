@@ -1172,15 +1172,19 @@ body::before {
 .t-row .assist-help { margin: 0 0 12px 36px; }
 .t-row.is-complete .check-row > span:not(.prio-dot) { color: var(--muted); text-decoration: line-through; }
 
-/* ---------- 20. AI Assistant: the activity log (DEC-018) ---------- */
-.act-day { margin-bottom: 20px; }
-.act-list { list-style: none; margin: 0; padding: 0; background: var(--glass-card); border-radius: var(--r-md); box-shadow: var(--glass-shadow); overflow: hidden; }
-.act-row { display: flex; align-items: flex-start; gap: 12px; min-height: 52px; padding: 10px 14px; position: relative; }
-.act-row + .act-row::before { content: ""; position: absolute; top: 0; left: 58px; right: 0; height: 1px; background: var(--edge); }
-.act-ic { margin-top: 1px; display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: color-mix(in srgb, var(--exe-badge) 14%, transparent); color: #3f3dae; }
-.act-ic.you { background: var(--chip-bg); color: var(--ink); }
-:root[data-theme="dark"] .act-ic:not(.you) { color: #a5a3ff; }
-.act-ic svg { width: 16px; height: 16px; }
-.act-body { flex: 1; min-width: 0; display: grid; gap: 1px; }
-.act-text { font-size: 16px; line-height: 21px; letter-spacing: -.3px; }
-.act-time { font-size: 13px; line-height: 18px; color: var(--secondary); font-variant-numeric: tabular-nums; }
+/* ---------- 20. Activity Log (DEC-018): a plain timeline, no cards or images. Day, who, what, time. Color only where it carries meaning. ---------- */
+.tl { list-style: none; margin: 8px 0 0; padding: 0; }
+.tl-day { position: relative; padding: 0 0 22px 28px; }
+.tl-day::before { content: ""; position: absolute; left: 4px; top: 28px; bottom: 0; width: 1px; background: var(--edge-strong); }
+.tl-day:last-child::before { display: none; }
+.tl-day h2 { position: relative; margin: 0 0 8px; font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -.3px; }
+.tl-day h2::before { content: ""; position: absolute; left: -28px; top: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--exe-accent); }
+.tl-entries { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.tl-entry { display: grid; gap: 1px; font-size: 14px; line-height: 20px; letter-spacing: -.15px; }
+.tl-who { font-size: 13px; font-weight: 600; letter-spacing: -.08px; }
+.tl-what { overflow-wrap: anywhere; }
+.tl-time { font-size: 12px; line-height: 16px; color: var(--secondary); font-variant-numeric: tabular-nums; }
+.log-empty { margin: 16px 0; font-size: 15px; color: var(--secondary); }
+.tone-name { color: var(--exe-accent-ink); }
+.tone-high { color: #c4231a; font-weight: 600; } .tone-medium { color: #a85a00; font-weight: 600; } .tone-low { color: #8a6d00; font-weight: 600; } .tone-fail { color: #c4231a; }
+:root[data-theme="dark"] .tone-high { color: #ff8a82; } :root[data-theme="dark"] .tone-medium { color: #ffbf5e; } :root[data-theme="dark"] .tone-low { color: #ffe066; } :root[data-theme="dark"] .tone-fail { color: #ff8a82; }

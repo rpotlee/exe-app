@@ -1,5 +1,6 @@
 // Icon paths shared with the prototype (stroke icons, 24x24).
 export const ICONS: Record<string, string> = {
+  "history": "<path d=\"M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5\"/><path d=\"M3.5 4v4.5H8\"/><path d=\"M12 7.5V12l3 1.8\"/>",
   "flag": "<path d=\"M6 21V4M6 5h11l-2.5 4 2.5 4H6\"/>",
   "alert-circle": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v5\"/><circle cx=\"12\" cy=\"16.2\" r=\".7\" fill=\"currentColor\"/>",
   "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12.3 2.8 2.8L16.2 9.4\"/>",

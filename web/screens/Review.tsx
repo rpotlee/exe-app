@@ -39,7 +39,7 @@ export function Review() {
 
   return (
     <>
-      <PageHeading label="NEEDS YOUR DECISION" title="AI Assistant" sub={cfg?.enabled ? `Approve organization deliberately. AI suggestions come from your own ${PROVIDER_NAMES[cfg.provider]} key, only when you ask.` : "Approve organization deliberately. Without AI turned on, this uses local keyword rules (a simulation), not an AI model."}
+      <PageHeading label="NEEDS YOUR DECISION" title="Approvals" sub={cfg?.enabled ? `Approve organization deliberately. AI suggestions come from your own ${PROVIDER_NAMES[cfg.provider]} key, only when you ask.` : "Approve organization deliberately. Without AI turned on, this uses local keyword rules (a simulation), not an AI model."}
         extra={<div className="page-tools">{chosen.length > 0 && <button className="primary-button" onClick={() => modal({ kind: 'approveSelected', items: chosen.map(c => ({ id: c.id, ...toApproval(prop(c)) })) })}><Icon name="check" /> Approve selected ({chosen.length})</button>}{allPending.length > 0 && <button className="quiet-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({allPending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
       <div className="review-layout">
         <section className="stack">

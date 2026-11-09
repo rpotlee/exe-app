@@ -5,23 +5,33 @@ import type { AuditEvent, Workspace } from './model';
 
 export interface AiEventInput { action: string; entityType?: string | null; entityId?: string | null; after?: Record<string, unknown> }
 export const AI_ACTIONS = ['user-priority-ai', 'user-group-ai', 'ai-failed', 'ai-priorities', 'ai-help', 'ai-group', 'ai-depends'] as const;   // order only breaks ties between events logged in the same instant
-export interface Line { id: string; at: string; icon: string; text: string; by: 'ai' | 'you' }
+export type Tone = 'high' | 'medium' | 'low' | 'fail' | 'name';
+export type Part = string | { t: string; tone: Tone };
+export interface Line { id: string; at: string; parts: Part[]; text: string; by: 'ai' | 'you' }
 
 const snip = (s: string, n = 48): string => { const t = s.replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : t; };
 const LEVEL: Record<string, string> = { high: 'High', medium: 'Medium', low: 'Low' };
 
+const lv = (k: unknown): Part => (typeof k === 'string' && LEVEL[k] ? { t: LEVEL[k] as string, tone: k as Tone } : 'no');
+const plain = (parts: Part[]): string => parts.map(p => (typeof p === 'string' ? p : p.t)).join('');
+
 export function describe(ws: Workspace, e: AuditEvent): Line | null {
   const a = (e.after ?? {}) as Record<string, unknown>, b = (e.before ?? {}) as Record<string, unknown>;
-  const cap = (id: unknown, n = 48) => { const c = typeof id === 'string' ? ws.captures.find(x => x.id === id) : undefined; return c ? `“${snip(c.edited_text ?? c.text, n)}”` : 'an item'; };
-  const mk = (icon: string, text: string, by: 'ai' | 'you' = 'ai'): Line => ({ id: e.id, at: e.at, icon, text, by });
+  const cap = (id: unknown, n = 48): Part => { const c = typeof id === 'string' ? ws.captures.find(x => x.id === id) : undefined; return c ? { t: `“${snip(c.edited_text ?? c.text, n)}”`, tone: 'name' } : 'an item'; };
+  const mk = (parts: Part[], by: 'ai' | 'you' = 'ai'): Line => ({ id: e.id, at: e.at, parts, text: plain(parts), by });
+  const grp = (n: unknown): Part => ({ t: `“${snip(String(n ?? 'a group'), 40)}”`, tone: 'name' });
   switch (e.action) {
-    case 'ai-help': return mk('sparkles', a.kind === 'email' ? `Prepared an email draft for ${cap(e.entity_id)}` : a.kind === 'research' ? `Found where to look for ${cap(e.entity_id)}` : `Answered the question in ${cap(e.entity_id)}`);
-    case 'ai-priorities': { const parts = (['high', 'medium', 'low'] as const).filter(k => Number(a[k]) > 0).map(k => `${a[k]} ${LEVEL[k]?.toLowerCase()}`); return mk('flag', `Suggested priorities for ${a.total} ${Number(a.total) === 1 ? 'to-do' : 'to-dos'}${parts.length ? ` (${parts.join(', ')})` : ''}`); }
-    case 'ai-group': return mk('layers', `Suggested grouping ${Array.isArray(a.ids) ? a.ids.length : 'some'} to-dos as “${snip(String(a.name ?? 'a group'), 40)}”`);
-    case 'ai-depends': return mk('link', `Noticed ${cap(a.after, 30)} may depend on ${cap(a.before, 30)}`);
-    case 'ai-failed': return mk('alert-circle', `Couldn’t prepare help${a.message ? `: ${snip(String(a.message), 90)}` : ''}`);
-    case 'user-group-ai': return mk('layers', `You grouped ${a.n} to-dos as “${snip(String(a.name ?? 'a group'), 40)}” from the AI’s suggestion`, 'you');
-    case 'user-priority-ai': return mk('flag', `You set ${cap(e.entity_id)} to ${LEVEL[String(a.level)] ?? 'no'} priority${b.ai ? ` (the AI suggested ${LEVEL[String(b.ai)]})` : ''}`, 'you');
+    case 'ai-help': return mk([a.kind === 'email' ? 'Prepared an email draft for ' : a.kind === 'research' ? 'Found where to look for ' : 'Answered the question in ', cap(e.entity_id)]);
+    case 'ai-priorities': {
+      const parts: Part[] = [`Suggested priorities for ${a.total} ${Number(a.total) === 1 ? 'to-do' : 'to-dos'}`], ks = (['high', 'medium', 'low'] as const).filter(k => Number(a[k]) > 0);
+      if (ks.length) { parts.push(' ('); ks.forEach((k, i) => { if (i) parts.push(', '); parts.push(`${a[k]} `, lv(k)); }); parts.push(')'); }
+      return mk(parts);
+    }
+    case 'ai-group': return mk([`Suggested grouping ${Array.isArray(a.ids) ? a.ids.length : 'some'} to-dos as `, grp(a.name)]);
+    case 'ai-depends': return mk(['Noticed ', cap(a.after, 30), ' may depend on ', cap(a.before, 30)]);
+    case 'ai-failed': return mk([{ t: 'Couldn’t prepare help', tone: 'fail' }, a.message ? `: ${snip(String(a.message), 90)}` : '']);
+    case 'user-group-ai': return mk([`Grouped ${a.n} to-dos as `, grp(a.name), ' from the AI’s suggestion'], 'you');
+    case 'user-priority-ai': { const parts: Part[] = ['Set ', cap(e.entity_id), ' to ', lv(a.level), ' priority']; if (b.ai) parts.push(' (the AI suggested ', lv(b.ai), ')'); return mk(parts, 'you'); }
     default: return null;
   }
 }

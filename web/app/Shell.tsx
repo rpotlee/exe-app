@@ -30,10 +30,10 @@ const PAGES: Page[] = ['focus', 'approvals', 'priorities', 'tasks', 'group', 'la
 const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', mission: 'focus', assistant: 'review' };
 const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'mission', review: 'assistant', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
 const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, '').replace(/^group\/.*/, 'group'); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
-const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
+const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'Activity Log', map: 'Map', decisions: 'Decisions' };
 // The primary destinations. Map, Decisions and Next & Later are reached from Mission Status ("Explore work"), so Mission stays highlighted for them.
 const TABS: { page: Page; label: string; icon: string }[] = [
-  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
+  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'Activity Log', icon: 'history' },
 ];
 const SCOPE_KEY = 'exe-scope', PRIO_KEY = 'exe-priority-mode';
 const loadPrio = (): PriorityMode => { try { const v = localStorage.getItem(PRIO_KEY); if (v === 'mine' || v === 'off') return v; } catch { /* default */ } return 'ai'; };
@@ -127,7 +127,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
           <button className="dock-capture" aria-label="Capture to-do, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
           {TABS.slice(2).map(t => (
             <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.icon} /><small>AI</small>{bubble(badge(t.page))}</button>))}
+              <Icon name={t.icon} /><small>Activity</small>{bubble(badge(t.page))}</button>))}
           <button className="dock-item" aria-label={`Folders, showing ${scopeName}`} aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><small>Folders</small></button>
         </nav>
       </div>
