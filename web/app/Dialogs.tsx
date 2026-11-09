@@ -110,7 +110,7 @@ function FolderDrawer() {
 }
 
 function Settings() {
-  const { api, modal, where, signOut } = useApp();
+  const { api, modal, where, signOut, priorityMode, setPriorityMode } = useApp();
   const ws = api.ws;
   const [name, setName] = useState(ws.settings?.workspace_name ?? '');
   const [note, setNote] = useState('');
@@ -124,6 +124,10 @@ function Settings() {
         <label className="form-field"><span className="small-note">Workspace name</span><input className="text-input" value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="My workspace" /></label>
         <div className="button-row"><button className="mini-button" type="submit">Save name</button></div>
       </form>
+      <fieldset className="prio-setting"><legend className="small-note">Priority labels</legend>
+        {([['ai', 'AI suggests, I can change it'], ['mine', 'Only the ones I set'], ['off', 'Don’t show priority labels']] as const).map(([v, t]) => (
+          <label key={v} className="radio-row"><input type="radio" name="prio-mode" checked={priorityMode === v} onChange={() => setPriorityMode(v)} /> {t}</label>))}
+      </fieldset>
       <div className="divider"></div>
       <div className="recommendation"><span className="review-tag">BACKUP</span><p>Download everything as a file. Supabase's free plan has no automatic backups, so keep one.</p>
         <div className="button-row"><button className="primary-button" onClick={exportJson}>Download JSON backup</button></div></div>

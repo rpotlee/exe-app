@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { ignoreSuggestion, selectCurrentFocus } from '../../src/domain/commands';
+import { ignoreSuggestion } from '../../src/domain/commands';
 import { activeIds, computeSuggestion } from '../../src/domain/engine';
 import { blockedCount } from '../../src/domain/blocking';
 import { dismissPrompt } from '../../src/domain/commands';
@@ -12,7 +12,7 @@ import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
-import { outcomeIn } from '../../src/domain/scope';
+import { OtherGroups } from '../ui/OtherGroups';
 import { syncPriorityGlassAccent } from '../ui/pearl';
 
 const folderOf = (ws: Workspace, o: Outcome) => ws.folders.find(f => f.id === o.folder_id)?.name ?? 'Not filed';
@@ -31,12 +31,10 @@ function HeroStat({ ws, id }: { ws: Workspace; id: string }) {
 
 export function Focus() {
   const { api, go, modal, awaitingReview, setFolderSel, setDecisionSel, scope } = useApp();
-  const [mins, setMins] = useState(0), [whyOpen, setWhyOpen] = useState(false);
+  const [mins, setMins] = useState(0);
   const ws = api.ws, ids = activeIds(ws), stored = currentFocusId(ws);
   const currentId = stored && ids.includes(stored) ? stored : ids[0] ?? null;
   const current = ws.outcomes.find(o => o.id === currentId) ?? null;
-  // the three active priorities are global; a folder view only filters which of them are shown (it never makes a separate three)
-  const others = ids.filter(i => i !== currentId).map(i => ws.outcomes.find(o => o.id === i)).filter((o): o is Outcome => !!o && outcomeIn(scope, o));
   const [expanded, setExpanded] = useState(false);
   const [deferred, setDeferred] = useState('');
   const sg = useMemo(() => computeSuggestion(ws), [ws]);
@@ -67,7 +65,7 @@ export function Focus() {
         <p className="mission-sub" id="status-line">
           {empty ? 'Nothing here yet.' : <>
             {currentId && <span>1 current focus of up to 3 active.</span>}
-            {awaitingReview > 0 && <button className="mission-review" onClick={() => go('review')}>{awaitingReview} awaiting AI Review <Icon name="arrow-right" /></button>}
+            {awaitingReview > 0 && <button className="mission-review" onClick={() => go('review')}>{awaitingReview} for the AI Assistant <Icon name="arrow-right" /></button>}
             {blocked > 0 && <span>{blocked} blocked.</span>}
             {!currentId && awaitingReview === 0 && blocked === 0 && <span>Nothing active right now.</span>}</>}
         </p>
@@ -79,14 +77,12 @@ export function Focus() {
             {why && why.blockers.length > 0 && (
               <div className="blocked-banner" role="status"><Icon name="lock" /><div><strong>Blocked.</strong> Held up by {why.blockers.map(b => `“${b.name}”`).join(', ')} (a block you confirmed).
                 <span className="banner-actions">{why.blockers.map(b => <button key={b.id} className="link-button" onClick={() => unblock(b)}>{b.type === 'decision' ? 'Open the decision' : 'Review in Map'}</button>)}</span></div></div>)}
-            <button type="button" className="why-toggle" aria-expanded={whyOpen} onClick={() => setWhyOpen(o => !o)}>Why this? <Icon name="chevron-down" /></button>
-            {whyOpen && why && <ul className="why-list">{why.lines.map(l => <li key={l}>{l}</li>)}</ul>}
             <HeroStat ws={ws} id={current.id} />
             <div className="hero-checks desktop-checks">{steps.map(t => <CheckRow key={t.id} task={t} next={t.id === firstOpen?.id} />)}{!steps.length && <p className="small-note">No checklist steps added yet.</p>}</div>
             <div className={`hero-checks mobile-checks ${expanded ? 'expanded' : ''}`} id="mobile-steps">
-              {nextStep ? <><div className="step-eyebrow">{steps.every(t => t.done_at !== null) ? 'All steps done' : 'Next step'}</div><CheckRow task={nextStep} next /></> : <p className="small-note">No checklist steps added yet.</p>}
-              {steps.length > 1 && <><button className="show-steps" type="button" aria-expanded={expanded} aria-label={expanded ? 'Show only the next step' : 'Show all checklist steps'} onClick={() => setExpanded(e => !e)}><span>All steps</span><span className="step-count">{steps.length}</span><Icon name="chevron-down" /></button>
-                <div className="mobile-more-steps">{steps.filter(t => t.id !== nextStep?.id).map(t => <CheckRow key={t.id} task={t} />)}</div></>}
+              {steps.length ? <>{steps.slice(0, 3).map(t => <CheckRow key={t.id} task={t} next={t.id === nextStep?.id} />)}</> : <p className="small-note">No checklist steps added yet.</p>}
+              {steps.length > 3 && <><button className="show-steps" type="button" aria-expanded={expanded} aria-label={expanded ? 'Show fewer steps' : `Show ${steps.length - 3} more steps`} onClick={() => setExpanded(e => !e)}><span>{expanded ? 'Less' : 'More'}</span><span className="step-count">{steps.length - 3}</span><Icon name="chevron-down" /></button>
+                <div className="mobile-more-steps">{steps.slice(3).map(t => <CheckRow key={t.id} task={t} />)}</div></>}
             </div>
             <div className="hero-bottom"><button className="primary-button" onClick={() => modal({ kind: 'focusMode', id: current.id })}><Icon name="crosshair" /> Enter Focus Mode <span className="desktop-cta-arrow"><Icon name="chevron-right" /></span></button></div>
           </section></div>
@@ -95,12 +91,7 @@ export function Focus() {
         ) : (
           <div className="empty-state"><span className="empty-icon"><Icon name="target" /></span><h2>No active priorities</h2><p>Choose an outcome from Next &amp; Later when you're ready.</p></div>
         )}
-        <section className="mission-other" aria-label="Other active priorities"><div className="mission-other-head"><div className="mission-other-heading">Other active priorities</div></div>
-          <div className="side-priorities">{others.map(o => { const p = progressOf(ws, o.id); return (
-            <button key={o.id} type="button" className="priority-mini" aria-pressed={false} onClick={() => api.run((w, c) => selectCurrentFocus(w, c, o.id))}>
-              <span className="mini-icon"><Icon name="layers" /></span><span className="mini-copy"><strong className="mini-title">{o.name}</strong><span className="mini-kicker">{folderOf(ws, o)}</span></span>
-              <span className="mini-progress">{p.percent ? <><strong>{p.percent}%</strong><span className="mini-progress-track"><span style={{ width: `${p.percent}%` }} /></span></> : <span className="mini-idle">{p.total ? 'Not started' : 'Not measured'}</span>}</span>
-              <Icon name="chevron-right" className="mini-arrow" /></button>); })}{!others.length && <p className="small-note">No other active priorities.</p>}</div></section>
+        <OtherGroups currentId={current?.id ?? null} />
         {ws.outcomes.length > 0 && (
           <section className="mission-suggest" aria-label="Priority suggestions">
             {showSg && sg ? (
@@ -128,11 +119,11 @@ export function Focus() {
               ) : <p className="small-note quick-win-result" role="status">Nothing fits in {mins} minutes. Steps without an estimate are skipped when they are known to be longer. Add estimates with Edit step, or try a longer time.</p>)}</div>
             {weeklyDue && <div className="card prompt-card"><p className="prompt-text">Your weekly review is ready. It is optional.</p><div className="action-line"><button className="mini-button" onClick={() => modal({ kind: 'weekly' })}>Open</button><button className="mini-button" onClick={() => api.run((w, c) => dismissPrompt(w, c, weeklyId(week)))}>Skip this week</button></div></div>}
           </section>)}
-        <section className="mission-lanes" aria-label="Explore work"><h2 className="mission-other-heading">Explore work</h2>
-          <div className="side-priorities">
-            <button type="button" className="priority-mini lanes-link" onClick={() => go('map')}><span className="mini-icon"><Icon name="network" /></span><span className="mini-copy"><strong className="mini-title">Map</strong><span className="mini-kicker">Folders, outcomes, steps and what depends on what</span></span><Icon name="chevron-right" className="mini-arrow" /></button>
-            <button type="button" className="priority-mini lanes-link" onClick={() => go('decisions')}><span className="mini-icon"><Icon name="git-branch" /></span><span className="mini-copy"><strong className="mini-title">Decisions</strong><span className="mini-kicker">Open choices and their options</span></span><Icon name="chevron-right" className="mini-arrow" /></button>
-            {ws.outcomes.length > 0 && <button type="button" className="priority-mini lanes-link" onClick={() => go('lanes')}><span className="mini-icon"><Icon name="layers" /></span><span className="mini-copy"><strong className="mini-title">Next &amp; Later</strong><span className="mini-kicker">{nx} next · {lt} later</span></span><Icon name="chevron-right" className="mini-arrow" /></button>}
+        <section className="mission-lanes" aria-label="Explore work"><h2 className="mission-other-heading">Explore</h2>
+          <div className="x-grouped">
+            <button type="button" className="g-row lanes-link" onClick={() => go('map')}><Icon name="network" className="g-row-ic" /><span className="g-row-t"><strong>Map</strong><small>Folders, outcomes, steps and dependencies</small></span><Icon name="chevron-right" className="g-row-chev" /></button>
+            <button type="button" className="g-row lanes-link" onClick={() => go('decisions')}><Icon name="git-branch" className="g-row-ic" /><span className="g-row-t"><strong>Decisions</strong><small>Open choices and their options</small></span><Icon name="chevron-right" className="g-row-chev" /></button>
+            {ws.outcomes.length > 0 && <button type="button" className="g-row lanes-link" onClick={() => go('lanes')}><Icon name="layers" className="g-row-ic" /><span className="g-row-t"><strong>Next &amp; Later</strong><small>{nx} next · {lt} later</small></span><Icon name="chevron-right" className="g-row-chev" /></button>}
           </div></section>
       </div>
     </>

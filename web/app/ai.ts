@@ -6,7 +6,8 @@ export interface AiSettings { provider: Provider; model: string; key_last4: stri
 export interface AiProposal { captureId: string; type: 'Task' | 'Outcome' | 'Decision' | 'Idea' | 'Note'; folderId: string | null; outcomeId: string | null; explanation: string; uncertainties: string[] }
 export interface Suggestions { proposals: AiProposal[]; dropped: number; provider: Provider; model: string }
 export interface AssistItem { captureId: string; kind: 'email' | 'research' | 'question'; next?: string; email?: { to: string; subject: string; body: string }; research?: { topic: string; sources: { title: string; domain: string; query: string }[] }; answer?: { text: string; sourceTitle: string; sourceDomain: string } }
-export interface Assist { items: AssistItem[]; groups: { name: string; ids: string[]; why: string }[]; dependencies: { before: string; after: string; why: string }[] }
+export interface PrioritySuggestion { captureId: string; level: 'high' | 'medium' | 'low'; why: string }
+export interface Assist { items: AssistItem[]; priorities?: PrioritySuggestion[]; groups: { name: string; ids: string[]; why: string }[]; dependencies: { before: string; after: string; why: string }[] }
 export type AiApi = ReturnType<typeof makeAi>;
 
 const NOT_READY = 'AI is not set up on the server yet, so nothing was sent anywhere.';

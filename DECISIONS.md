@@ -244,3 +244,13 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Quick answers** only for short, stable facts; anything uncertain, recent, legal, medical or financial must become "Where to look". Labeled AI, with a link to check a source. No web-search tool is used, so this is not verified research (master §13 still open); the model answers from its own knowledge.
 - **Remembered on this device only** (browser storage, keyed by a hash of each to-do's text), so the same to-do is not sent again. Nothing new is stored in the database except what the person approves.
 - **Not verified live:** unit-tested, and the screen was tested with a local fake AI. The function is deployed (owner go-ahead) but has not been run against a real provider by Claude. Each to-do with help gets one closed dropdown; every item carries a concrete "Next" step.
+
+## DEC-016 — Revamp: Mission Status is grouped tasks; priority labels (2026-11-08)
+**Source:** owner direction during revamp Phase 1–2 review. Overrides the spec's "Up next / recommendations" idea and the Normal vocabulary.
+
+- **Mission Status = groups of tasks, nothing more by default.** A group is a confirmed outcome (steps), an AI-suggested group (provisional, "Group these"), or "Not grouped yet". A row of chips switches between groups; each outcome group has a **Focus** button into Focus Mode. The older tools (priority suggestions, Next & Later, Map, Decisions, "I have N minutes", weekly review) are kept under **More**; nothing was removed.
+- **No "Up next" section.** The owner found it unhelpful and overstepping; it was removed (the recommendation module was deleted, never shipped).
+- **Priority labels: High / Medium / Low, shown red / orange / yellow**, always with a dot and the word. **The AI suggests a label for every to-do** (new `priorities` field from the assist function); a suggestion is drawn dashed with a ✦ until you pick one. A tap opens High/Medium/Low/No label (or "keep AI suggestion"). **Your pick always wins** and is stored as `captures.user_priority`; the AI never writes it.
+- **Setting (Settings → Priority labels):** "AI suggests, I can change it" (default), "Only the ones I set", or "Don't show priority labels".
+- AI suggestions for priority are still device-local until Phase 3 stores assistance in the database.
+- Steps with no source capture show no label (a step has no priority column); this is a known gap.
