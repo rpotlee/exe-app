@@ -26,7 +26,7 @@
   --capture-height: 0px;     /* capture now lives in the dock (revamp): no separate bar above it */
   --mobile-inset: 16px;
   --mobile-clearance: calc(var(--dock-bottom) + var(--dock-height) + var(--capture-height) + 36px + env(safe-area-inset-bottom));
-  --accent-fill: linear-gradient(135deg, #315ee8 0%, #5b5ce2 100%);
+  --accent-fill: linear-gradient(135deg, #4d50a8 0%, #6869bf 100%);
   --accent-gloss: none;
   --mesh: none;
   --specular: none;
@@ -40,18 +40,18 @@
 }
 :root, :root[data-theme="light"] {
   color-scheme: light;
-  --canvas: #f2f2ef;
-  --canvas-base: #f2f2ef;
+  --canvas: #f3f0ea;
+  --canvas-base: #f3f0ea;
   --surface: #ffffff;
   --surface-soft: #e9e9e5;
   --surface-blue: rgba(49, 94, 232, .1);
-  --ink: #17191c;
-  --text: #17191c;
-  --secondary: #5c6066;
-  --muted: #8b8e93;
-  --blue: #315ee8;
-  --blue-dark: #2448bd;
-  --blue-light: rgba(49, 94, 232, .12);
+  --ink: #202126;
+  --text: #202126;
+  --secondary: #65636a;
+  --muted: #96939a;
+  --blue: #4d50a8;
+  --blue-dark: #393c86;
+  --blue-light: rgba(77, 80, 168, .12);
   --red: #a81d16;
   --red-bg: rgba(255, 59, 48, .12);
   --edge: rgba(73, 80, 88, .16);
@@ -63,12 +63,12 @@
   --logo-ink: #111827;
   --exe-muted: #6c6c72;
   --exe-slate: #55555a;
-  --exe-accent: #315ee8;
-  --exe-accent-ink: #2448bd;
+  --exe-accent: #4d50a8;
+  --exe-accent-ink: #393c86;
   --exe-badge: #5856d6;
   --ring: #ffffff;
 
-  --glass-card: #fffefa;
+  --glass-card: #fffdf9;
   --glass-soft: #fffefa;
   --glass-inner: #eeece7;
   --glass-shadow: 0 1px 2px rgba(23, 25, 28, .04), 0 12px 24px rgba(23, 25, 28, .06);
