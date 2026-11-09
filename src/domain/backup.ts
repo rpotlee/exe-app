@@ -44,12 +44,12 @@ export function fromPrototype(d: Record<string, unknown>, now: string): { ws: Wo
   const perOutcome = new Map<string, number>();
   ws.tasks = arr(d.tasks).filter(t => str(t.id) && str(t.name).trim()).map(t => {
     const oid = typeof t.outcome === 'string' && oIds.has(t.outcome) ? t.outcome : null, pos = perOutcome.get(oid ?? '') ?? 0; perOutcome.set(oid ?? '', pos + 1);
-    return { ...meta(str(t.id), now), outcome_id: oid, name: str(t.name, 200).trim(), notes: '', done_at: t.done ? (iso(t.doneAt) ?? now) : null, archived_at: iso(t.archivedAt), deadline: null, effort: null, position: pos, sources: [] };
+    return { ...meta(str(t.id), now), outcome_id: oid, name: str(t.name, 200).trim(), notes: '', folder_id: null, done_at: t.done ? (iso(t.doneAt) ?? now) : null, archived_at: iso(t.archivedAt), deadline: null, effort: null, position: pos, sources: [] };
   });
   const tIds = new Set(ws.tasks.map(t => t.id)), cIds = new Set(arr(d.captures).map(c => str(c.id)));
   ws.captures = arr(d.captures).filter(c => str(c.id) && str(c.text).trim()).map(c => {
     const edited = str(c.checklistText).trim(), review = isObj(c.review) ? str(c.review.state) : '';
-    return { ...meta(str(c.id), now), text: str(c.text).trim(), edited_text: edited && edited !== str(c.text).trim() ? edited : null, source: str(c.source, 80) || 'Imported', folder_id: folderOf(c.folder), batch_id: str(c.batchId) || null, batch_text: str(c.batchText) || null,
+    return { ...meta(str(c.id), now), kind: 'todo', display_title: null, user_priority: null, remind_at: null, remind_done_at: null, text: str(c.text).trim(), edited_text: edited && edited !== str(c.text).trim() ? edited : null, source: str(c.source, 80) || 'Imported', folder_id: folderOf(c.folder), batch_id: str(c.batchId) || null, batch_text: str(c.batchText) || null,
       completed_at: iso(c.completedAt), archived_at: iso(c.archivedAt), status: c.status === 'pending' ? 'pending' : 'organized', organized_as: ['Task', 'Outcome', 'Decision', 'Idea', 'Note', 'Merged'].includes(str(c.organizedAs)) ? str(c.organizedAs) : null,
       review_state: review === 'deferred' || review === 'rejected' ? review : null, review_at: null, rejected_fingerprints: Array.isArray(c.rejectedFps) ? c.rejectedFps.filter((x): x is string => typeof x === 'string') : [],
       task_id: typeof c.taskId === 'string' && tIds.has(c.taskId) ? c.taskId : null, merged_into: typeof c.mergedInto === 'string' && cIds.has(c.mergedInto) ? c.mergedInto : null, created_at: iso(c.createdAt) ?? now };

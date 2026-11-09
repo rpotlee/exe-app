@@ -7,11 +7,17 @@ KEY = 'exe-v2:local'
 def S(page):
     page.wait_for_timeout(80)   # let the save chain flush
     return json.loads(page.evaluate(f"localStorage.getItem('{KEY}')"))
-def nav(page, route): page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
+def _go(page, route):
+    # Map, Decisions and Next & Later are reached under Mission (revamp); the three primary tabs are clicked as before
+    if route == 'focus': page.evaluate("location.hash = '#/priorities'")   # the old Current Priority screen now lives at Priorities (DEC-017)
+    elif route == 'review': page.evaluate("location.hash = '#/approvals'")   # the old AI Review approvals, unlinked since DEC-018
+    elif route in ('map', 'decisions', 'lanes'): page.evaluate(f"location.hash = '#/{route}'")
+    else: page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
+def nav(page, route): _go(page, route)
 def cap(page, text):
-    page.locator('.mobile-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
+    page.locator('.dock-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
 def status(page):
-    if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the Inbox now
+    if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the List now
     page.locator('#status-line').wait_for(); page.wait_for_timeout(80)
     return ' '.join(page.locator('#status-line').inner_text().split())
 def pick(page, w, label):
@@ -35,15 +41,15 @@ with sync_playwright() as p:
         mobile = w < 761
         # empty first run
         assert status(page) == 'Nothing here yet.' and page.get_by_role('heading', name='Nothing here yet').count() == 1
-        labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span')).all_inner_texts() if t.strip()]
-        assert labels == ['Focus', 'Inbox', 'AI Review', 'Map', 'Decisions'], labels
+        labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span:not(.nav-scope):not(.nav-count)')).all_inner_texts() if t.strip()]
+        assert labels == (['List', 'Status', 'Activity', 'Folders'] if mobile else ['List', 'Status', 'Activity Log', 'Folders']), labels   # revamp: five positions, the + in the middle
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
         first = page.locator('.raw-row input[type=checkbox]').first; first.check()
         d = S(page); assert sum(1 for c in d['captures'] if c['completed_at']) == 1 and d['tasks'] == []
-        page.locator('.inbox-filters button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
-        page.locator('.inbox-filters button', has_text='All').click()
+        page.locator('.seg:not(.sub) button', has_text='Tasks').click(); page.locator('.seg.sub button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
+        page.locator('.seg.sub button', has_text='All').click(); page.locator('.seg:not(.sub) button', has_text='Everything').click()
         # folders and outcomes
         nav(page, 'map'); page.get_by_role('button', name='New folder').click(); page.locator('#modal-root input[name=name]').fill('Home'); page.get_by_role('button', name='Create folder').click()
         for name in ['Plan reunion', 'Fix garage', 'Book venue', 'Clean attic', 'Sort photos']:
@@ -63,7 +69,7 @@ with sync_playwright() as p:
         page.get_by_role('heading', name='All steps are done').wait_for()
         page.get_by_role('button', name='Not yet').click(); assert next(o for o in S(page)['outcomes'] if o['name'] == 'Plan reunion')['done_at'] is None
         # Focus: the current priority, progress from real steps, the state line
-        nav(page, 'focus'); assert status(page).startswith('1 current focus of up to 3 active.') and '3 awaiting AI Review' in status(page)
+        nav(page, 'focus'); assert status(page).startswith('1 current focus of up to 3 active.') and '3 for the AI Assistant' in status(page)
         assert page.locator('.priority-hero').count() == 1 and page.locator('.priority-mini').filter(has_text='Fix garage').count() + page.locator('.priority-mini').filter(has_text='Book venue').count() >= 1
         # Priority Engine: pin a non-Now outcome -> suggestion, nothing changes until applied
         nav(page, 'map'); outcome_block(page, w, 'Sort photos').get_by_role('button', name='Pin as priority').click()
@@ -79,8 +85,8 @@ with sync_playwright() as p:
         d = S(page); sp = next(o for o in d['outcomes'] if o['name'] == 'Sort photos')
         assert {'now'} == {f['lane'] for f in d['focus'] if f['outcome_id'] == sp['id']} and len([f for f in d['focus'] if f['lane'] == 'now']) == 3
         # Next & Later screen
-        page.locator('.lanes-link').click(); expect(page.get_by_role('heading', name='Next & Later')).to_have_count(1); expect(page.locator('.lane-item')).to_have_count(2)
-        page.get_by_role('button', name='Back to Focus').click()
+        page.locator('.lanes-link', has_text='Next').click(); expect(page.get_by_role('heading', name='Next & Later')).to_have_count(1); expect(page.locator('.lane-item')).to_have_count(2)
+        page.get_by_role('button', name='Back to Focus').click(); page.evaluate("location.hash = '#/priorities'")   # Focus Mode and the old priority card are unlinked now (DEC-017, option C)
         # Focus Mode: capture opens over it and returns to it
         page.get_by_role('button', name='Enter Focus Mode').click(); page.get_by_role('dialog', name='Focus Mode').wait_for()
         page.get_by_role('button', name='Capture thought').click(); page.get_by_label('Capture text').fill('Interruption'); page.locator('.modal-sheet button[type=submit]').click()
@@ -166,7 +172,7 @@ with sync_playwright() as p:
         expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0); assert json.dumps(S(page)['tasks']) == tasks_before; page.reload()
         page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='Which CRM?')).to_have_count(0)
         # weekly review: optional, real numbers, skipping/finishing hides it for the week
-        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(1); page.get_by_role('button', name='Open').click()
+        expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(1); page.get_by_role('button', name='Open', exact=True).click()
         expect(page.locator('#modal-root')).to_contain_text('Still open'); expect(page.locator('#modal-root')).to_contain_text('captured'); page.get_by_role('button', name='Done').click()
         expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0); page.reload(); page.locator('.mission-extras').wait_for(); expect(page.locator('.prompt-card', has_text='weekly review')).to_have_count(0)
         # persistence: a reload keeps everything
@@ -193,7 +199,7 @@ with sync_playwright() as p:
         nav(page, 'map'); pick(page, w, 'All notes'); page.get_by_role('button', name='Add relationship').click(); f = page.locator('#modal-root')
         f.locator('select[name=from]').select_option(label='Pick a venue?'); f.locator('select[name=to]').select_option(label=current); f.locator('select[name=kind]').select_option('blocks'); f.get_by_role('button', name='Add relationship').click()
         nav(page, 'focus'); expect(page.locator('.blocked-banner')).to_contain_text('Pick a venue?'); expect(page.locator('.blocked-banner')).to_contain_text('a block you confirmed')
-        page.get_by_role('button', name='Why this?').click(); expect(page.locator('.why-list')).to_contain_text('active')
+        expect(page.get_by_role('button', name='Why this?')).to_have_count(0)   # the Why this? disclosure was removed (owner)
         page.get_by_role('button', name='Open the decision').click(); expect(page.get_by_role('heading', name='Pick a venue?', level=2)).to_be_visible()
         assert page.locator('.decision-item').first.inner_text().startswith('Pick a venue?') and 'holding up 1' in page.locator('.decision-item').first.inner_text()
         expect(page.locator('.impact-line')).to_contain_text('Holding up 1 item')
@@ -225,9 +231,9 @@ with sync_playwright() as p:
         # accessibility and layout
         if os.environ.get('AXE_PATH'):
             for r in ['focus', 'inbox', 'map', 'decisions', 'review']:
-                nav(page, r); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
+                nav(page, r); page.wait_for_timeout(450); page.add_script_tag(path=os.environ['AXE_PATH']); v = page.evaluate(RUN)['violations']; assert not v, (r, [(x['id'], [(n['target'], n['any'][0]['message']) for n in x['nodes']]) for x in v])
         for r in ['focus', 'inbox', 'review', 'map', 'decisions']:
-            nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r)
+            nav(page, r); assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), (w, r, page.evaluate("[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,5).map(e=>e.tagName+'.'+e.className+' '+Math.round(e.getBoundingClientRect().right))"))
         assert not errors, errors
         ctx.close(); print(f'PASS {w}px: new app: empty start, capture, folders, outcomes, Now cap, steps, engine, lanes, Focus Mode, completion, folder delete, persistence, axe')
     b.close()

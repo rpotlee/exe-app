@@ -11,7 +11,7 @@ with sync_playwright() as p:
             session.send('Emulation.setSafeAreaInsetsOverride',{'insets':{'top':20,'bottom':34,'left':0,'right':0}})
             assert float(page.locator('.mobile-dock').evaluate('e=>parseFloat(getComputedStyle(e).bottom)'))==46  # dock-bottom 12 + safe-area 34
         for route in ['focus','inbox','review','map','decisions']:
-            page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
+            page.evaluate(f"location.hash = '#/{route}'") if route in ('map', 'decisions', 'lanes') else page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
             if os.environ.get('AXE_PATH'):
                 page.add_script_tag(path=os.environ['AXE_PATH'])
                 result=page.evaluate("async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})")

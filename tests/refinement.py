@@ -41,7 +41,7 @@ with sync_playwright() as p:
             # The clipped scroll region is entirely above both fixed controls.
             for fraction in [0,.5,1]:
                 page.locator('#view').evaluate('(e,f)=>e.scrollTop=(e.scrollHeight-e.clientHeight)*f',fraction)
-                view=page.locator('#view').bounding_box();plus=page.locator('.mobile-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
+                view=page.locator('#view').bounding_box();plus=page.locator('.dock-capture').bounding_box();dock=page.locator('.mobile-dock').bounding_box()
                 assert plus['y']+plus['height']<=dock['y']  # separate button above the dock
             # Last checkbox, disclosure and actions can all be scrolled into the clear region.
             for selector in ['[data-capture-check]','[data-row-more]','[data-edit-capture]','[data-archive-capture]']:
@@ -49,7 +49,7 @@ with sync_playwright() as p:
                 assert box['y']+box['height']<=plus['y']
                 assert control.evaluate('e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}')
             # Capture sheet stays inside a smaller visual viewport with simulated keyboard offset.
-            page.locator('.mobile-capture').click()
+            page.locator('.dock-capture').click()
             page.set_viewport_size({'width':width,'height':420})
             page.get_by_label('Capture text').fill('Reduced visual viewport')
             page.wait_for_timeout(100)

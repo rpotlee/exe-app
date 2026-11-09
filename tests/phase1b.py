@@ -38,7 +38,7 @@ with sync_playwright() as p:
         assert texts == ['Focus', 'Inbox', 'AI Review', 'Map', 'Decisions'], texts
         if mobile:
             for l in labels.all(): assert l.is_visible()
-            dock = page.locator('.mobile-dock').bounding_box(); plus = page.locator('.mobile-capture').bounding_box()
+            dock = page.locator('.mobile-dock').bounding_box(); plus = page.locator('.dock-capture').bounding_box()
             assert plus['y'] + plus['height'] <= dock['y'] + 1 and page.locator('.mobile-dock .mobile-capture').count() == 0
             assert page.locator('.mobile-dock [data-nav]').count() == 5
             for it in page.locator('.mobile-dock [data-nav]').all():
@@ -53,7 +53,7 @@ with sync_playwright() as p:
         assert page.locator('[data-inbox-count]').filter(visible=True).count() == 0
         page.locator('[data-capture]').filter(visible=True).last.click()
         page.get_by_label('Capture text').fill('New thought one\nNew thought two'); page.locator('#capture-form button[type=submit]').click()
-        assert status(page) == '1 current focus of up to 3 active. 2 awaiting AI Review 3 blocked.', status(page)
+        assert status(page) == '1 current focus of up to 3 active. 2 for the AI Assistant 3 blocked.', status(page)
         scope = '.mobile-dock' if mobile else '.sidebar'
         assert page.locator(f'{scope} [data-nav=inbox] [data-inbox-count]').inner_text() == '2'
         assert page.locator(f'{scope} [data-nav=review] [data-dock-count]').inner_text() == '2'

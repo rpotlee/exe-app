@@ -12,20 +12,18 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header"><a class="brand" href="index.html"><img src="../icons/icon-192.png" alt="" width="28" height="28">Exe <span>Help</span></a><a class="open-app" href="../">Open Exe</a></header>
 <div class="layout">
-<details class="topics"><summary>Help topics</summary><nav aria-label="Help topics"><ul><li><a href="index.html">Home</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="capture-and-inbox.html">Capture &amp; Inbox</a></li><li><a href="ai-review.html">AI Review</a></li><li><a href="map.html">Map</a></li><li><a href="decisions.html">Decisions</a></li><li><a href="focus.html">Focus</a></li><li><a href="ideas-and-search.html">Ideas &amp; Search</a></li><li><a href="ai-setup.html">AI setup</a></li><li><a href="backup-and-settings.html">Settings &amp; backup</a></li><li><a href="account-and-privacy.html">Account &amp; privacy</a></li><li><a href="faq.html" aria-current="page">FAQ</a></li></ul></nav></details>
+<details class="topics"><summary>Help topics</summary><nav aria-label="Help topics"><ul><li><a href="index.html">Home</a></li><li><a href="getting-started.html">Getting started</a></li><li><a href="list.html">List</a></li><li><a href="reminders.html">Reminders</a></li><li><a href="status-and-tasks.html">Status</a></li><li><a href="assistant.html">AI assistant</a></li><li><a href="activity-log.html">Activity Log</a></li><li><a href="folders.html">Folders</a></li><li><a href="ai-setup.html">AI setup</a></li><li><a href="backup-and-settings.html">Settings &amp; backup</a></li><li><a href="account-and-privacy.html">Account &amp; privacy</a></li><li><a href="faq.html" aria-current="page">FAQ</a></li></ul></nav></details>
 <main id="main" tabindex="-1">
 <h1>Questions, fixes and glossary</h1>
 
 <h2>Questions</h2>
-<h3>Why can I only have three active priorities?</h3><p>On purpose. Exe is built to help you finish a few things, not to track everything at once. Everything else waits in Next or Later, and nothing is lost.</p>
-<h3>Why does “Mission Status” say “Nothing here yet”?</h3><p>A new Exe starts empty and nothing is added for you. Capture a thought with the blue + button, or make a folder and an outcome in the Map.</p>
-<h3>I ticked every step, but the outcome is not done.</h3><p>That is by design. Only you finish an outcome. Press <strong>Mark outcome done…</strong>, or answer the question Exe asks when the last step is ticked.</p>
-<h3>I ticked a to-do in the Inbox, but my step is not done.</h3><p>An Inbox tick only marks that to-do. Steps, decisions and priorities are separate on purpose.</p>
-<h3>What does “Blocked” mean, and why is it red?</h3><p>Something you <em>confirmed</em> must be finished first. Red is used only for that. A suggested relationship blocks nothing.</p>
-<h3>Can the AI change my work?</h3><p>No. It can only make suggestions on cards, which you approve. It cannot delete, complete, resolve, or move priorities.</p>
+<h3>Why does Status say “Nothing to work on yet”?</h3><p>A new Exe starts empty. Add a task with the blue + button.</p>
+<h3>Can the AI change my work?</h3><p>No. It suggests; you decide. It never deletes, completes, sends or reprioritizes on its own.</p>
+<h3>Why is a priority dot a ring?</h3><p>A ring is the AI’s suggestion. Set a priority yourself and it becomes a filled dot. Yours always wins.</p>
 <h3>Does AI cost money?</h3><p>Exe does not charge for AI. If you add your own key, your AI company bills you for what you use.</p>
-<h3>How do I undo something?</h3><p>Approvals in AI Review have an <strong>Undo</strong> button under <em>Recently approved</em>. Archived items have <strong>Restore</strong>. A finished outcome has <strong>Reopen outcome</strong>. A resolved decision has <strong>Reopen decision</strong>.</p>
-<h3>Can I delete something for good?</h3><p>Exe prefers archiving. Deleting a folder keeps everything inside. Deleting a link keeps both items.</p>
+<h3>Will I get a notification for a reminder?</h3><p>No. Reminders appear inside Exe while it is open. See <a href="reminders.html">Reminders</a>.</p>
+<h3>How do I undo something?</h3><p>Archived entries have <strong>Restore</strong>. A checked task can be unchecked. Changing a type or priority can be changed back from the same menu.</p>
+<h3>Can I delete something for good?</h3><p>Exe prefers archiving. Deleting a folder keeps everything inside.</p>
 <h2>Fixes</h2>
 <table class="table"><thead><tr><th scope="col">If you see…</th><th scope="col">Try this</th></tr></thead><tbody>
 <tr><th scope="row">Nothing happens when I save text</th><td>Refresh the page and try again. If it keeps happening, download a backup, then tell whoever runs your Exe.</td></tr>
@@ -35,29 +33,24 @@
 <tr><th scope="row">Cannot sign in or the confirmation email never arrived</th><td>Check your spam folder. Then try <strong>Create an account</strong> again with the same email, or ask whoever runs your Exe.</td></tr>
 <tr><th scope="row">“AI is not set up on the server yet”</th><td>The site owner has not finished AI setup. Everything else works.</td></tr>
 <tr><th scope="row">“Your provider rejected the key” / “does not know that model name”</th><td>Open Settings, check the key and the model name exactly as your provider shows them, and save again.</td></tr>
+<tr><th scope="row">The assistant says it couldn’t prepare help</th><td>Press retry. If it repeats, check your key in Settings. The attempt is logged in the Activity Log.</td></tr>
 <tr><th scope="row">The page looks old or out of date</th><td>Close the tab and open it again, or hard refresh (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>).</td></tr>
 </tbody></table>
 <h2>Shortcuts</h2>
 <table class="table"><tbody>
 <tr><th scope="row"><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>K</kbd></th><td>Quick Capture, from anywhere.</td></tr>
-<tr><th scope="row"><kbd>/</kbd></th><td>Search (when you are not typing in a box).</td></tr>
-<tr><th scope="row"><kbd>Esc</kbd></th><td>Close the open box, or leave Focus Mode.</td></tr>
+<tr><th scope="row"><kbd>Esc</kbd></th><td>Close the open box.</td></tr>
 <tr><th scope="row"><kbd>Tab</kbd></th><td>Move between buttons and fields. Everything in Exe can be used with a keyboard.</td></tr>
-<tr><th scope="row"><kbd>Enter</kbd></th><td>In <em>Add a to-do…</em>, adds it to your Inbox.</td></tr>
+<tr><th scope="row"><kbd>Enter</kbd></th><td>In <em>Add a task</em>, adds it to your List.</td></tr>
 </tbody></table>
 <h2>Glossary</h2>
 <dl class="glossary">
-<dt>Capture</dt><dd>A thought you saved, exactly as you wrote it. It is never removed by Exe or AI.</dd>
-<dt>Outcome</dt><dd>A result you want. Outcomes are what you make active.</dd>
-<dt>Step</dt><dd>One small action that moves an outcome forward. It can also be loose.</dd>
-<dt>Folder</dt><dd>An optional group for related outcomes, decisions, ideas and captures.</dd>
-<dt>Decision</dt><dd>An unresolved question you settle yourself.</dd>
-<dt>Idea</dt><dd>A possibility, not a commitment.</dd>
-<dt>Relationship</dt><dd>A link between two things: blocks, informs or related.</dd>
-<dt>Active priority</dt><dd>An outcome you are working on now. At most three. Also called “Now”.</dd>
-<dt>Next / Later</dt><dd>Outcomes waiting their turn. Next is sooner, Later is parked.</dd>
-<dt>Current Priority</dt><dd>The one active outcome shown in the big card on Focus.</dd>
-<dt>Suggestion</dt><dd>Something Exe or AI proposes. It does nothing until you approve it.</dd>
+<dt>Capture</dt><dd>Anything you saved, exactly as you wrote it. Never removed by Exe or AI.</dd>
+<dt>Task, Note, Reminder</dt><dd>The three types of entry in the List.</dd>
+<dt>Group</dt><dd>Related tasks collected together on Status.</dd>
+<dt>Priority</dt><dd>High, Medium or Low, shown as a colored dot.</dd>
+<dt>Suggestion</dt><dd>Something the AI proposes. It does nothing until you accept it.</dd>
+<dt>Activity Log</dt><dd>The timeline of what the AI did and what you chose.</dd>
 </dl>
 <div class="pager"><a href="account-and-privacy.html"><small>Previous</small>Account &amp; privacy</a><span></span></div>
 </main>

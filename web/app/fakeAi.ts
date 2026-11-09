@@ -14,7 +14,8 @@ export function makeFakeAi() {
         else if (/capital of australia/i.test(t)) items.push({ captureId: id, kind: 'question', answer: { text: 'The capital of Australia is Canberra.', sourceTitle: 'Britannica', sourceDomain: 'britannica.com' } });
       }
       const rach = ids.filter(i => /rachel|interview|position/i.test(texts[i] ?? ''));
-      return { items, groups: rach.length >= 2 ? [{ name: 'Hiring', ids: rach, why: 'Both are about the open position.' }] : [], dependencies: rach.length >= 2 ? [{ before: rach[0] as string, after: rach[1] as string, why: 'Hear back before preparing.' }] : [], provider: 'anthropic', model: 'fake' };
+      const priorities = ids.map(id => ({ captureId: id, level: (/passport|bill|dentist/i.test(texts[id] ?? '') ? 'high' : /desk|maybe/i.test(texts[id] ?? '') ? 'low' : 'medium') as 'high' | 'medium' | 'low', why: 'Fake AI' }));
+      return { items, priorities, groups: rach.length >= 2 ? [{ name: 'Hiring', ids: rach, why: 'Both are about the open position.' }] : [], dependencies: rach.length >= 2 ? [{ before: rach[0] as string, after: rach[1] as string, why: 'Hear back before preparing.' }] : [], provider: 'anthropic', model: 'fake' };
     },
   };
 }

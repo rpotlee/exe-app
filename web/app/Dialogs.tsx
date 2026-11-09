@@ -11,6 +11,8 @@ import { search } from '../../src/domain/search';
 import { importWrites, parseBackup, type Parsed } from '../../src/domain/backup';
 import { CheckRow } from '../ui/CheckRow';
 import { Icon } from '../ui/Icon';
+import { folderCounts, type CaptureKind, type Scope } from '../../src/domain/scope';
+import { segmentCapture } from '../../src/domain/capture';
 import { PROVIDER_NAMES, type AiSettings, type Provider } from './ai';
 import { weeklyId, weeklySummary } from '../../src/domain/weekly';
 import { describeAudit } from '../../src/domain/insight';
@@ -52,29 +54,66 @@ export function Dialogs({ m }: { m: ModalState }) {
     case 'taskNew': return <TaskNew outcomeId={m.outcomeId} />;
     case 'relationship': return <RelationshipNew />;
     case 'captureEdit': return <CaptureEdit id={m.id} />;
+    case 'folders': return <FolderDrawer />;
   }
 }
 
 function CaptureSheet() {
-  const { api, modal } = useApp();
+  const { api, modal, scope } = useApp();
+  const ws = api.ws, scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [text, setText] = useState(() => { try { return sessionStorage.getItem(DRAFT) ?? ''; } catch { return ''; } });
-  const [error, setError] = useState('');
-  const change = (v: string) => { setText(v); setError(''); try { sessionStorage.setItem(DRAFT, v); } catch { /* a draft is a convenience */ } };
-  const submit = (e: FormEvent) => { e.preventDefault(); if (api.run((w, c) => C.addCaptures(w, c, text))) { try { sessionStorage.removeItem(DRAFT); } catch { /* ignore */ } modal(null); } else setError('Write something first.'); };
+  const [kind, setKind] = useState<CaptureKind>(() => { try { const k = sessionStorage.getItem(DRAFT + '-kind'); return k === 'note' || k === 'reminder' ? k : 'todo'; } catch { return 'todo'; } });
+  const [whole, setWhole] = useState(false), [when, setWhen] = useState(''), [error, setError] = useState('');
+  const keep = (v: string, k: CaptureKind) => { try { sessionStorage.setItem(DRAFT, v); sessionStorage.setItem(DRAFT + '-kind', k); } catch { /* a draft is a convenience */ } };
+  const change = (v: string) => { setText(v); setError(''); keep(v, kind); };
+  const pick = (k: CaptureKind) => { setKind(k); keep(text, k); };      // switching type never clears the text
+  const n = kind === 'todo' ? segmentCapture(text).length : 1;
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (kind === 'reminder' && !when) { setError('Choose when to remind you.'); return; }
+    if (api.run((w, c) => C.addCaptures(w, c, text, 'List', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole, remindAt: kind === 'reminder' && when ? new Date(when).toISOString() : null }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
+  };
   return (
-    <Modal title="Quick Capture" onClose={() => modal(null)}>
-      <p className="helper">What's on your mind? An unsaved draft is kept if you close this.</p>
+    <Modal title="Capture" onClose={() => modal(null)}>
       <form onSubmit={submit}>
-        <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={'Capture a thought, task, or idea…\nOr paste several thoughts.'} />
+        <div className="kind-picker" role="group" aria-label="What are you capturing?">
+          <button type="button" aria-pressed={kind === 'todo'} onClick={() => pick('todo')}>Task</button>
+          <button type="button" aria-pressed={kind === 'note'} onClick={() => pick('note')}>Note</button>
+          <button type="button" aria-pressed={kind === 'reminder'} onClick={() => pick('reminder')}>Reminder</button>
+        </div>
+        <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={kind === 'note' ? 'Write a note…' : 'What needs doing?\nPaste a list to add several.'} />
+        {kind === 'reminder' && <div className="when-row"><label className="file-field"><span className="small-note">Remind me at</span><input className="select" type="datetime-local" aria-label="Remind me at" value={when} onChange={e => { setWhen(e.target.value); setError(''); }} /></label>
+          <div className="when-quick" role="group" aria-label="Quick times">{C.reminderChoices(new Date()).map(ch => <button type="button" key={ch.label} className="mini-button" onClick={() => setWhen(new Date(ch.at.getTime() - ch.at.getTimezoneOffset() * 60000).toISOString().slice(0, 16))}>{ch.label}</button>)}</div></div>}
+        {kind === 'todo' && n > 1 && <label className="split-note"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Keep as one task (otherwise {n} tasks are added)</label>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        <div className="capture-foot"><span className="small-note">Saved to Inbox.</span><button className="primary-button" type="submit">Save</button></div>
+        <div className="capture-foot"><span className="small-note">Saving to {scopeName}{scope.kind === 'all' ? ' (Unfiled)' : ''}</span><button className="primary-button" type="submit">Save</button></div>
       </form>
     </Modal>
   );
 }
 
+/** Choose All or a folder, and create, rename or delete folders. All is a view, not a folder. */
+function FolderDrawer() {
+  const { api, modal, scope, setScope } = useApp();
+  const ws = api.ws, counts = folderCounts(ws);
+  const choose = (sc: Scope) => { setScope(sc); modal(null); };
+  return (
+    <Modal title="Folders" onClose={() => modal(null)}>
+      <ul className="folder-list">
+        <li><button className="folder-row" aria-current={scope.kind === 'all'} onClick={() => choose({ kind: 'all' })}><Icon name="layers" /><span>All</span><span className="small-note">{counts.all}</span></button></li>
+        {ws.folders.slice().sort((a, b) => a.position - b.position || a.name.localeCompare(b.name)).map(f => (
+          <li key={f.id} className="folder-item"><button className="folder-row" aria-current={scope.kind === 'folder' && scope.id === f.id} onClick={() => choose({ kind: 'folder', id: f.id })}><Icon name="folder" /><span>{f.name}</span><span className="small-note">{counts.byFolder[f.id] ?? 0}</span></button>
+            <button className="mini-button" aria-label={`Rename ${f.name}`} onClick={() => modal({ kind: 'folder', id: f.id })}>Rename</button>
+            <button className="mini-button" aria-label={`Delete ${f.name}`} onClick={() => modal({ kind: 'folderDelete', id: f.id })}>Delete</button></li>))}
+      </ul>
+      <div className="button-row"><button className="primary-button" onClick={() => modal({ kind: 'folder', id: null })}>New folder</button></div>
+      {counts.unfiled > 0 && <p className="small-note">{counts.unfiled} not in a folder. They show in All.</p>}
+    </Modal>
+  );
+}
+
 function Settings() {
-  const { api, modal, where, signOut } = useApp();
+  const { api, modal, where, signOut, priorityMode, setPriorityMode } = useApp();
   const ws = api.ws;
   const [name, setName] = useState(ws.settings?.workspace_name ?? '');
   const [note, setNote] = useState('');
@@ -88,6 +127,10 @@ function Settings() {
         <label className="form-field"><span className="small-note">Workspace name</span><input className="text-input" value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="My workspace" /></label>
         <div className="button-row"><button className="mini-button" type="submit">Save name</button></div>
       </form>
+      <fieldset className="prio-setting"><legend className="small-note">Priority labels</legend>
+        {([['ai', 'AI suggests, I can change it'], ['mine', 'Only the ones I set'], ['off', 'Don’t show priority labels']] as const).map(([v, t]) => (
+          <label key={v} className="radio-row"><input type="radio" name="prio-mode" checked={priorityMode === v} onChange={() => setPriorityMode(v)} /> {t}</label>))}
+      </fieldset>
       <div className="divider"></div>
       <div className="recommendation"><span className="review-tag">BACKUP</span><p>Download everything as a file. Supabase's free plan has no automatic backups, so keep one.</p>
         <div className="button-row"><button className="primary-button" onClick={exportJson}>Download JSON backup</button></div></div>
@@ -292,10 +335,10 @@ function CaptureEdit({ id }: { id: string }) {
   const c = api.ws.captures.find(x => x.id === id);
   if (!c) return null;
   return (
-    <Modal title="Edit to-do" onClose={() => modal(null)}>
+    <Modal title="Edit task" onClose={() => modal(null)}>
       <p className="helper">The original capture is kept exactly as you wrote it.</p>
       <form onSubmit={e => { e.preventDefault(); if (api.run(w => C.editCapture(w, id, val(new FormData(e.currentTarget), 'text')))) modal(null); }}>
-        <label className="form-field">To-do text<textarea name="text" className="text-input" required maxLength={4000} defaultValue={c.edited_text ?? c.text} /></label>
+        <label className="form-field">Task text<textarea name="text" className="text-input" required maxLength={4000} defaultValue={c.edited_text ?? c.text} /></label>
         <button type="submit" className="primary-button">Save changes</button>
       </form>
     </Modal>
@@ -316,7 +359,7 @@ function FocusMode({ id }: { id: string }) {
       <div className="focus-body"><div className="focus-label">FOCUS MODE / {folder.toUpperCase()}</div><h1>{o.name}</h1><p className="lead">One priority. The next clear action. Everything else can wait.</p>
         <div className="focus-panel"><div className="row-between"><h3 className="section-heading">Your checklist</h3><span className="pill blue">{p.done} of {p.total} done</span></div>
           {steps.map(t => <CheckRow key={t.id} task={t} />)}{!steps.length && <p className="small-note">No steps yet.</p>}</div>
-        <div className="focus-actions"><span className="small-note">New thoughts go to Inbox, not your active work.</span><button className="quiet-button" onClick={() => modal({ kind: 'steps', outcomeId: id })}><Icon name="list-checks" /> Break it down</button><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
+        <div className="focus-actions"><span className="small-note">New thoughts go to List, not your active work.</span><button className="quiet-button" onClick={() => modal({ kind: 'steps', outcomeId: id })}><Icon name="list-checks" /> Break it down</button><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
     </div>, document.getElementById('modal-root') as HTMLElement);
 }
 
@@ -423,7 +466,7 @@ function MergePreview({ id, otherId, folderId, type }: { id: string; otherId: st
   };
   return (
     <Modal title="Preview merge" onClose={() => modal(null)}>
-      <p className="helper">Nothing is deleted. Both captures stay in your Inbox exactly as written, and both are linked to the result.</p>
+      <p className="helper">Nothing is deleted. Both captures stay in your List exactly as written, and both are linked to the result.</p>
       <div className="merge-grid"><div><div className="eyebrow">CAPTURE A</div><p className="review-original">{captureText(a)}</p></div><div><div className="eyebrow">CAPTURE B</div><p className="review-original">{captureText(b)}</p></div></div>
       <div className="recommendation"><span className="review-tag">RESULT</span><p>One {type === 'Note' ? 'note' : type.toLowerCase()}: <strong>{p.title}</strong>. Both captures point to it. You can undo this.</p></div>
       <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Cancel</button><button className="primary-button" onClick={confirm}>Merge</button></div>

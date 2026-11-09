@@ -5,7 +5,7 @@ import { emptyWorkspace, type AuditEvent, type Decision, type Outcome, type Rela
 const base = { owner_id: 'u', created_at: '2027-03-01T00:00:00Z', updated_at: '', revision: 1 };
 const dec = (id: string, x: Partial<Decision> = {}): Decision => ({ ...base, id, folder_id: null, name: id, description: '', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, criteria: '', sources: [], ...x });
 const out = (id: string, x: Partial<Outcome> = {}): Outcome => ({ ...base, id, folder_id: null, name: id, description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [], ...x });
-const task = (id: string, o: string | null, x: Partial<Task> = {}): Task => ({ ...base, id, outcome_id: o, name: id, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...x });
+const task = (id: string, o: string | null, x: Partial<Task> = {}): Task => ({ ...base, id, outcome_id: o, name: id, notes: '', folder_id: null, done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], ...x });
 const rel = (id: string, from: string, to: string, x: Partial<Relationship> = {}): Relationship => ({ ...base, id, from_type: 'decision', from_id: from, to_type: 'task', to_id: to, kind: 'blocks', description: '', confirmed: true, source: 'user', ...x });
 const ws = (x: Partial<Workspace> = {}): Workspace => ({ ...emptyWorkspace(), ...x });
 

@@ -244,3 +244,51 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Quick answers** only for short, stable facts; anything uncertain, recent, legal, medical or financial must become "Where to look". Labeled AI, with a link to check a source. No web-search tool is used, so this is not verified research (master §13 still open); the model answers from its own knowledge.
 - **Remembered on this device only** (browser storage, keyed by a hash of each to-do's text), so the same to-do is not sent again. Nothing new is stored in the database except what the person approves.
 - **Not verified live:** unit-tested, and the screen was tested with a local fake AI. The function is deployed (owner go-ahead) but has not been run against a real provider by Claude. Each to-do with help gets one closed dropdown; every item carries a concrete "Next" step.
+
+## DEC-016 — Revamp: Mission Status is grouped tasks; priority labels (2026-11-08)
+**Source:** owner direction during revamp Phase 1–2 review. Overrides the spec's "Up next / recommendations" idea and the Normal vocabulary.
+
+- **Mission Status = groups of tasks, nothing more by default.** A group is a confirmed outcome (steps), an AI-suggested group (provisional, "Group these"), or "Not grouped yet". A row of chips switches between groups; each outcome group has a **Focus** button into Focus Mode. The older tools (priority suggestions, Next & Later, Map, Decisions, "I have N minutes", weekly review) are kept under **More**; nothing was removed.
+- **No "Up next" section.** The owner found it unhelpful and overstepping; it was removed (the recommendation module was deleted, never shipped).
+- **Priority labels: High / Medium / Low, shown red / orange / yellow**, always with a dot and the word. **The AI suggests a label for every to-do** (new `priorities` field from the assist function); a suggestion is drawn dashed with a ✦ until you pick one. A tap opens High/Medium/Low/No label (or "keep AI suggestion"). **Your pick always wins** and is stored as `captures.user_priority`; the AI never writes it.
+- **Setting (Settings → Priority labels):** "AI suggests, I can change it" (default), "Only the ones I set", or "Don't show priority labels".
+- AI suggestions for priority are still device-local until Phase 3 stores assistance in the database.
+- Steps with no source capture show no label (a step has no priority column); this is a known gap.
+
+## DEC-017 — Mission Status is "All tasks" plus groups; the List shows no AI help (2026-11-08)
+**Source:** owner direction. Supersedes the Mission layout in DEC-016 (priority labels there still apply, now as a colored dot).
+
+- **Mission Status** opens to an **All tasks** card: the top 3 (phone) or 5 (desktop) open tasks, high priority first, how many more there are, and a **Show all** button (it replaces the old Focus button on this card). Below it are **Groups**: your outcomes, groups the AI named from related tasks (provisional until you tap **Group these**), and one "Not grouped yet" group, each with an item count and a count per priority.
+- **Show all** and each group open a screen with every task and the **AI help under each task** (email drafts, sources, quick answers). A group screen also has **Focus Mode** (outcome groups), **Make current priority**, and **Group these** (suggested groups).
+- **The List shows no AI help** (no pills, banner or group cards). It stays a plain list of everything captured, where you can still set the type and a priority label. AI help still runs in the background and is shown on the task screens.
+- **Replaced, per the owner:** Mission no longer has a Current Priority card, a Focus button, "Make current priority" or an Explore list; "All tasks" and Groups replace them. The old screens' code and routes (`#/priorities`, `#/map`, `#/decisions`, `#/lanes`) are NOT deleted but are no longer linked from anywhere, so Map, Decisions, Next & Later and Focus Mode are currently unreachable from the UI. DECIDED by the owner (option C): keep them, unlinked, for now. The three-Now limit and current focus remain in the data and the database rules.
+
+## DEC-018 — The AI tab is the Activity Log (2026-11-08)
+**Source:** owner direction. Replaces the AI Review approvals screen as the AI tab.
+
+- The AI tab shows only a plain, newest-first log (grouped by day) of what the AI did and how you answered it: help prepared (email draft, where to look, quick answer), priorities suggested, groups suggested, possible dependencies noticed, failures, and your actions on its suggestions (grouping from a suggestion, changing a priority the AI suggested).
+- Stored in the existing append-only `audit_events` table (`actor = 'ai'` for the AI, `'user'` for you), so no migration is needed. Events hold small facts only (kind, counts, ids); generated text is never copied into the log.
+- The AI changes nothing by itself, so the log is "what it suggested and prepared" plus "what you approved". The AI tab has no count badge any more.
+- The old AI Review approvals screen is kept, unlinked, at `#/approvals` (same treatment as Map and Decisions, DEC-017).
+- Not yet logged: edits the AI never makes, calendar files and reminders (Phase 4), and the saved-AI-help-across-devices work.
+- Style: renamed Activity Log, a plain timeline (dated headings with a dot on a line, small bold AI/You, details with colored priority words and accent item names, time). No cards or images. Nav icon: history.
+
+## DEC-019 — Calendar file (.ics) is on hold (2026-11-08)
+**Source:** owner: "Put a hold on this. We will figure it out later."
+
+- The optional "Download calendar event" button for Reminders (revamp spec §5.3) is **not built and not planned for now**. No UI for it exists.
+- When it comes back, keep the spec's honesty rule: the button says "Download calendar event", never "Added to calendar", because the app cannot confirm that the person imported the file.
+- The rest of Phase 4 (real Reminder scheduling, snooze, in-app due alerts) is separate and still undecided. The Reminder type stays visible but disabled until then.
+
+## DEC-020 — Intelligent Assistant, phase 1: the shell on a labeled demo assistant (2026-11-08)
+**Source:** `EXE-INTELLIGENT-ASSISTANT-UX-CLAUDE-HANDOFF-v1.0.md`. Audit and conflicts: `docs/ASSISTANT-PHASE-0.md`.
+
+- **Task rows** show at most one quiet status line only when there is a real result or a real question ("Needs a detail", "Answer: …", "Text ready", "Email draft ready"). The Help dropdown and its "Next:" line are removed. The **List** still shows no AI decoration (DEC-017).
+- **Tapping a task on the task screens** opens that task's assistant: a full-height sheet on phones (dock hidden, no autofocus, composer follows the visual viewport) or a right-hand inspector on wide screens (list stays usable).
+- **One question at a time, at most three actions** (a width-based fit: all three with room, one plus More at 320px; 44px targets). Refinements rewrite the active draft in place and keep earlier versions. Copy never claims "sent".
+- **Demo assistant (`web/app/demoAssistant.ts`)**: keyword rules, device-only, always tagged "Demo". It exists only to prove the screens until the real service ships. On a real account the panel shows the existing prepared result read-only and says follow-ups are not connected.
+- **Not built yet (needs owner approval):** Phase 2 persistence (new migration: threads, turns, artifacts) and Phase 3 (new `ai-review` function modes). Verified-source retrieval does not exist; sources are labeled "Search this site".
+- **Open question:** should tapping a List row also open the assistant?
+
+## DEC-021: Reminders are in-app only; help center rewritten
+Date: 2026-11-08. Reminders use two columns on `captures` (`remind_at`, `remind_done_at`; migration 12). Snooze moves `remind_at`; dismiss sets `remind_done_at`. They show as a banner inside the app while it is open (checked every 30 s). There is no push, email, text or calendar file (.ics stays on hold, DEC-019), and the help and the assistant say so. The AI never sets or changes a reminder. The help center was rewritten for List, Reminders, Status/All tasks/Groups, the assistant, Activity Log and Folders; pages for the unlinked Map, Decisions, AI Review, Ideas and old Focus were removed (the code remains, DEC-017 option C). The release runbook is `docs/DEPLOYMENT-RUNBOOK.md`.

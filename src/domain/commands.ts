@@ -13,6 +13,8 @@ const fail = (error: string, extra: { needsSwap?: boolean } = {}): Result => ({ 
 const done = (writes: Write[], note?: string): Result => ({ ok: true, writes, ...(note ? { note } : {}) });
 const ins = (table: Table, row: Row): Write => ({ table, op: 'insert', row });
 const upd = (table: Table, existing: { id: string; revision: number }, changes: Row): Write => ({ table, op: 'update', row: { id: existing.id, revision: existing.revision, ...changes } });
+const auditAs = (ctx: Ctx, actor: 'user' | 'ai', action: string, entityType: string | null, entityId: string | null, before: unknown = null, after: unknown = null): Write =>
+  ins('audit_events', { id: ctx.id(), owner_id: ctx.owner, at: ctx.now(), actor, action, entity_type: entityType, entity_id: entityId, proposal_id: null, before, after, undo_of: null });
 const audit = (ctx: Ctx, action: string, entityType: string | null, entityId: string | null, before: unknown = null, after: unknown = null): Write =>
   ins('audit_events', { id: ctx.id(), owner_id: ctx.owner, at: ctx.now(), actor: 'user', action, entity_type: entityType, entity_id: entityId, proposal_id: null, before, after, undo_of: null });
 
@@ -24,15 +26,18 @@ function settingsWrite(ws: Workspace, ctx: Ctx, changes: Row): Write {
 const trimmed = (s: string): string => s.trim();
 
 // ------------------------------------------------------------------ captures
-export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture'): Result {
-  void ws;
-  const lines = segmentCapture(text);
+export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture', opts: { kind?: 'todo' | 'note' | 'reminder'; folderId?: string | null; keepAsOne?: boolean; remindAt?: string | null } = {}): Result {
+  const kind = opts.kind ?? 'todo', folderId = opts.folderId ?? null;
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  // Tasks split a pasted list into one item per line; a note or a reminder is never split, and a task can be kept whole on request
+  const lines = kind === 'todo' && !opts.keepAsOne ? segmentCapture(text) : trimmed(text) ? [text.replace(/\r\n/g, '\n').trim()] : [];
   if (!lines.length) return fail('Write something first.');
   const batch = lines.length > 1 ? ctx.id() : null;
+  const where = kind === 'todo' ? 'List' : kind === 'note' ? 'List as a note' : 'List as a reminder';
   return done(lines.map(line => ins('captures', {
-    ...baseRow(ctx), text: line, edited_text: null, source, folder_id: null, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
-    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null })),
-  lines.length === 1 ? 'Saved to Inbox.' : `${lines.length} thoughts saved to Inbox.`);
+    ...baseRow(ctx), text: line, edited_text: null, source, folder_id: folderId, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
+    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null, remind_at: opts.remindAt ?? null, remind_done_at: null })),
+  lines.length === 1 ? `Saved to ${where}.` : `${lines.length} tasks saved to ${where}.`);
 }
 const capture = (ws: Workspace, id: string) => ws.captures.find(c => c.id === id);
 /** Raw completion is independent: it never touches tasks, decisions, the Focus board or AI review state. */
@@ -303,7 +308,7 @@ function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: stri
     writes.push(ins('decisions', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Newly captured decision; add evidence and options.', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, criteria: '', sources }), logRow(ctx, itemId, 'created', 'Approved from a capture.'));
   } else if (a.type === 'Idea') {
     itemId = ctx.id();
-    writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the Inbox.', archived_at: null, sources }));
+    writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the List.', archived_at: null, sources }));
   }
   if (!skipCapture) writes.push({ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'organized', organized_as: a.type, task_id: taskId, review_state: null, review_at: null, folder_id: c.folder_id ?? a.folderId } });
   void at;
@@ -434,12 +439,12 @@ function undoSplit(ws: Workspace, ctx: Ctx, c: Workspace['captures'][number]): R
   return done(writes, 'Split undone. The capture is back in the review list.');
 }
 
-// ------------------------------------------------------------------ group related to-dos (live help, DEC-015)
-/** One approved suggestion: related to-dos become the steps of a new outcome (in Later, not Now). Suggested dependencies are saved as
+// ------------------------------------------------------------------ group related tasks (live help, DEC-015)
+/** One approved suggestion: related tasks become the steps of a new outcome (in Later, not Now). Suggested dependencies are saved as
  *  UNCONFIRMED blocks: they show as suggestions and never hold anything up until the person confirms them. */
 export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; name: string; deps: { before: string; after: string; why: string }[] }): Result {
   const caps = [...new Set(input.ids)].map(id => capture(ws, id)).filter((c): c is NonNullable<typeof c> => !!c && c.status === 'pending' && !c.archived_at);
-  if (caps.length < 2) return fail('Choose at least two to-dos that are still waiting.');
+  if (caps.length < 2) return fail('Choose at least two tasks that are still waiting.');
   const name = trimmed(input.name).slice(0, 200); if (!name) return fail('Name the group.');
   const oid = ctx.id(), sources = caps.map(c => c.id), writes: Write[] = [];
   writes.push(ins('outcomes', { ...baseRow(ctx), id: oid, folder_id: null, name, description: 'Grouped from your list.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
@@ -457,5 +462,79 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
     edges.push([a, b]);
     writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
   }
-  return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in the Inbox.`);
+  writes.push(auditAs(ctx, 'user', 'user-group-ai', null, null, null, { name, n: caps.length, ids: caps.map(c => c.id) }));
+  return done(writes, `Grouped ${caps.length} tasks into “${name}”. Their originals are kept in your List.`);
+}
+
+// ------------------------------------------------------------------ kind, priority and moves (revamp phase 1)
+/** The user changes what an entry is. The original text, completion state and every link are kept; only `kind` changes. */
+export function convertKind(ws: Workspace, id: string, kind: 'todo' | 'note' | 'reminder'): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  if (c.kind === kind) return fail('It is already that type.');
+  return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a task' : kind === 'note' ? 'a note' : 'a reminder'}.`);
+}
+/** The person's own priority label. It never touches Now/Next/Later or the current focus. null clears it. */
+export function setCapturePriority(ws: Workspace, ctx: Ctx, id: string, label: 'high' | 'medium' | 'low' | null, aiSuggested: 'high' | 'medium' | 'low' | null = null): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  const writes = [upd('captures', c, { user_priority: label })];
+  if (aiSuggested && label) writes.push(auditAs(ctx, 'user', 'user-priority-ai', 'capture', id, { ai: aiSuggested }, { level: label }));      // you answered the AI's suggestion
+  return done(writes);
+}
+/** Move a loose step to a folder. A step inside an outcome follows its outcome instead. */
+export function moveLooseTask(ws: Workspace, id: string, folderId: string | null): Result {
+  const t = ws.tasks.find(x => x.id === id); if (!t) return fail('That step no longer exists.');
+  if (t.outcome_id) return fail('This step follows its outcome. Move the outcome instead.');
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  return done([upd('tasks', t, { folder_id: folderId })]);
+}
+/** What moving an outcome would change, so the person can see it first (spec §3.3). */
+export function outcomeMovePreview(ws: Workspace, id: string): { steps: number; captures: number } {
+  return { steps: ws.tasks.filter(t => t.outcome_id === id && !t.archived_at).length, captures: ws.captures.filter(c => c.task_id && ws.tasks.some(t => t.id === c.task_id && t.outcome_id === id)).length };
+}
+export function moveOutcome(ws: Workspace, id: string, folderId: string | null): Result {
+  const o = ws.outcomes.find(x => x.id === id); if (!o) return fail('That outcome no longer exists.');
+  if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
+  return done([upd('outcomes', o, { folder_id: folderId })]);
+}
+
+// ------------------------------------------------------------------ the AI activity log (DEC-018)
+/** Records what the AI prepared. Only small facts are stored (kind, counts, ids); generated text is never copied into the log. */
+export function logAiEvents(ws: Workspace, ctx: Ctx, events: { action: string; entityType?: string | null; entityId?: string | null; after?: Record<string, unknown> }[]): Result {
+  void ws;
+  if (!events.length) return fail('Nothing to record.');
+  return done(events.map(e => auditAs(ctx, 'ai', e.action, e.entityType ?? null, e.entityId ?? null, null, e.after ?? null)));
+}
+
+// ------------------------------------------------------------------ reminders
+/** Sets or changes when an entry is due (ISO time). A task can carry one too. null clears it. */
+export function setReminder(ws: Workspace, ctx: Ctx, id: string, at: string | null): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  if (at !== null && Number.isNaN(Date.parse(at))) return fail('That date is not valid.');
+  const writes = [upd('captures', c, { remind_at: at, remind_done_at: null }), auditAs(ctx, 'user', at ? 'reminder-set' : 'reminder-cleared', 'capture', id, c.remind_at ? { at: c.remind_at } : null, at ? { at } : null)];
+  return done(writes, at ? 'Reminder set.' : 'Reminder removed.');
+}
+/** Moves a due reminder later. */
+export function snoozeReminder(ws: Workspace, ctx: Ctx, id: string, at: string): Result {
+  const c = capture(ws, id); if (!c || !c.remind_at) return fail('That reminder no longer exists.');
+  if (Number.isNaN(Date.parse(at))) return fail('That date is not valid.');
+  return done([upd('captures', c, { remind_at: at, remind_done_at: null }), auditAs(ctx, 'user', 'reminder-snoozed', 'capture', id, { at: c.remind_at }, { at })], 'Snoozed.');
+}
+/** Dismisses a reminder; it stops showing as due. The entry itself is untouched. */
+export function dismissReminder(ws: Workspace, ctx: Ctx, id: string, now: string): Result {
+  const c = capture(ws, id); if (!c || !c.remind_at) return fail('That reminder no longer exists.');
+  return done([upd('captures', c, { remind_done_at: now }), auditAs(ctx, 'user', 'reminder-dismissed', 'capture', id, null, null)], 'Dismissed.');
+}
+/** Reminders that are due now (not dismissed, not archived, task not done), oldest first. */
+export function dueReminders(ws: Workspace, nowMs: number) {
+  return ws.captures.filter(c => c.remind_at && !c.remind_done_at && !c.archived_at && !(c.kind === 'todo' && c.completed_at) && Date.parse(c.remind_at) <= nowMs).sort((a, b) => Date.parse(a.remind_at!) - Date.parse(b.remind_at!));
+}
+/** Quick choices for the picker, in the person's local time. */
+export function reminderChoices(now: Date): { label: string; at: Date }[] {
+  const at = (days: number, h: number) => { const d = new Date(now); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d; };
+  const out: { label: string; at: Date }[] = [];
+  const later = new Date(now.getTime() + 3 * 3600_000); later.setMinutes(0, 0, 0);
+  if (later.getDate() === now.getDate() && later.getHours() < 22) out.push({ label: 'Later today', at: later });
+  out.push({ label: 'Tomorrow morning', at: at(1, 9) });
+  const mon = (8 - now.getDay()) % 7 || 7; out.push({ label: 'Next week', at: at(mon, 9) });
+  return out;
 }

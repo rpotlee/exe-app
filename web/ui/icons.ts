@@ -1,5 +1,10 @@
 // Icon paths shared with the prototype (stroke icons, 24x24).
 export const ICONS: Record<string, string> = {
+  "history": "<path d=\"M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5\"/><path d=\"M3.5 4v4.5H8\"/><path d=\"M12 7.5V12l3 1.8\"/>",
+  "flag": "<path d=\"M6 21V4M6 5h11l-2.5 4 2.5 4H6\"/>",
+  "alert-circle": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v5\"/><circle cx=\"12\" cy=\"16.2\" r=\".7\" fill=\"currentColor\"/>",
+  "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8 12.3 2.8 2.8L16.2 9.4\"/>",
+  "arrow-up": "<path d=\"M12 19V5M5.5 11.5 12 5l6.5 6.5\"/>",
   "mail": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2.5\"/><path d=\"m3.5 7.5 8.5 6 8.5-6\"/>",
   "target": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/>",
   "crosshair": "<circle cx=\"12\" cy=\"12\" r=\"6.6\"/><circle cx=\"12\" cy=\"12\" r=\"2.1\"/><path d=\"M12 2.4v3.2M12 18.4v3.2M2.4 12h3.2M18.4 12h3.2\"/>",
@@ -47,6 +52,5 @@ export const ICONS: Record<string, string> = {
   "settings": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.2 15.5 21 17l-2 3-2.4-1a8 8 0 0 1-3 1L13 22h-2l-.6-2a8 8 0 0 1-3-1L5 20l-2-3 1.8-1.5a8 8 0 0 1 0-7L3 7l2-3 2.4 1a8 8 0 0 1 3-1L11 2h2l.6 2a8 8 0 0 1 3 1L19 4l2 3-1.8 1.5a8 8 0 0 1 0 7Z\"/>",
   "lock": "<rect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>",
   "info": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6m0-10h.01\"/>",
-  "alert-circle": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7.5v5.5m0 3h.01\"/>",
   "corner-down-left": "<path d=\"M20 5v7a3 3 0 0 1-3 3H5m5-5-5 5 5 5\"/>"
 };
