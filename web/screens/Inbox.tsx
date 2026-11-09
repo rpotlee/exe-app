@@ -9,6 +9,11 @@ import { Icon } from '../ui/Icon';
 
 const localInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const niceWhen = (iso: string) => new Date(iso).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const compactWhen = (iso: string) => {
+  const date = new Date(iso), now = new Date(), tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const day = date.toDateString() === now.toDateString() ? 'Today' : date.toDateString() === tomorrow.toDateString() ? 'Tomorrow' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(date.getFullYear() !== now.getFullYear() ? { year: 'numeric' as const } : {}) });
+  return `${day} · ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+};
 const niceDate = (iso: string) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
 const KIND_LABEL: Record<KindFilter, string> = { everything: 'Everything', todo: 'Tasks', note: 'Notes', reminder: 'Reminders' };
 type Status = 'all' | 'active' | 'done';
@@ -50,7 +55,7 @@ export function List() {
               <li role="none"><button role="menuitemradio" aria-checked={addKind === 'reminder'} onClick={() => { setAddKind('reminder'); setMenuOpen(false); }}><Icon name="bell" /><span>Reminder<small>Shows up in the app when it is due</small></span></button></li>
             </ul>}
           </div>
-          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : addKind === 'reminder' ? 'Add a reminder' : 'Add a task'} placeholder={addKind === 'note' ? 'Write a note…' : addKind === 'reminder' ? 'What should we remind you about?' : 'Add a task or paste a list'} rows={1} maxLength={20000} value={draft}
+          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : addKind === 'reminder' ? 'Add a reminder' : 'Add a task'} placeholder={addKind === 'note' ? 'Write a note…' : addKind === 'reminder' ? 'Add a reminder…' : 'Add a task…'} rows={1} maxLength={20000} value={draft}
             onChange={e => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; }}
             onKeyDown={e => { if (addKind === 'todo' && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (draft.trim()) e.currentTarget.form?.requestSubmit(); } }} />
           <button className="add-submit" type="submit" disabled={!draft.trim() || (addKind === 'reminder' && !when)} aria-label={addKind === 'note' ? 'Add note' : addKind === 'reminder' ? 'Add reminder' : 'Add task'}><Icon name="arrow-up" /></button></form>
@@ -60,7 +65,7 @@ export function List() {
           {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
               {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
-                : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : niceWhen(c.remind_at)}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
+                : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} mobileName={k === 'note' ? 'mobile-note' : 'mobile-bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : <time dateTime={c.remind_at} title={niceWhen(c.remind_at)}><span className="reminder-date-wide">{niceWhen(c.remind_at)}</span><span className="reminder-date-compact">{compactWhen(c.remind_at)}</span></time>}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
                 <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'Task' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>

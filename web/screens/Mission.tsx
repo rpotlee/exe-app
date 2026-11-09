@@ -14,8 +14,8 @@ export function Mission() {
   const ws = api.ws, labels = priorityMode !== 'off';
   const hints = useMemo(() => ({ priorities: assistState.prios, groups: assistState.groups.map(g => ({ name: g.name, ids: g.ids })) }), [assistState.prios, assistState.groups]);
   const groups = useMemo(() => missionGroups(ws, scope, hints, priorityMode), [ws, scope, hints, priorityMode]);
-  const open = useMemo(() => groups.flatMap(g => g.tasks).filter(t => !t.done).sort((a, b) => (RANK[a.level ?? ''] ?? 3) - (RANK[b.level ?? ''] ?? 3)), [groups]);   // stable: ties keep their order
-  const n = countsOf(open), show = typeof matchMedia === 'function' && matchMedia('(min-width: 761px)').matches ? 5 : 3, shown = open.slice(0, show);
+  const all = useMemo(() => groups.flatMap(g => g.tasks).sort((a, b) => Number(a.done) - Number(b.done) || (RANK[a.level ?? ''] ?? 3) - (RANK[b.level ?? ''] ?? 3)), [groups]);   // open work first; completed stays visible for undo
+  const open = all.filter(t => !t.done), n = countsOf(open), show = typeof matchMedia === 'function' && matchMedia('(min-width: 761px)').matches ? 5 : 3, shown = all.slice(0, show);
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const toggle = (t: MissionTask, on: boolean) => api.run((w, c) => (t.kind === 'task' ? setTaskDone(w, c, t.id, on) : setCaptureDone(w, c, t.id, on)));
   const openGroup = (id: string) => { location.hash = `#/group/${encodeURIComponent(id)}`; window.scrollTo({ top: 0 }); };
@@ -28,10 +28,10 @@ export function Mission() {
           <div className="hero-head"><div className="hero-heading"><div className="hero-copy"><div className="overline">ALL TASKS</div><h2 id="all-tasks-title">{n.total} open {n.total === 1 ? 'task' : 'tasks'}</h2>
             <div className="type-label m-counts">{labels && n.total > 0 ? <PriorityCounts {...n} /> : `${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}</div></div></div></div>
           <div className="hero-checks" role="list">{shown.map(t => (
-            <label key={t.key} className="check-row" role="listitem"><input type="checkbox" checked={t.done} aria-label={`Complete ${t.text}`} onChange={e => toggle(t, e.target.checked)} /><span>{t.text}</span>
+            <label key={t.key} className={`check-row ${t.done ? 'is-complete' : ''}`} role="listitem"><input type="checkbox" checked={t.done} aria-label={`${t.done ? 'Reopen' : 'Complete'} ${t.text}`} onChange={e => toggle(t, e.target.checked)} /><span>{t.text}</span>
               {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}</label>))}
             {!open.length && <p className="small-note">Everything is done.</p>}</div>
-          {open.length > shown.length && <p className="m-more">{open.length - shown.length} more</p>}
+          {all.length > shown.length && <p className="m-more">{all.length - shown.length} more</p>}
           <div className="hero-bottom"><button className="primary-button" onClick={() => go('tasks')}>View all tasks</button></div>
         </section></div>
         <section className="mission-other" aria-label="Groups"><div className="mission-other-head"><div className="mission-other-heading">Groups</div></div>

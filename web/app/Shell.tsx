@@ -38,6 +38,7 @@ const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'P
 const TABS: { page: Page; label: string; icon: string }[] = [
   { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Status', icon: 'target' }, { page: 'review', label: 'Activity Log', icon: 'history' },
 ];
+const MOBILE_ICON: Record<string, string> = { 'list-checks': 'mobile-list', target: 'mobile-status', history: 'mobile-activity' };
 const SCOPE_KEY = 'exe-scope', PRIO_KEY = 'exe-priority-mode';
 const loadPrio = (): PriorityMode => { try { const v = localStorage.getItem(PRIO_KEY); if (v === 'mine' || v === 'off') return v; } catch { /* default */ } return 'ai'; };
 const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem(SCOPE_KEY) ?? ''); if (j?.kind === 'folder' && typeof j.id === 'string') return j; } catch { /* All */ } return ALL; };
@@ -128,13 +129,14 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
         <nav className="mobile-dock" aria-label="Mobile primary navigation">
           {TABS.slice(0, 2).map(t => (
             <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.icon} /><small>{t.label}</small></button>))}
-          <button className="dock-capture" aria-label="Capture task, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
+              <Icon name={t.icon} mobileName={MOBILE_ICON[t.icon]} /><small>{t.label}</small></button>))}
+          <button className="dock-capture" aria-label="Capture task, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" mobileName="mobile-plus" /></button>
           {TABS.slice(2).map(t => (
             <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.icon} /><small>Activity</small>{bubble(badge(t.page))}</button>))}
-          <button className="dock-item" aria-label={`Folders, showing ${scopeName}`} aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><small>Folders</small></button>
+              <Icon name={t.icon} mobileName={MOBILE_ICON[t.icon]} /><small>Activity</small>{bubble(badge(t.page))}</button>))}
+          <button className="dock-item" aria-label={`Folders, showing ${scopeName}`} aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" mobileName="mobile-folder" /><small>Folders</small></button>
         </nav>
+        <button className="mobile-capture-action" aria-label="Capture task, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="mobile-plus" /></button>
       </div>
       {entryOpen && <EntryAssistant id={entryOpen} onClose={() => openEntry(null)} />}
       <div className={`toast ${api.toast ? 'show' : ''}`} role="status" aria-live="polite">{api.toast}</div>
