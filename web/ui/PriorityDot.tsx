@@ -11,7 +11,7 @@ export function PriorityDot({ captureId, level, fromAi, why, text }: { captureId
   const name = level ? `${LEVEL_NAME[level]} priority${fromAi ? ', suggested by AI' : ''}` : 'No priority';
   return (
     <span className={`prio-dot ${level ? `prio-${level}` : 'prio-none'} ${fromAi ? 'ai' : ''}`} title={`${name}${why ? `: ${why}` : ''}`}>
-      <select aria-label={`Priority of ${text}: ${name}`} value={fromAi ? '' : (level ?? '')} onChange={e => api.run(w => setCapturePriority(w, captureId, (e.target.value || null) as Level | null))}>
+      <select aria-label={`Priority of ${text}: ${name}`} value={fromAi ? '' : (level ?? '')} onChange={e => api.run((w, c) => setCapturePriority(w, c, captureId, (e.target.value || null) as Level | null, fromAi ? level : null))}>
         <option value="">{fromAi ? `Keep AI suggestion (${level ? LEVEL_NAME[level] : ''})` : 'No label'}</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
     </span>
   );

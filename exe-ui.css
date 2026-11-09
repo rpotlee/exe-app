@@ -1171,3 +1171,16 @@ body::before {
 .t-row .check-row { min-height: 52px; padding: 8px 0; gap: 12px; align-items: center; font-size: 17px; line-height: 22px; width: 100%; }
 .t-row .assist-help { margin: 0 0 12px 36px; }
 .t-row.is-complete .check-row > span:not(.prio-dot) { color: var(--muted); text-decoration: line-through; }
+
+/* ---------- 20. AI Assistant: the activity log (DEC-018) ---------- */
+.act-day { margin-bottom: 20px; }
+.act-list { list-style: none; margin: 0; padding: 0; background: var(--glass-card); border-radius: var(--r-md); box-shadow: var(--glass-shadow); overflow: hidden; }
+.act-row { display: flex; align-items: flex-start; gap: 12px; min-height: 52px; padding: 10px 14px; position: relative; }
+.act-row + .act-row::before { content: ""; position: absolute; top: 0; left: 58px; right: 0; height: 1px; background: var(--edge); }
+.act-ic { margin-top: 1px; display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; background: color-mix(in srgb, var(--exe-badge) 14%, transparent); color: #3f3dae; }
+.act-ic.you { background: var(--chip-bg); color: var(--ink); }
+:root[data-theme="dark"] .act-ic:not(.you) { color: #a5a3ff; }
+.act-ic svg { width: 16px; height: 16px; }
+.act-body { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.act-text { font-size: 16px; line-height: 21px; letter-spacing: -.3px; }
+.act-time { font-size: 13px; line-height: 18px; color: var(--secondary); font-variant-numeric: tabular-nums; }

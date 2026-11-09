@@ -10,6 +10,7 @@ def S(page):
 def _go(page, route):
     # Map, Decisions and Next & Later are reached under Mission (revamp); the three primary tabs are clicked as before
     if route == 'focus': page.evaluate("location.hash = '#/priorities'")   # the old Current Priority screen now lives at Priorities (DEC-017)
+    elif route == 'review': page.evaluate("location.hash = '#/approvals'")   # the old AI Review approvals, unlinked since DEC-018
     elif route in ('map', 'decisions', 'lanes'): page.evaluate(f"location.hash = '#/{route}'")
     else: page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
 def nav(page, route): _go(page, route)

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Workspace } from '../../src/domain/model';
 import type { Assist, AssistItem } from './ai';
+import type { AiEventInput } from '../../src/domain/activity';
 
 /** What the live-help feature needs from the AI client (the real one, or the local fake). */
 export interface AssistClient {
@@ -14,7 +15,7 @@ const load = (): Saved => { try { const j = JSON.parse(localStorage.getItem(KEY)
 
 /** As the list grows, quietly asks the AI about to-dos it has not looked at yet (a few seconds after typing stops) and keeps what it finds.
  *  Nothing here changes the workspace: it only produces suggestions. Without AI set up, it does nothing. */
-export function useAssist(ai: AssistClient | null, ws: Workspace) {
+export function useAssist(ai: AssistClient | null, ws: Workspace, log?: (events: AiEventInput[]) => void) {
   const [saved, setSaved] = useState<Saved>(load), [ready, setReady] = useState<boolean | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const ref = useRef(saved); ref.current = saved;
   const keep = useCallback((fn: (s: Saved) => Saved) => setSaved(s => { const n = fn(s); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch { /* convenience only */ } return n; }), []);
@@ -31,12 +32,19 @@ export function useAssist(ai: AssistClient | null, ws: Workspace) {
     setBusy(true); setError('');
     try {
       const r = await ai.assist(batch.map(c => c.id), texts);
+      if (log) {   // record what the AI prepared, in small facts only (kind, counts, ids), never the generated text
+        const events: AiEventInput[] = r.items.map(it => ({ action: 'ai-help', entityType: 'capture', entityId: it.captureId, after: { kind: it.kind } }));
+        const ps = r.priorities ?? []; if (ps.length) events.push({ action: 'ai-priorities', after: { total: ps.length, high: ps.filter(q => q.level === 'high').length, medium: ps.filter(q => q.level === 'medium').length, low: ps.filter(q => q.level === 'low').length } });
+        for (const g of r.groups) events.push({ action: 'ai-group', after: { name: g.name, ids: g.ids } });
+        for (const d of r.dependencies) events.push({ action: 'ai-depends', after: { before: d.before, after: d.after } });
+        if (events.length) log(events);
+      }
       keep(s => {
         const seen = { ...s.seen }, items = { ...s.items }, prios = { ...s.prios }; for (const c of batch) { seen[c.id] = hash(texts[c.id] ?? ''); delete items[c.id]; delete prios[c.id]; } for (const it of r.items) items[it.captureId] = it; for (const q of r.priorities ?? []) prios[q.captureId] = { level: q.level, why: q.why };
         const ids = new Set(batch.map(c => c.id)), same = (a: string[]) => a.every(i => ids.has(i));
         return { ...s, seen, items, prios, groups: [...s.groups.filter(g => !same(g.ids)), ...r.groups], deps: [...s.deps.filter(d => !(ids.has(d.before) && ids.has(d.after))), ...r.dependencies] };
       });
-    } catch (e) { setError((e as Error).message); keep(s => ({ ...s, seen: { ...s.seen, ...Object.fromEntries(batch.map(c => [c.id, hash(texts[c.id] ?? '')])) } })); }   // do not retry the same words in a loop
+    } catch (e) { setError((e as Error).message); log?.([{ action: 'ai-failed', after: { message: (e as Error).message.slice(0, 140) } }]); keep(s => ({ ...s, seen: { ...s.seen, ...Object.fromEntries(batch.map(c => [c.id, hash(texts[c.id] ?? '')])) } })); }   // do not retry the same words in a loop
     finally { setBusy(false); }
   }, [ai, busy, live, todo, texts, keep]);
 

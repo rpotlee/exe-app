@@ -49,8 +49,8 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); pg = ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.goto(URL); pg.evaluate(f"localStorage.setItem('{KEY}', arguments[0])" if False else "(d)=>localStorage.setItem('exe-v2:local', d)", json.dumps(ws)); t0 = time.time(); pg.reload(); pg.locator('#view h1').wait_for(); load = time.time() - t0
         times = {}
-        for r, title in [('inbox', 'List'), ('map', 'Map'), ('decisions', 'Decisions'), ('review', 'AI Assistant'), ('focus', 'Mission Status')]:
-            t = time.time(); (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes', 'priorities') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()); pg.locator('#view h1', has_text=title).wait_for(); pg.evaluate('new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))'); times[r] = time.time() - t
+        for r, title in [('inbox', 'List'), ('map', 'Map'), ('decisions', 'Decisions'), ('approvals', 'AI Assistant'), ('focus', 'Mission Status')]:
+            t = time.time(); (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes', 'priorities', 'approvals') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()); pg.locator('#view h1', has_text=title).wait_for(); pg.evaluate('new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))'); times[r] = time.time() - t
         t = time.time(); pg.keyboard.press('/'); pg.get_by_label('Search all work').fill('plumber 1999'); pg.locator('.search-result').first.wait_for(); times['search'] = time.time() - t
         assert load < 5 and all(v < 2.5 for v in times.values()), (w, load, times)
         assert pg.evaluate('document.documentElement.scrollWidth <= innerWidth') and not errs, errs
@@ -60,7 +60,7 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce', **({'has_touch': True, 'is_mobile': True} if (WK and w < 761) else {})); pg = ctx.new_page(); pg.goto(URL); pg.evaluate('localStorage.clear()'); pg.reload()
         def axe(label):
             pg.add_script_tag(path=os.environ['AXE_PATH']); v = pg.evaluate(RUN)['violations']; assert not v, (label, [(x['id'], [n['target'] for n in x['nodes']]) for x in v])
-        nav = lambda r: (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes', 'priorities') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click())
+        nav = lambda r: (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes', 'priorities', 'approvals') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click())
         shot = lambda name: pg.screenshot(path=str(OUT / f"{'webkit-' if WK else ''}{w}-{name}.png"))
         shot('empty-focus')
         pg.locator('.dock-capture, .top-capture').filter(visible=True).last.click(); pg.locator('.modal-sheet').wait_for(); axe('capture dialog')   # dialogs load on demand now; pg.keyboard.press('Escape')
@@ -69,7 +69,7 @@ with sync_playwright() as p:
         pg.get_by_role('button', name='Add outcome').click(); pg.locator('#modal-root input[name=name]').fill('Plan the reunion'); axe('outcome dialog'); pg.locator('#modal-root button[type=submit]').click()
         pg.get_by_role('button', name='Make active').first.click(); pg.get_by_role('button', name='Add step').first.click(); pg.locator('#modal-root input[name=task]').fill('Pick a date'); pg.locator('#modal-root button[type=submit]').click(); shot('map')
         nav('priorities'); shot('focus'); pg.get_by_role('button', name='Enter Focus Mode').click(); axe('focus mode'); shot('focus-mode'); pg.keyboard.press('Escape')
-        nav('inbox'); shot('inbox'); nav('review'); axe('review'); pg.locator('.review-item').first.get_by_role('button', name='Preview merge').click(); axe('merge preview'); shot('merge-preview'); pg.keyboard.press('Escape'); shot('review')
+        nav('inbox'); shot('inbox'); nav('approvals'); axe('review'); pg.locator('.review-item').first.get_by_role('button', name='Preview merge').click(); axe('merge preview'); shot('merge-preview'); pg.keyboard.press('Escape'); shot('review')
         nav('decisions'); pg.get_by_role('button', name='New decision').click(); axe('decision dialog'); pg.keyboard.press('Escape'); shot('decisions')
         pg.keyboard.press('/'); pg.get_by_label('Search all work').fill('reunion'); axe('search dialog'); shot('search'); pg.keyboard.press('Escape')
         (pg.get_by_role('button', name='Settings') if w > 760 else pg.get_by_role('button', name='Account and settings')).filter(visible=True).first.click(); axe('settings dialog'); shot('settings'); pg.keyboard.press('Escape')
