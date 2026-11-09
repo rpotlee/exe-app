@@ -205,7 +205,7 @@ body::before {
 }
 
 :root[data-theme="light"] body::before { background: radial-gradient(circle at 10% 0%, rgba(49, 94, 232, .07), transparent 32%), radial-gradient(circle at 100% 20%, rgba(88, 86, 214, .05), transparent 28%); }
-:root[data-theme="dark"] body::before { background: radial-gradient(circle at 8% 0%, rgba(255, 0, 170, .28), transparent 30%), radial-gradient(circle at 92% 7%, rgba(108, 76, 255, .32), transparent 28%), radial-gradient(circle at 58% 42%, rgba(44, 21, 116, .32), transparent 42%), radial-gradient(circle at 8% 84%, rgba(255, 80, 120, .16), transparent 28%); }
+:root[data-theme="dark"] body::before { background: radial-gradient(circle at 12% 0%, rgba(109, 140, 255, .08), transparent 34%), radial-gradient(circle at 92% 28%, rgba(94, 234, 212, .04), transparent 28%); }
 
 /* ---------- 2. type + logo ---------- */
 .mission-heading h1, .page-heading h1 { font-size: clamp(32px, 3vw, 40px); line-height: 1.08; letter-spacing: -.045em; font-weight: 680; color: var(--ink); }
@@ -241,6 +241,8 @@ body::before {
 }
 :root[data-theme="dark"] .card, :root[data-theme="dark"] .priority-hero, :root[data-theme="dark"] .priority-mini,
 :root[data-theme="dark"] .raw-list.grouped, :root[data-theme="dark"] .add-row {
+  background: rgba(24, 29, 53, .62);
+  border-color: rgba(210, 218, 255, .18);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   backdrop-filter: blur(24px) saturate(150%);
 }
