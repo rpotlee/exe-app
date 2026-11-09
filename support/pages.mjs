@@ -99,7 +99,9 @@ ${warn('Reminders show only while Exe is open. Exe does not send notifications, 
 ${note('Everything on these screens is real. If you have no tasks, Status says so instead of showing examples.')}` },
 
 { slug: 'assistant', title: 'The AI assistant for a task', nav: 'AI assistant', summary: 'Ask for a draft, an answer or a next step.', body: `
-<p class="lead">Open a task’s details from the sparkle to talk to the assistant about that one task. It needs AI turned on (<a href="ai-setup.html">AI setup</a>).</p>
+<p class="lead">Open a task’s details to restore its saved help. Opening Exe, importing entries, browsing and opening task details do not generate AI work. To ask for new help, press <strong>Prepare help</strong> or type a question. It needs AI turned on (<a href="ai-setup.html">AI setup</a>).</p>
+<p>A list review runs only when you press <strong>Review next</strong>. It analyzes up to four entries once, suggests priorities and relationships, and stops. It does not prepare drafts for every entry. Drafts and answers are prepared for the individual task you ask about.</p>
+<p>If your provider reaches a limit, Exe pauses AI and shows a countdown. Your entries and typed question are kept. When the countdown ends, you choose whether to try again; Exe does not restart a background sweep.</p>
 <h2>What it does</h2>
 <ul>
   <li>Asks <strong>one question at a time</strong> when it needs to (for example whether a message should be a text or an email).</li>

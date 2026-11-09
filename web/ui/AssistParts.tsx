@@ -2,14 +2,17 @@ import { useState } from 'react';
 import type { AssistItem } from '../app/ai';
 import { Icon } from './Icon';
 import type { useAssist } from '../app/useAssist';
+import { useAiCooldown } from './useAiCooldown';
 
 const search = (domain: string, q: string) => `https://www.google.com/search?q=${encodeURIComponent(`site:${domain} ${q}`)}`;
 const web = (q: string) => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 
 export function AssistBanner({ a, onSettings, hasAi }: { a: ReturnType<typeof useAssist>; onSettings: () => void; hasAi: boolean }) {
+  const wait = useAiCooldown(a.retryAt);
   if (a.ready === false) return hasAi ? <p className="assist-note"><button className="link-button" onClick={onSettings}>Turn on AI help</button></p> : null;
-  if (a.error) return <p className="assist-note" role="status">AI help paused. <button className="link-button" disabled={a.busy} onClick={a.again}>Try again</button></p>;
-  return a.busy ? <p className="assist-note" role="status">Looking at your list…</p> : null;
+  if (a.error) return <p className="assist-note" role="status">{a.error} <button className="link-button" disabled={a.busy || wait > 0} onClick={a.again}>{wait ? `Try again in ${wait}s` : 'Try again'}</button></p>;
+  if (a.busy) return <p className="assist-note" role="status">Reviewing this batch…</p>;
+  return a.ready && a.batchSize > 0 ? <p className="assist-note"><button className="link-button" onClick={a.again}>Review next {a.batchSize} {a.batchSize === 1 ? 'entry' : 'entries'} with AI</button><span className="small-note"> · Runs once when you ask.</span></p> : null;
 }
 
 /** Groups Exe noticed. Approving one makes an outcome (in Later) with those tasks as its steps; suggested order is saved as unconfirmed. */

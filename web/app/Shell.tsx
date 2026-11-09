@@ -49,7 +49,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   const api = useWorkspace(store);
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
   const [entryOpen, openEntry] = useState<string | null>(null);
-  const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi);   // one AI helper for the whole app, so two screens never ask twice
+  const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi, store.owner);   // one explicit review controller for the whole app
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
   const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);

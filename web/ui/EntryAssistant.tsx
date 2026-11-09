@@ -5,11 +5,12 @@ import { useApp } from '../app/context';
 import { fromAssist, loadDemo } from '../app/useEntryAssistant';
 import { Icon } from './Icon';
 import { useDialog } from './Modal';
+import { useAiCooldown } from './useAiCooldown';
 
 /** The state the list rows summarize (the same rules the panel uses), so a row's status line and the panel always agree. */
 export function useEntryState(id: string, text: string): AssistantState | null {
-  const { assistantDemo, assistState } = useApp();
-  return useMemo(() => (assistantDemo ? loadDemo(id, text) : fromAssist(assistState.items[id], id)), [assistantDemo, assistState.items, id, text]);
+  const { api, assistantDemo, assistState } = useApp();
+  return useMemo(() => (assistantDemo ? loadDemo(id, text) : fromAssist(assistState.items[id], id, text, api.ctx.owner)), [assistantDemo, assistState.items, id, text, api.ctx.owner]);
 }
 export { statusLine };
 
@@ -57,23 +58,26 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
   const cap = api.ws.captures.find(c => c.id === id), text = cap ? (cap.edited_text ?? cap.text) : '';
   const wide = typeof matchMedia === 'function' && matchMedia('(min-width: 1100px)').matches;
   const panel = useRef<HTMLDivElement>(null), onKey = useDialog(panel, onClose, { focusFirst: false, modal: !wide });
-  const live0 = adapter?.demo ? loadDemo(id, text) : fromAssist(assistState.items[id], id);
+  const live0 = adapter?.demo ? loadDemo(id, text) : fromAssist(assistState.items[id], id, text, api.ctx.owner);
   const [state, setState] = useState<AssistantState>(() => live0 ?? { demo: !!adapter?.demo, question: null, artifact: null, versions: [], actions: [], turns: [] });
   const [busy, setBusy] = useState(false), [err, setErr] = useState(''), [retry, setRetry] = useState<(() => void) | null>(null), [stale, setStale] = useState(false);
+  const locked = useRef(false), restoreVersion = useRef(0), [prepared, setPrepared] = useState(!!adapter?.demo), [retryAt, setRetryAt] = useState<number | null>(null);
+  const wait = useAiCooldown(retryAt);
   const [draft, setDraft] = useState(() => { try { return sessionStorage.getItem(`exe-assistant-draft:${id}`) ?? ''; } catch { return ''; } });
   const [copied, setCopied] = useState(false), [vv, setVv] = useState<{ h: number; t: number } | null>(null), [live, setLive] = useState('');
   const alive = useRef(true); useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   /** Run one assistant operation: show "Preparing…", keep the screen usable, and on failure say so truthfully with a Try again. Nothing is lost. */
   const exec = (fn: () => Promise<AssistantState>, say = 'Updated.') => {
-    if (!adapter) return;
-    const go1 = async () => { setBusy(true); setErr(''); setRetry(null); try { const next = await fn(); if (alive.current) { setState(next); setLive(say); } } catch (e) { if (alive.current) { setErr((e as Error).message); setRetry(() => go1); setLive('That did not work.'); } } finally { if (alive.current) setBusy(false); } };
+    if (!adapter || wait > 0) return;
+    const go1 = async () => { if (locked.current) return; locked.current = true; const version = ++restoreVersion.current; setBusy(true); setErr(''); setRetry(null); try { const next = await fn(); if (alive.current && version === restoreVersion.current) { setState(next); setPrepared(true); setStale(false); setLive(say); } } catch (e) { if (alive.current && version === restoreVersion.current) { setErr((e as Error).message); setRetryAt((e as { retryAt?: number | null }).retryAt ?? null); setRetry(() => go1); setLive('That did not work.'); } } finally { locked.current = false; if (alive.current && version === restoreVersion.current) setBusy(false); } };
     void go1();
   };
-  useEffect(() => {   // the real assistant prepares (or restores) this entry's session when it is opened; the demo is local and instant
+  useEffect(() => {   // opening only restores saved work; the server never generates for this operation
     if (!adapter || adapter.demo) return;
-    const run = async () => { setBusy(true); setErr(''); try { const r = await adapter.load(id, text); if (alive.current) { setState(r.state); setStale(r.stale); } } catch (e) { if (alive.current) { setErr((e as Error).message); setRetry(() => run); } } finally { if (alive.current) setBusy(false); } };
-    void run();   // eslint-disable-line react-hooks/exhaustive-deps
-  }, [id]);   // eslint-disable-line react-hooks/exhaustive-deps
+    let current = true;
+    const run = async () => { const version = ++restoreVersion.current; setBusy(true); setErr(''); try { const r = await adapter.load(id, text); if (alive.current && current && version === restoreVersion.current) { setState(r.state); setStale(r.stale); setPrepared(r.prepared ?? !!(r.state.artifact || r.state.question || r.state.turns.length)); } } catch (e) { if (alive.current && current && version === restoreVersion.current) { setErr((e as Error).message); setRetry(() => run); } } finally { if (alive.current && current && version === restoreVersion.current) setBusy(false); } };
+    void run(); return () => { current = false; };
+  }, [id, text, adapter]);
   useEffect(() => { document.body.classList.add('assistant-open'); return () => document.body.classList.remove('assistant-open'); }, []);
   useEffect(() => {   // keep the composer above the on-screen keyboard (iOS): follow the visual viewport, never a guessed keyboard height
     const v = window.visualViewport; if (!v) return;
@@ -89,7 +93,7 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
     }
     if (adapter) exec(() => adapter.act(id, text, a.id));
   };
-  const submit = (e: React.FormEvent) => { e.preventDefault(); const t = draft.trim(); if (!t || !adapter || busy) return; keep(''); exec(() => adapter.send(id, text, t)); };
+  const submit = (e: React.FormEvent) => { e.preventDefault(); const t = draft.trim(); if (!t || !adapter || busy || wait > 0) return; exec(async () => { const next = await adapter.send(id, text, t); if (alive.current) keep(''); return next; }); };
   const place = state.artifact ? (state.artifact.type === 'message_draft' ? 'Refine this draft…' : 'Ask about this result…') : 'Ask Exe a follow-up…';
   if (!cap) return null;
   return createPortal(
@@ -100,12 +104,13 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
         <div className="ax-body-scroll">
           <section className="ax-entry"><p className="ax-entry-text">{text}</p><p className="ax-meta">{cap.kind === 'note' ? 'Note' : cap.kind === 'reminder' ? 'Reminder' : 'Task'}{cap.completed_at ? ' · Done' : ''}</p></section>
           {state.question && <section className="ax-question" aria-label="One question"><p>{state.question.text}</p>
-            <div className={`ax-choices n${state.question.choices.length}`} role="group">{state.question.choices.map(c => <button key={c.id} className="ax-choice" disabled={busy} onClick={() => adapter && exec(() => adapter.choose(id, text, c.id))}>{c.label}</button>)}</div></section>}
+            <div className={`ax-choices n${state.question.choices.length}`} role="group">{state.question.choices.map(c => <button key={c.id} className="ax-choice" disabled={busy || wait > 0 || stale} onClick={() => adapter && exec(() => adapter.choose(id, text, c.id))}>{c.label}</button>)}</div></section>}
           {state.artifact && <ArtifactView a={state.artifact} onCopy={() => run({ id: 'copy', intent: 'copy', label: 'Copy', kind: 'safe_local', priority: 1 })} copied={copied} />}
-          <ActionRow actions={busy ? [] : state.actions} run={run} />
+          {!busy && adapter && (!prepared || stale) && <div><button className="ax-btn primary" disabled={wait > 0} onClick={() => exec(() => adapter.prepare(id, text), 'Help prepared.')}>{stale ? 'Update help' : 'Prepare help'}</button><p className="ax-note">Uses AI only when you ask. You can also type a question below.</p></div>}
+          <ActionRow actions={busy || wait > 0 || stale ? state.actions.filter(a => a.kind === 'safe_local') : state.actions} run={run} />
           {busy && <p className="ax-quiet" role="status">Preparing…</p>}
-          {err && <p className="ax-error" role="alert">{err} {retry && <button className="ax-link" onClick={retry}>Try again</button>}</p>}
-          {!busy && !err && !state.question && !state.artifact && !state.actions.length && <p className="ax-quiet">Nothing to add here. Ask Exe if you want help.</p>}
+          {err && <p className="ax-error" role="alert">{err} {retry && <button className="ax-link" disabled={busy || wait > 0} onClick={retry}>{wait ? `Try again in ${wait}s` : 'Try again'}</button>}</p>}
+          {!busy && !err && !state.question && !state.artifact && !state.actions.length && <p className="ax-quiet">{prepared ? 'No additional help needed for this entry. You can still ask a question.' : 'Saved help appears here. Browsing does not use AI.'}</p>}
           {stale && state.artifact && <p className="ax-note">Prepared for an earlier version of this task.</p>}
           {state.note && <p className="ax-note">{state.note}</p>}
           {state.turns.length > 0 && <details className="ax-history"><summary>Conversation ({state.turns.length})</summary><ol>{state.turns.map(t => <li key={t.id} className={t.role}><strong>{t.role === 'user' ? 'You' : 'Exe'}</strong> {t.text}</li>)}</ol></details>}
@@ -113,10 +118,10 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
           <div className="sr-only" role="status" aria-live="polite">{live}</div>
         </div>
         <form className="ax-composer" onSubmit={submit}>
-          <textarea aria-label="Ask Exe" rows={1} placeholder={adapter ? place : 'Turn on AI in Settings to ask follow-ups'} disabled={!adapter || busy} value={draft} maxLength={2000}
+          <textarea aria-label="Ask Exe" rows={1} placeholder={adapter ? place : 'Turn on AI in Settings to ask follow-ups'} disabled={!adapter || busy || wait > 0} value={draft} maxLength={2000}
             onChange={e => { keep(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia('(min-width: 761px)').matches) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }} />
-          <button type="submit" className="ax-send" aria-label="Send" disabled={!adapter || busy || !draft.trim()}><Icon name="arrow-up" /></button>
+          <button type="submit" className="ax-send" aria-label="Send" disabled={!adapter || busy || wait > 0 || !draft.trim()}><Icon name="arrow-up" /></button>
         </form>
       </div>
     </div>, document.body);

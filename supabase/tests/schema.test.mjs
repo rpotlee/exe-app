@@ -5,6 +5,35 @@ import { freshDb, asUser, asAi, fails, one, all, A, B } from './harness.mjs';
 const mkOutcome = (db, name, extra = '') => one(db, `insert into outcomes (name${extra ? ',' + extra.split('=')[0] : ''}) values ($1${extra ? ',' + extra.split('=')[1] : ''}) returning id`, [name]).then(r => r.id);
 const lane = (db, outcome, l) => db.query('insert into focus_assignments (outcome_id, lane) values ($1,$2)', [outcome, l]);
 
+test('AI admission is service-only, serialized per owner, budgeted and fenced across expired workers', async () => {
+  const db = await freshDb();
+  const l1 = '10000000-0000-4000-8000-000000000001', l2 = '10000000-0000-4000-8000-000000000002';
+  assert.match(await fails(asUser(db,A,d=>d.query('select exe_ai_acquire($1,$2,100)',[A,l1]))), /permission denied/);
+  assert.match(await fails(asUser(db,A,d=>d.query('select * from ai_admission'))), /permission denied/);
+  await db.exec('set role service_role');
+  const acquire = async (owner, lease, tokens) => (await one(db,'select exe_ai_acquire($1,$2,$3) gate',[owner,lease,tokens])).gate;
+  const release = async (owner, lease, reserved, used, wait = 0, remaining = null, reset = 60) => (await one(db,'select exe_ai_release($1,$2,$3,$4,$5,$6,$7) released',[owner,lease,reserved,used,wait,remaining,reset])).released;
+  assert.equal((await acquire(A,l1,4000)).granted,true);
+  assert.equal((await acquire(A,l2,100)).granted,false,'a second endpoint/device shares the same lease');
+  assert.equal((await acquire(B,l2,100)).granted,true,'different accounts have independent admission');
+  assert.equal(await release(A,l2,4000,0),false,'wrong lease cannot release or refund');
+  assert.equal(await release(A,l1,4000,1000,0,500,9),true);
+  assert.equal((await one(db,'select reserved_tokens from ai_admission where owner_id=$1',[A])).reserved_tokens,1000,'settle actual usage');
+  const lowBudget = await acquire(A,l2,600);
+  assert.equal(lowBudget.granted,false); assert.ok(lowBudget.retryAfterSeconds>=8,'upstream remaining/reset headers are honored');
+  await db.query("update ai_admission set provider_reset_at=now()-interval '1 second',next_allowed_at=now()-interval '1 second' where owner_id=$1",[A]);
+  assert.equal((await acquire(A,l2,5001)).granted,false,'rolling reservation budget covers both endpoints');
+  assert.equal((await acquire(A,l2,5000)).granted,true);
+  await db.query("update ai_admission set lease_until=now()-interval '1 second',window_started_at=now()-interval '61 seconds',next_allowed_at=now()-interval '1 second' where owner_id=$1",[A]);
+  assert.equal((await acquire(A,l1,100)).granted,true,'expired worker recovers without manual reset');
+  assert.equal(await release(A,l2,5000,0),false,'expired worker cannot touch its successor');
+  assert.equal((await one(db,'select reserved_tokens from ai_admission where owner_id=$1',[A])).reserved_tokens,100);
+  assert.equal(await release(A,l1,100,100,45),true);
+  const cooldown = await acquire(A,l2,100);
+  assert.equal(cooldown.granted,false); assert.ok(cooldown.retryAfterSeconds>=44,'429 cooldown survives worker and device changes');
+  await db.exec('reset role');
+});
+
 test('every table has an owner, timestamps and (where mutable) a revision', async () => {
   const db = await freshDb();
   const rows = await all(db, `select table_name, array_agg(column_name::text) cols from information_schema.columns where table_schema='public' and table_name in

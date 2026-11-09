@@ -11,7 +11,7 @@ export interface Turn { id: string; role: 'user' | 'assistant'; text: string }
 export interface State { question: Question | null; artifact: Artifact | null; versions: Artifact[]; actions: Action[]; turns: Turn[]; processed: string[] }
 export const emptyState = (): State => ({ question: null, artifact: null, versions: [], actions: [], turns: [], processed: [] });
 
-export type Op = 'open' | 'send' | 'choose' | 'act';
+export type Op = 'open' | 'restore' | 'prepare' | 'send' | 'choose' | 'act';
 export const MAX_TEXT = 1500, MAX_TURNS = 40, MAX_VERSIONS = 12, MAX_BODY = 4000;
 
 /** The only things the assistant can offer. A model-proposed intent not in this table is dropped. */
@@ -44,11 +44,18 @@ export const SYSTEM = [
 export interface Ctx { entry: string; kind: string; op: Op; message?: string; choice?: string; intent?: string; artifact: Artifact | null; question: Question | null; turns: Turn[] }
 export function buildPrompt(c: Ctx): string {
   const clip = (s: string, n: number) => s.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, ' ').slice(0, n);
-  const parts = [`Entry (${c.kind}, data): ${clip(c.entry, MAX_TEXT)}`];
-  if (c.artifact) parts.push(`Current ${c.artifact.type} (version ${c.artifact.revision}, data):\n${clip((c.artifact.subject ? c.artifact.subject + '\n' : '') + c.artifact.body + (c.artifact.items ? '\n' + c.artifact.items.map(i => '- ' + i.text).join('\n') : ''), MAX_BODY)}`);
-  if (c.question) parts.push(`Open question: ${clip(c.question.text, 200)}`);
-  if (c.turns.length) parts.push('Recent turns (data):\n' + c.turns.slice(-8).map(t => `${t.role}: ${clip(t.text, 300)}`).join('\n'));
-  parts.push(c.op === 'open' ? 'Task: decide the smallest useful help for this entry, or stay silent.' : c.op === 'send' ? `The user wrote (data): ${clip(c.message ?? '', 500)}\nTask: respond by updating the current artifact or answering.` : c.op === 'choose' ? `The user picked: ${clip(c.choice ?? '', 60)}\nTask: continue from that choice.` : `The user tapped: ${clip(c.intent ?? '', 40)}\nTask: do exactly that.`);
+  const enc = new TextEncoder(), bytes = (s: string) => enc.encode(s).length;
+  const byteClip = (s: string, n: number) => new TextDecoder().decode(enc.encode(s).slice(0, Math.max(0,n))).replace(/\uFFFD$/, '');
+  const task = c.op === 'open' || c.op === 'prepare' ? 'Task: decide the smallest useful help for this entry, or stay silent.' : c.op === 'send' ? `The user wrote (data): ${clip(c.message ?? '', 500)}\nTask: respond by updating the current artifact or answering.` : c.op === 'choose' ? `The user picked: ${clip(c.choice ?? '', 60)}\nTask: continue from that choice.` : `The user tapped: ${clip(c.intent ?? '', 40)}\nTask: do exactly that.`;
+  const budget = 8000 - bytes(SYSTEM) - 1;
+  const prefix = `Entry (${c.kind}, data): `;
+  const parts = [prefix + byteClip(clip(c.entry, MAX_TEXT), budget - bytes(prefix + '\n\n' + task))];
+  const add = (s: string) => { const available = budget - bytes([...parts, task].join('\n\n')) - 2; if (available > 80) parts.push(byteClip(s, available)); };
+  if (c.artifact) add(`Current ${c.artifact.type} (version ${c.artifact.revision}, data):\n${clip((c.artifact.subject ? c.artifact.subject + '\n' : '') + c.artifact.body + (c.artifact.items ? '\n' + c.artifact.items.map(i => '- ' + i.text).join('\n') : ''), MAX_BODY)}`);
+  if (c.question) add(`Open question: ${clip(c.question.text, 200)}`);
+  // Discard oldest turns first. Only the prompt is shortened; saved history/artifacts are unchanged.
+  for (const t of c.turns.slice(-8).reverse()) add(`Recent turn (${t.role}, data): ${clip(t.text, 300)}`);
+  parts.push(task);
   return parts.join('\n\n');
 }
 
@@ -120,3 +127,9 @@ export function applyEnvelope(prev: State, env: Envelope, req: { id: string; use
   return s;
 }
 export const seenRequest = (s: State, id: string): boolean => s.processed.includes(id);
+
+/** Content identity excludes completion, priority, folder and other unrelated capture revisions. */
+export async function assistantFingerprint(input: { entry: string; kind: string; provider: string; model: string }): Promise<string> {
+  const bytes = new TextEncoder().encode(JSON.stringify(['assistant-v2', SYSTEM, input.entry, input.kind, input.provider, input.model]));
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(n => n.toString(16).padStart(2, '0')).join('');
+}
