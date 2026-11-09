@@ -91,3 +91,4 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 - 2026-11-09: Mobile nav restyled as a glass pill with a filled blue selected tab (DEC-022).
 - 2026-11-09: List filters use the glass nav style (blue selected pill).
 - 2026-11-09: List has one filter bar (All/Tasks/Notes/Reminders); finished tasks move to a collapsible Done section.
+- 2026-11-09: Assistance engine (DEC-023) on feat/assist-engine. Needs: redeploy ai-review (requires migration 14 ai_admission to be applied live).

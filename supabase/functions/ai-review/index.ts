@@ -1,7 +1,7 @@
 // Asks the user's own AI provider for SUGGESTIONS about their pending captures. Nothing is written to the workspace:
 // the result is validated against a strict schema and returned as proposals the person must approve.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
+import { buildHelpPrompt, HELP_MANUAL_SYSTEM, HELP_SYSTEM, HELP_TOKENS_AUTO, HELP_TOKENS_MANUAL, MAX_HELP, parseHelp, usageSplit, type HelpWant, ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
 import { aiErrorResponse, withAiProvider } from '../_shared/ai-runtime.ts';
@@ -25,11 +25,22 @@ Deno.serve(async (req: Request) => {
   if (!test && (!s.enabled || !s.disclosure_accepted_at)) return json({ error: 'Turn on AI in Settings and accept the notice first.' }, 403);
   let apiKey: string; try { apiKey = await decryptKey(secret, hexToB64(String(s.key_ciphertext))); } catch { return json({ error: 'Your saved key could not be read. Save it again.' }, 500); }
 
-  const stepsMode = body.mode === 'steps', assistMode = body.mode === 'assist';
+  const stepsMode = body.mode === 'steps', assistMode = body.mode === 'assist', helpMode = body.mode === 'help';
+  const manualHelp = helpMode && body.manual === true, want = (['draft', 'answer', 'prep', 'steps', 'research'] as const).find(w => w === body.want) as HelpWant | undefined;
+  let helpIds = new Set<string>();
   let assistIds = new Set<string>();
   let existingSteps: string[] = [];
   let system = SYSTEM, user = '', allowed = { captureIds: new Set<string>(), folderIds: new Set<string>(), outcomeIds: new Set<string>() };
   if (test) { system = 'Reply with exactly this JSON and nothing else: {"ok":true}'; user = 'ping'; }
+  else if (helpMode) {
+    // Assistance engine: automatic batches of up to 8, or one entry the person asked about. Text is read from the database, never trusted from the client.
+    const ids = (Array.isArray(body.captureIds) ? body.captureIds.filter((x): x is string => typeof x === 'string') : []).slice(0, manualHelp ? 1 : MAX_HELP);
+    if (!ids.length) return json({ error: 'Nothing to look at.' }, 400);
+    const caps = await admin.from('captures').select('id, text, edited_text, kind').eq('owner_id', uid).is('archived_at', null).in('id', ids);
+    if (!caps.data?.length) return json({ error: 'Those entries were not found. They may still be saving; try again in a moment.' }, 400);
+    helpIds = new Set(caps.data.map(c => c.id)); system = manualHelp ? HELP_MANUAL_SYSTEM : HELP_SYSTEM;
+    user = buildHelpPrompt(caps.data.map(c => ({ id: c.id, text: c.edited_text ?? c.text, kind: c.kind ?? 'todo' })), manualHelp ? want : undefined);
+  }
   else if (assistMode) {
     const ids = Array.isArray(body.captureIds) ? body.captureIds.filter((x): x is string => typeof x === 'string').slice(0, MAX_ASSIST) : [];
     if (!ids.length) return json({ error: 'Nothing to look at.' }, 400);
@@ -54,12 +65,13 @@ Deno.serve(async (req: Request) => {
     user = buildPrompt({ captures: caps.data.map(c => ({ id: c.id, text: c.edited_text ?? c.text })), folders: folders.data ?? [], outcomes: outcomes.data ?? [] });
   }
 
-  const tokens = test ? 64 : assistMode ? ASSIST_TOKENS : stepsMode ? 600 : 1500;
+  const tokens = test ? 64 : helpMode ? (manualHelp ? HELP_TOKENS_MANUAL : HELP_TOKENS_AUTO) : assistMode ? ASSIST_TOKENS : stepsMode ? 600 : 1500;
   const spec = buildRequest(s.provider as Provider, s.model, apiKey, system, user, tokens);
   try {
     return await withAiProvider(admin, uid, spec, system, user, tokens, providerData => {
       const text = extractText(s.provider as Provider, providerData);
       if (test) return json({ ok: /"ok"\s*:\s*true/.test(text), provider: s.provider, model: s.model });
+      if (helpMode) return json({ items: parseHelp(text, helpIds, manualHelp), usage: usageSplit(providerData), provider: s.provider, model: s.model });
       if (assistMode) return json({ ...parseAssist(text, assistIds), items: [], provider: s.provider, model: s.model });
       if (stepsMode) return json({ steps: parseSteps(text, existingSteps), provider: s.provider, model: s.model });
       const { proposals, dropped } = parseProposals(text, allowed);

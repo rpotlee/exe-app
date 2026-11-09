@@ -6,6 +6,7 @@ import { labelFor } from '../../src/domain/mission';
 import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
+import { AskExe, HelpChip, HelpPanel } from '../ui/HelpPanel';
 
 const localInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const niceWhen = (iso: string) => new Date(iso).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -24,7 +25,7 @@ export function List() {
   const ws = api.ws;
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
-  const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set());
+  const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set()), [helpOpen, setHelpOpen] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false), [draft, setDraft] = useState(''), [addKind, setAddKind] = useState<'todo' | 'note' | 'reminder'>('todo'), [when, setWhen] = useState(''), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
   const remember = (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch { /* convenience only */ } };
   const pickKind = (k: KindFilter) => { setKind(k); remember('exe-kind-filter', k); if (k === 'note') setAddKind('note'); else if (k === 'todo') setAddKind('todo'); };
@@ -41,6 +42,7 @@ export function List() {
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
               {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} mobileName={k === 'note' ? 'mobile-note' : 'mobile-bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : <time dateTime={c.remind_at} title={niceWhen(c.remind_at)}><span className="reminder-date-wide">{niceWhen(c.remind_at)}</span><span className="reminder-date-compact">{compactWhen(c.remind_at)}</span></time>}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
+              {!c.completed_at && !c.archived_at && <HelpChip id={c.id} open={helpOpen === c.id} onToggle={() => setHelpOpen(o => (o === c.id ? null : c.id))} />}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
                 <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'Task' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>
@@ -51,9 +53,10 @@ export function List() {
                   {k !== 'note' && <label className="file-field"><span className="small-note">Remind me</span><select className="select" aria-label={`Remind me: ${text}`} value="" onChange={e => { const v = e.target.value; if (v === 'clear') api.run((w, cx) => setReminder(w, cx, c.id, null)); else if (v) api.run((w, cx) => setReminder(w, cx, c.id, v)); }}><option value="">{c.remind_at ? niceWhen(c.remind_at) : 'Not set'}</option>{reminderChoices(new Date()).map(ch => <option key={ch.label} value={ch.at.toISOString()}>{ch.label}</option>)}{c.remind_at && <option value="clear">Remove reminder</option>}</select></label>}
                   {k === 'todo' && <label className="file-field"><span className="small-note">Priority</span><select className="select" aria-label={`Priority: ${text}`} value={c.user_priority ?? ''} onChange={e => api.run((w, cx) => setCapturePriority(w, cx, c.id, (e.target.value || null) as 'high' | 'medium' | 'low' | null))}><option value="">None</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>}
                 </div>
-                <div className="raw-actions"><button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
+                <div className="raw-actions">{!c.completed_at && !c.archived_at && <AskExe id={c.id} onAsked={() => setHelpOpen(c.id)} />}<button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => archiveCapture(w, cx, c.id, !c.archived_at))}>{c.archived_at ? 'Restore' : 'Archive'}</button></div>
               </div>
+              {helpOpen === c.id && <HelpPanel id={c.id} text={text} />}
             </li>); };
 
   return (

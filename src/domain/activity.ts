@@ -21,7 +21,7 @@ export function describe(ws: Workspace, e: AuditEvent): Line | null {
   const mk = (parts: Part[], by: 'ai' | 'you' = 'ai'): Line => ({ id: e.id, at: e.at, parts, text: plain(parts), by });
   const grp = (n: unknown): Part => ({ t: `“${snip(String(n ?? 'a group'), 40)}”`, tone: 'name' });
   switch (e.action) {
-    case 'ai-help': return mk([a.kind === 'email' ? 'Prepared an email draft for ' : a.kind === 'research' ? 'Found where to look for ' : 'Answered the question in ', cap(e.entity_id)]);
+    case 'ai-help': return mk([a.kind === 'email' || a.kind === 'draft' ? 'Prepared a draft for ' : a.kind === 'research' || a.kind === 'research_offer' ? 'Suggested searches for ' : a.kind === 'preparation' ? 'Prepared questions for ' : a.kind === 'breakdown_offer' ? 'Suggested steps for ' : 'Answered the question in ', cap(e.entity_id)]);   // suggestions only: nothing was sent or researched
     case 'ai-priorities': {
       const parts: Part[] = [`Suggested priorities for ${a.total} ${Number(a.total) === 1 ? 'task' : 'tasks'}`], ks = (['high', 'medium', 'low'] as const).filter(k => Number(a[k]) > 0);
       if (ks.length) { parts.push(' ('); ks.forEach((k, i) => { if (i) parts.push(', '); parts.push(`${a[k]} `, lv(k)); }); parts.push(')'); }
