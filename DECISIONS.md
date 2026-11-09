@@ -263,7 +263,7 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **The List shows no AI help** (no pills, banner or group cards). It stays a plain list of everything captured, where you can still set the type and a priority label. AI help still runs in the background and is shown on the task screens.
 - **Replaced, per the owner:** Mission no longer has a Current Priority card, a Focus button, "Make current priority" or an Explore list; "All tasks" and Groups replace them. The old screens' code and routes (`#/priorities`, `#/map`, `#/decisions`, `#/lanes`) are NOT deleted but are no longer linked from anywhere, so Map, Decisions, Next & Later and Focus Mode are currently unreachable from the UI. DECIDED by the owner (option C): keep them, unlinked, for now. The three-Now limit and current focus remain in the data and the database rules.
 
-## DEC-018 — AI Assistant is the AI's activity log (2026-11-08)
+## DEC-018 — The AI tab is the Activity Log (2026-11-08)
 **Source:** owner direction. Replaces the AI Review approvals screen as the AI tab.
 
 - The AI tab shows only a plain, newest-first log (grouped by day) of what the AI did and how you answered it: help prepared (email draft, where to look, quick answer), priorities suggested, groups suggested, possible dependencies noticed, failures, and your actions on its suggestions (grouping from a suggestion, changing a priority the AI suggested).
@@ -271,3 +271,4 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - The AI changes nothing by itself, so the log is "what it suggested and prepared" plus "what you approved". The AI tab has no count badge any more.
 - The old AI Review approvals screen is kept, unlinked, at `#/approvals` (same treatment as Map and Decisions, DEC-017).
 - Not yet logged: edits the AI never makes, calendar files and reminders (Phase 4), and the saved-AI-help-across-devices work.
+- Style: renamed Activity Log, a plain timeline (dated headings with a dot on a line, small bold AI/You, details with colored priority words and accent item names, time). No cards or images. Nav icon: history.

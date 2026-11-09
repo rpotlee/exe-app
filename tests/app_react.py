@@ -42,7 +42,7 @@ with sync_playwright() as p:
         # empty first run
         assert status(page) == 'Nothing here yet.' and page.get_by_role('heading', name='Nothing here yet').count() == 1
         labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span:not(.nav-scope):not(.nav-count)')).all_inner_texts() if t.strip()]
-        assert labels == (['List', 'Mission', 'AI', 'Folders'] if mobile else ['List', 'Mission Status', 'AI Assistant', 'Folders']), labels   # revamp: five positions, the + in the middle
+        assert labels == (['List', 'Mission', 'Activity', 'Folders'] if mobile else ['List', 'Mission Status', 'Activity Log', 'Folders']), labels   # revamp: five positions, the + in the middle
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
