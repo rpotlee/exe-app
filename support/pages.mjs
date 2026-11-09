@@ -73,7 +73,9 @@ ${steps(['Type in the box at the top. The small button on its left shows the typ
 <p>Priority is shown as a small colored dot: red is High, orange is Medium, yellow is Low. A filled dot is one you chose. A ring is the AI’s suggestion. Your choice always wins. In Settings, <strong>Priority labels</strong> lets you show AI suggestions, only your own, or none.</p>
 <h2>Finding things</h2>
 <p>Use the filter at the top (All, Tasks, Notes, Reminders). Finished tasks move to <strong>Done</strong> at the bottom of the list; tap it to open. <strong>View archived</strong> shows what you archived, and <strong>Restore</strong> brings it back. Very long lists show 200 at a time (<strong>Show 200 more</strong>).</p>
-${note('The List has no AI help on purpose. The AI assistant is on the Status screens. See <a href="assistant.html">The AI assistant</a>.')}` },
+<h2>AI help on entries</h2>
+<p>With AI turned on, Exe looks at new entries in the background (a few at a time, never while you type) and shows a small label when it can help: <strong>Draft ready</strong>, <strong>Answer ready</strong>, <strong>Research available</strong>, <strong>Can help break this down</strong> or <strong>Preparation available</strong>. Tap the label to see it, copy or edit a draft, or <strong>Dismiss</strong> it. Routine entries like chores are skipped. To ask about any entry, open its three dots and press <strong>Ask Exe</strong>. Drafts are never sent, research only runs when you ask, and suggested searches are not verified sources.</p>
+` },
 
 { slug: 'reminders', title: 'Reminders', nav: 'Reminders', summary: 'Be reminded inside Exe at a time you choose.', body: `
 <p class="lead">A reminder shows a banner at the top of Exe when its time comes.</p>

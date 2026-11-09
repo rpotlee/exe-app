@@ -7,6 +7,8 @@ import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
 import type { AiApi } from './ai';
 import { useAssist, type AssistClient } from './useAssist';
+import { useHelp } from './useHelp';
+import type { HelpClient } from './assistEngine';
 import * as C from '../../src/domain/commands';
 import type { AiEventInput } from '../../src/domain/activity';
 
@@ -50,7 +52,10 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   const api = useWorkspace(store);
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
   const [entryOpen, openEntry] = useState<string | null>(null);
-  const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi, store.owner);   // one explicit review controller for the whole app
+  const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi, store.owner);
+  const helpClient = useMemo<HelpClient | null>(() => (fakeAi && 'help' in fakeAi ? (fakeAi as unknown as HelpClient) : ai ? { settings: () => ai.settings(), help: (ids, o) => ai.help(ids, { manual: o.manual, want: o.want }) } : null), [ai, fakeAi]);
+  const help = useHelp(helpClient, api.ws ?? emptyWorkspace(), logAi, store.owner);   // automatic, batched assistance (suggestions only)
+  const helpVersion = help.getVersion();   // one explicit review controller for the whole app
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
   const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);
@@ -83,7 +88,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
   useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, assistState, assistantDemo: !!fakeAi, assistantAdapter, openEntry, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, assistState, fakeAi, assistantAdapter, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, help, helpVersion, assistState, assistantDemo: !!fakeAi, assistantAdapter, openEntry, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, help, helpVersion, assistState, fakeAi, assistantAdapter, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;

@@ -1549,3 +1549,22 @@ body.assistant-open .mobile-navigation { display: none; }
 .auth-card .form-field { display: grid; gap: 6px; }
 .auth-card .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 .auth-card .primary-button, .auth-card .quiet-button { min-height: 48px; }
+
+/* ---- AI assistance on List rows: a quiet indigo chip, help expands inline only when asked (assistance engine) ---- */
+.raw-row .help-chip { grid-column: 1; grid-row: 2; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin: -6px 0 8px 36px; padding: 0 12px; border: 1px solid color-mix(in srgb, var(--exe-badge) 35%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--exe-badge) 10%, transparent); color: var(--exe-badge); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+:root[data-theme="dark"] .raw-row .help-chip { color: #c7c6ff; border-color: rgba(199, 198, 255, .35); background: rgba(124, 122, 255, .16); }
+.raw-row .help-chip svg { width: 14px; height: 14px; }
+.raw-row .help-chip.is-stale { color: var(--secondary); border-color: var(--edge); background: none; }
+.raw-row .help-chip::before { content: ""; position: absolute; inset: -6px 0; }   /* 44px touch target without a bigger chip */
+.raw-row .help-chip { position: relative; }
+.help-panel { grid-column: 1 / -1; margin: 0 8px 12px 36px; padding: 12px 14px; border-radius: 16px; background: color-mix(in srgb, var(--exe-badge) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--exe-badge) 22%, transparent); font-size: 14.5px; line-height: 1.45; }
+:root[data-theme="dark"] .help-panel { background: rgba(124, 122, 255, .1); border-color: rgba(199, 198, 255, .22); }
+.help-panel p { margin: 0 0 6px; }
+.help-panel ul, .help-panel ol { margin: 0 0 6px; padding-left: 20px; }
+.help-label { font-size: 12px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; color: var(--secondary); }
+.help-note { font-size: 13px; color: var(--secondary); }
+.help-block { margin-bottom: 10px; }
+.help-draft { width: 100%; box-sizing: border-box; min-height: 110px; margin: 2px 0 8px; resize: vertical; }
+.help-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.help-actions .mini-button, .help-actions .quiet-button, .help-block .mini-button { min-height: 44px; }
+.raw-detail-panel .small-note, .when-row .small-note { color: var(--secondary); }   /* field labels kept at 4.5:1 on the soft panel */

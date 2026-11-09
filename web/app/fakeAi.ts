@@ -4,6 +4,20 @@ import type { Assist, AssistItem } from './ai';
  *  It is never used when signed in. */
 export function makeFakeAi() {
   return {
+    /** Canned assistance-engine answers (local testing only; labeled by the UI as AI output, never as sent or researched). */
+    async help(ids: string[], opts: { manual: boolean; want?: string; texts: Record<string, string> }) {
+      const items = ids.map(id => {
+        const t = (opts.texts[id] ?? '').toLowerCase();
+        if (/email|text|message|write/.test(t)) return { captureId: id, kind: 'draft' as const, draft: { subject: 'Quick note', body: 'Hi [Name],\n\nI wanted to follow up on this. Could you let me know when works for you?\n\nThanks,\n[Your name]' } };
+        if (/capital of australia/.test(t)) return { captureId: id, kind: 'quick_answer' as const, answer: { text: 'Canberra is the capital of Australia.', unsure: false } };
+        if (t.includes('?')) return { captureId: id, kind: 'quick_answer' as const, answer: { text: 'I am not certain; please check a reliable source.', unsure: true } };
+        if (opts.manual && opts.want === 'prep') return { captureId: id, kind: 'preparation' as const, prep: ['What is your availability?', 'What is the total price?', 'Are you insured?'] };
+        if (opts.manual && opts.want === 'steps') return { captureId: id, kind: 'breakdown_offer' as const, steps: ['Decide what done looks like', 'List what you need', 'Do the first small part'] };
+        if (opts.manual && opts.want === 'research') return { captureId: id, kind: 'research_offer' as const, queries: ['requirements ' + t.slice(0, 40)] };
+        return { captureId: id, kind: 'none' as const };
+      });
+      return { items, usage: { input: 50 * ids.length, output: 20 * ids.length } };
+    },
     async settings() { return { provider: 'anthropic' as const, model: 'fake', key_last4: '0000', enabled: true, disclosure_accepted_at: '2027-01-01T00:00:00Z' }; },
     async assist(ids: string[], texts: Record<string, string>): Promise<Assist & { provider: 'anthropic'; model: string }> {
       const items: AssistItem[] = [];

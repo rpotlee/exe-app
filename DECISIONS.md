@@ -295,3 +295,10 @@ Date: 2026-11-08. Reminders use two columns on `captures` (`remind_at`, `remind_
 
 ## DEC-022: Glass navigation bar with a filled selected tab
 Date: 2026-11-09. Owner supplied a reference: a frosted-glass pill with a bright rim, white (dark theme) or dark-grey (light theme) icons and labels, and the selected tab as a filled deep-blue pill with white icon and label. This replaces the earlier rule that the active tab is only a color change. Values are the --dock-* tokens in exe-ui.css. Axe contrast passes on the nav in both themes.
+
+## DEC-023: Lightweight assistance engine (automatic, batched, suggestions only)
+Date: 2026-11-09. Owner spec "Build a Lightweight, Token-Efficient AI Assistance Engine (V1)". Supersedes, for the List only, the earlier direction that the List shows no AI help, and PR #25's manual-only rule for per-entry help (the organization review stays manual).
+- Stage A (`src/domain/assistScreen.ts`): plain rules skip routine entries, offer research/breakdown/preparation without any AI call, and send only drafts, questions and ambiguous entries to AI.
+- Stage B (`web/app/assistEngine.ts` + `ai-review` mode `help`): 1.5 s debounce, batches of up to 8, one automatic request in flight, Retry-After honoured, bounded backoff (3 attempts, then the batch is given up until the text changes), manual "Ask Exe" on any entry. Short drafts and answers come back in the same batch; research, steps and call questions are generated only on request. The server reads entry text from the database (owner-scoped) and parses strictly: no URLs, sources or extra fields.
+- Stage C: device cache keyed by account + provider + model, per-entry fingerprint including the schema version; edited entries show "Out of date" until refreshed. The engine has no write path to the workspace.
+- Diagnostics: `window.__exeHelpDiag()` (requests, items, input/output tokens when reported, cache hits, skipped, offered, errors, retries). No token-savings claim is made without measurement.

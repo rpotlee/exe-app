@@ -1,5 +1,6 @@
 import type { Db } from '../../src/store/supabase';
 import { aiRequests, invokeAi, notifyAiSettingsChanged } from './aiRequests';
+import type { HelpResponse, HelpWant } from './assistEngine';
 
 export type Provider = 'anthropic' | 'openai' | 'gemini' | 'groq';
 export const PROVIDER_NAMES: Record<Provider, string> = { anthropic: 'Anthropic', openai: 'OpenAI', gemini: 'Google Gemini', groq: 'Groq' };
@@ -31,6 +32,8 @@ export function makeAi(db: Db, uid: string) {
     test: () => call<{ ok: boolean }>('ai-review', { test: true }),
     suggest: (captureIds: string[]) => call<Suggestions>('ai-review', { captureIds }),
     assist: (captureIds: string[]) => call<Assist & { provider: Provider; model: string }>('ai-review', { mode: 'assist', intent: 'analyze', captureIds }),
+    /** Assistance engine: an automatic batch (up to 8) or one entry the person asked about. The server reads the text itself. */
+    help: (captureIds: string[], opts: { manual: boolean; want?: HelpWant }) => call<HelpResponse>('ai-review', { mode: 'help', captureIds, manual: opts.manual, ...(opts.want ? { want: opts.want } : {}) }),
     suggestSteps: (outcomeId: string) => call<{ steps: string[]; provider: Provider; model: string }>('ai-review', { mode: 'steps', outcomeId }),
   };
 }
