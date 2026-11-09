@@ -1020,15 +1020,6 @@ body::before {
 .nav-scope { margin-left: auto; font-size: 13px; color: var(--secondary); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crumb-scope { background: none; border: 0; padding: 0 2px; font: inherit; font-weight: 600; color: var(--exe-accent-ink); cursor: pointer; }
 /* List screen: dense, one row per control. A single segmented control for the type, one compact add row, and entries in one grouped card. */
-.command-summary { display: grid; gap: 14px; margin: -4px 0 22px; padding: 18px; border: 1px solid color-mix(in srgb, var(--exe-accent) 16%, var(--edge)); border-radius: 20px; background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, var(--exe-accent) 8%), var(--surface)); box-shadow: 0 12px 28px rgba(18, 31, 53, .07); }
-.command-intro { display: grid; gap: 3px; }
-.command-kicker { font-size: 11px; line-height: 15px; font-weight: 700; letter-spacing: .1em; color: var(--exe-accent-ink); }
-.command-intro strong { font-size: 22px; line-height: 27px; letter-spacing: -.045em; font-weight: 680; }
-.command-copy { font-size: 13px; line-height: 18px; color: var(--secondary); }
-.command-signals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.signal-card { display: grid; gap: 2px; min-width: 0; padding: 10px 11px; border-radius: 13px; background: color-mix(in srgb, var(--surface-soft) 90%, var(--exe-accent) 10%); }
-.signal-value { font-size: 20px; line-height: 22px; font-weight: 680; letter-spacing: -.04em; }
-.signal-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; line-height: 15px; font-weight: 600; color: var(--secondary); }
 .seg { display: flex; padding: 2px; border-radius: 999px; background: var(--input-bg); margin: 0 0 10px; }
 .seg button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); white-space: nowrap; }
 .seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 2px 8px rgba(18, 31, 53, .14), inset 0 0 0 1px rgba(255,255,255,.72); font-weight: 600; }

@@ -27,9 +27,6 @@ export function List() {
   const pickKind = (k: KindFilter) => { setKind(k); remember('exe-kind-filter', k); if (k === 'note') setAddKind('note'); else if (k === 'todo') setAddKind('todo'); };
   const pickStatus = (v: Status) => { setStatus(v); remember('exe-todo-status', v); };
   const counts = kindCounts(ws, scope);
-  const openTasks = executables(ws, scope, 'todo', { archived: false }).filter(c => !c.completed_at).length;
-  const dueReminders = executables(ws, scope, 'reminder', { archived: false }).filter(c => c.remind_at && !c.remind_done_at && Date.parse(c.remind_at) <= Date.now()).length;
-  const signalNotes = counts.note;
   let entries = executables(ws, scope, kind, { archived });
   if (kind === 'todo' && !archived && status !== 'all') entries = entries.filter(c => (status === 'done' ? c.completed_at : !c.completed_at));
   const live = counts.everything;
@@ -39,10 +36,6 @@ export function List() {
   return (
     <>
       <PageHeading label={scopeName.toUpperCase()} title="List" sub={archived ? `${entries.length} archived` : live ? `${live} ${live === 1 ? 'entry' : 'entries'}` : 'Type something and save it'} />
-      {!archived && <section className="command-summary" aria-label="Workspace summary">
-        <div className="command-intro"><span className="command-kicker">YOUR WORKSPACE</span><strong>{openTasks ? `${openTasks} open ${openTasks === 1 ? 'task' : 'tasks'}` : 'Clear runway'}</strong><span className="command-copy">Capture first. Exe keeps the next action visible.</span></div>
-        <div className="command-signals"><div className="signal-card"><span className="signal-value">{openTasks}</span><span className="signal-label">Open tasks</span></div><div className="signal-card"><span className="signal-value">{dueReminders}</span><span className="signal-label">Due now</span></div><div className="signal-card"><span className="signal-value">{signalNotes}</span><span className="signal-label">Notes</span></div></div>
-      </section>}
       <section className="raw-inbox" aria-label="List">
         <div className="seg" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
           <button key={k} aria-pressed={kind === k} aria-label={`${KIND_LABEL[k]}, ${counts[k]}`} onClick={() => pickKind(k)}>{KIND_LABEL[k]}<span className="seg-n" aria-hidden="true">{counts[k]}</span></button>))}</div>
