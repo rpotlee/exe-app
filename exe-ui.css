@@ -194,6 +194,14 @@
 body { background: var(--canvas-base); }
 button { color: inherit; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+/* Phones: the page never slides sideways. Nothing may scroll horizontally, no sideways rubber-band, and form fields stay at
+   16px or more so iOS Safari never zooms in on focus (which is what lets the page pan left and right). Pinch zoom still works. */
+html, body { max-width: 100%; overflow-x: clip; overscroll-behavior-x: none; }
+@supports not (overflow: clip) { html, body { overflow-x: hidden; } }
+@media (max-width: 760px) {
+  html { touch-action: pan-y pinch-zoom; }
+  input, select, textarea { font-size: max(16px, 1em); }
+}
 button, .dock-item, .mobile-capture { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 body::before {
   content: "";
