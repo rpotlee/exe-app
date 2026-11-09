@@ -29,8 +29,10 @@ function SignIn({ db }: { db: Db }) {
   };
   return (
     <main className="auth-page">
+      <div className="brand auth-brand" role="img" aria-label="Exe"><span className="brand-symbol" aria-hidden="true"><i></i><i></i></span><span aria-hidden="true">Exe</span></div>
+      <p className="auth-byline">Altr Technologies</p>
       <form className="card auth-card" onSubmit={submit} aria-labelledby="auth-title">
-        <h1 id="auth-title">{mode === 'in' ? 'Sign in to Exe' : 'Create your Exe account'}</h1>
+        <h1 id="auth-title">{mode === 'in' ? 'Sign in' : 'Create your account'}</h1>
         <p className="small-note">Your workspace is private to you. Nothing is shared.</p>
         <label className="form-field"><span className="small-note">Email</span><input className="text-input" name="email" type="email" autoComplete="email" required /></label>
         <label className="form-field"><span className="small-note">Password</span><input className="text-input" name="password" type="password" autoComplete={mode === 'in' ? 'current-password' : 'new-password'} minLength={8} required /></label>

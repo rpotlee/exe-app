@@ -16,11 +16,13 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
   <title>Exe</title>
   <script>
-    /* Follow the system appearance (the UI kit supplies both); ?theme=light|dark overrides. */
+    /* Appearance: ?theme=light|dark wins, then the choice saved in Settings (exe-appearance), then the system setting. */
     (function () {
       var q = /[?&]theme=(light|dark)/.exec(location.search), mq = window.matchMedia('(prefers-color-scheme: dark)');
-      var set = function () { document.documentElement.setAttribute('data-theme', q ? q[1] : mq.matches ? 'dark' : 'light'); };
-      set(); if (!q) mq.addEventListener('change', set);
+      var saved = function () { try { var v = localStorage.getItem('exe-appearance'); return v === 'light' || v === 'dark' ? v : null; } catch (e) { return null; } };
+      var set = function () { var m = q ? q[1] : saved(); document.documentElement.setAttribute('data-theme', m || (mq.matches ? 'dark' : 'light')); };
+      set(); mq.addEventListener('change', set);
+      window.__exeApplyAppearance = set;
     })();
   </script>
 </head>
