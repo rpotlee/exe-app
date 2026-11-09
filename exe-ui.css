@@ -1091,6 +1091,11 @@ body::before {
 .raw-list.grouped .raw-row::after { left: 16px; background: var(--edge); }
 .raw-list.grouped .raw-row:last-child::after { display: none; }
 .raw-list.grouped .raw-check { min-height: 48px; padding: 11px 0; align-items: center; font-size: 15.5px; line-height: 21px; letter-spacing: -.18px; }
+.raw-list.grouped .kind-reminder .raw-check { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: start; column-gap: 14px; row-gap: 2px; }
+.raw-list.grouped .kind-reminder .raw-check .kind-icon { grid-column: 1; grid-row: 1 / span 2; margin-top: 1px; }
+.raw-list.grouped .kind-reminder .raw-check .raw-text { grid-column: 2; grid-row: 1; }
+.raw-list.grouped .kind-reminder .raw-check > .pill { grid-column: 2; grid-row: 2; justify-self: start; margin: 0; font-size: 11px; line-height: 16px; color: var(--secondary); background: transparent; padding: 0; }
+.raw-list.grouped .kind-reminder .raw-check > .pill.pill-due { color: var(--red); }
 .raw-list.grouped .raw-check > .pill { align-self: flex-start; margin-top: 2px; font-size: 11px; line-height: 16px; }
 .raw-list.grouped .raw-more { margin-top: 0; align-self: center; }
 .raw-list.grouped .kind-body { align-items: flex-start; }
@@ -1233,7 +1238,7 @@ body::before {
 .t-list { list-style: none; margin: 0; padding: 0; background: var(--glass-card); border-radius: var(--r-md); box-shadow: var(--glass-shadow); overflow: hidden; }
 .t-row { padding: 0 16px; }
 .t-row + .t-row { border-top: 1px solid var(--edge); }
-.t-row .check-row { min-height: 52px; padding: 8px 0; gap: 12px; align-items: center; font-size: 17px; line-height: 22px; width: 100%; }
+.t-row .check-row { min-height: 52px; padding: 8px 0; gap: 12px; align-items: center; font-size: 15.5px; line-height: 21px; width: 100%; }
 .t-row .assist-help { margin: 0 0 12px 36px; }
 .t-row.is-complete .check-row > span:not(.prio-dot) { color: var(--muted); text-decoration: line-through; }
 
