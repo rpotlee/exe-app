@@ -90,3 +90,4 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 - 2026-11-09: Phones scroll inside the screen area (not the page), so Safari's toolbar and the bottom nav stay still. All tasks and group screens now show each task as its own card.
 - 2026-11-09: Mobile nav restyled as a glass pill with a filled blue selected tab (DEC-022).
 - 2026-11-09: List filters use the glass nav style (blue selected pill).
+- 2026-11-09: List has one filter bar (All/Tasks/Notes/Reminders); finished tasks move to a collapsible Done section.

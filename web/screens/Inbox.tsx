@@ -15,8 +15,7 @@ const compactWhen = (iso: string) => {
   return `${day} · ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
 };
 const niceDate = (iso: string) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
-const KIND_LABEL: Record<KindFilter, string> = { everything: 'Everything', todo: 'Tasks', note: 'Notes', reminder: 'Reminders' };
-type Status = 'all' | 'active' | 'done';
+const KIND_LABEL: Record<KindFilter, string> = { everything: 'All', todo: 'Tasks', note: 'Notes', reminder: 'Reminders' };
 
 /** List: everything captured, as Tasks, Notes and Reminders, for All or one folder. It works with no AI at all.
  *  A type filter is only a view. Checking a task changes nothing else. */
@@ -25,44 +24,20 @@ export function List() {
   const ws = api.ws;
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
-  const [status, setStatus] = useState<Status>(() => (sessionStorage.getItem('exe-todo-status') as Status | null) ?? 'all');
   const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set());
   const [menuOpen, setMenuOpen] = useState(false), [draft, setDraft] = useState(''), [addKind, setAddKind] = useState<'todo' | 'note' | 'reminder'>('todo'), [when, setWhen] = useState(''), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
   const remember = (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch { /* convenience only */ } };
   const pickKind = (k: KindFilter) => { setKind(k); remember('exe-kind-filter', k); if (k === 'note') setAddKind('note'); else if (k === 'todo') setAddKind('todo'); };
-  const pickStatus = (v: Status) => { setStatus(v); remember('exe-todo-status', v); };
   const counts = kindCounts(ws, scope);
-  let entries = executables(ws, scope, kind, { archived });
-  if (kind === 'todo' && !archived && status !== 'all') entries = entries.filter(c => (status === 'done' ? c.completed_at : !c.completed_at));
+  // One filter bar: open entries first; finished tasks wait in a collapsible Done section at the bottom (owner, 2026-11-09)
+  const all = executables(ws, scope, kind, { archived });
+  const entries = archived ? all : all.filter(c => !(kindOf(c) === 'todo' && c.completed_at));
+  const done = archived ? [] : all.filter(c => kindOf(c) === 'todo' && c.completed_at);
   const live = counts.everything;
   const toggle = (id: string) => setOpen(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const submit = (e: React.FormEvent) => { e.preventDefault(); const box = (e.currentTarget as HTMLFormElement).querySelector('textarea'); if (addKind === 'reminder' && !when) return; if (api.run((w, c) => addCaptures(w, c, draft, 'List', { kind: addKind, folderId: scope.kind === 'folder' ? scope.id : null, remindAt: addKind === 'reminder' ? new Date(when).toISOString() : null }))) { setDraft(''); setWhen(''); setArchived(false); if (box) box.style.height = ''; } };
 
-  return (
-    <>
-      <PageHeading label={scopeName.toUpperCase()} title="List" sub={archived ? `${entries.length} archived` : live ? `${live} ${live === 1 ? 'entry' : 'entries'}` : 'Type something and save it'} />
-      <section className="raw-inbox" aria-label="List">
-        <div className="seg" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
-          <button key={k} aria-pressed={kind === k} aria-label={`${KIND_LABEL[k]}, ${counts[k]}`} onClick={() => pickKind(k)}>{KIND_LABEL[k]}<span className="seg-n" aria-hidden="true">{counts[k]}</span></button>))}</div>
-        {kind === 'todo' && <div className="seg sub" role="group" aria-label="Task status">{(['all', 'active', 'done'] as const).map(v => (
-          <button key={v} aria-pressed={status === v} onClick={() => pickStatus(v)}>{v[0]?.toUpperCase()}{v.slice(1)}</button>))}</div>}
-        <form className="add-row" onSubmit={submit}>
-          <div className="kind-menu-wrap">
-            <button type="button" className="add-kind" aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`Adding a ${addKind === 'todo' ? 'task' : addKind}. Change type`} onClick={() => setMenuOpen(o => !o)}>{addKind === 'note' ? 'Note' : addKind === 'reminder' ? 'Reminder' : 'Task'}<Icon name="chevron-down" /></button>
-            {menuOpen && <ul className="kind-menu" role="menu" onKeyDown={e => { if (e.key === 'Escape') setMenuOpen(false); }}>
-              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'todo'} onClick={() => { setAddKind('todo'); setMenuOpen(false); }}><Icon name="circle-check" /><span>Task<small>Something to do, with a checkbox</small></span></button></li>
-              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'note'} onClick={() => { setAddKind('note'); setMenuOpen(false); }}><Icon name="file-text" /><span>Note<small>A thought or some info</small></span></button></li>
-              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'reminder'} onClick={() => { setAddKind('reminder'); setMenuOpen(false); }}><Icon name="bell" /><span>Reminder<small>Shows up in the app when it is due</small></span></button></li>
-            </ul>}
-          </div>
-          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : addKind === 'reminder' ? 'Add a reminder' : 'Add a task'} placeholder={addKind === 'note' ? 'Write a note…' : addKind === 'reminder' ? 'Add a reminder…' : 'Add a task…'} rows={1} maxLength={20000} value={draft}
-            onChange={e => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; }}
-            onKeyDown={e => { if (addKind === 'todo' && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (draft.trim()) e.currentTarget.form?.requestSubmit(); } }} />
-          <button className="add-submit" type="submit" disabled={!draft.trim() || (addKind === 'reminder' && !when)} aria-label={addKind === 'note' ? 'Add note' : addKind === 'reminder' ? 'Add reminder' : 'Add task'}><Icon name="arrow-up" /></button></form>
-        {addKind === 'reminder' && <div className="when-row"><label className="file-field"><span className="small-note">Remind me at</span><input className="select" type="datetime-local" aria-label="Remind me at" value={when} onChange={e => setWhen(e.target.value)} /></label>
-          <div className="when-quick" role="group" aria-label="Quick times">{reminderChoices(new Date()).map(ch => <button type="button" key={ch.label} className="mini-button" onClick={() => setWhen(localInput(ch.at))}>{ch.label}</button>)}</div></div>}
-        <ul className="raw-list grouped">
-          {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
+  const row = (c: typeof all[number]) => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
               {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} mobileName={k === 'note' ? 'mobile-note' : 'mobile-bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : <time dateTime={c.remind_at} title={niceWhen(c.remind_at)}><span className="reminder-date-wide">{niceWhen(c.remind_at)}</span><span className="reminder-date-compact">{compactWhen(c.remind_at)}</span></time>}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
@@ -79,9 +54,34 @@ export function List() {
                 <div className="raw-actions"><button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => archiveCapture(w, cx, c.id, !c.archived_at))}>{c.archived_at ? 'Restore' : 'Archive'}</button></div>
               </div>
-            </li>); })}
-          {!entries.length && (live || archived) ? <li className="empty-state">{archived ? 'Nothing archived.' : `No ${kind === 'everything' ? 'entries' : KIND_LABEL[kind].toLowerCase()} here${scope.kind === 'folder' ? ` in ${scopeName}` : ''}.`}</li> : null}
+            </li>); };
+
+  return (
+    <>
+      <PageHeading label={scopeName.toUpperCase()} title="List" sub={archived ? `${entries.length} archived` : live ? `${live} ${live === 1 ? 'entry' : 'entries'}` : 'Type something and save it'} />
+      <section className="raw-inbox" aria-label="List">
+        <div className="seg" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
+          <button key={k} aria-pressed={kind === k} aria-label={`${KIND_LABEL[k]}, ${counts[k]}`} onClick={() => pickKind(k)}>{KIND_LABEL[k]}<span className="seg-n" aria-hidden="true">{counts[k]}</span></button>))}</div>
+        <form className="add-row" onSubmit={submit}>
+          <div className="kind-menu-wrap">
+            <button type="button" className="add-kind" aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`Adding a ${addKind === 'todo' ? 'task' : addKind}. Change type`} onClick={() => setMenuOpen(o => !o)}>{addKind === 'note' ? 'Note' : addKind === 'reminder' ? 'Reminder' : 'Task'}<Icon name="chevron-down" /></button>
+            {menuOpen && <ul className="kind-menu" role="menu" onKeyDown={e => { if (e.key === 'Escape') setMenuOpen(false); }}>
+              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'todo'} onClick={() => { setAddKind('todo'); setMenuOpen(false); }}><Icon name="circle-check" /><span>Task<small>Something to do, with a checkbox</small></span></button></li>
+              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'note'} onClick={() => { setAddKind('note'); setMenuOpen(false); }}><Icon name="file-text" /><span>Note<small>A thought or some info</small></span></button></li>
+              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'reminder'} onClick={() => { setAddKind('reminder'); setMenuOpen(false); }}><Icon name="bell" /><span>Reminder<small>Shows up in the app when it is due</small></span></button></li>
+            </ul>}
+          </div>
+          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : addKind === 'reminder' ? 'Add a reminder' : 'Add a task'} placeholder={addKind === 'note' ? 'Write a note…' : addKind === 'reminder' ? 'Add a reminder…' : 'Add a task…'} rows={1} maxLength={20000} value={draft}
+            onChange={e => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; }}
+            onKeyDown={e => { if (addKind === 'todo' && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (draft.trim()) e.currentTarget.form?.requestSubmit(); } }} />
+          <button className="add-submit" type="submit" disabled={!draft.trim() || (addKind === 'reminder' && !when)} aria-label={addKind === 'note' ? 'Add note' : addKind === 'reminder' ? 'Add reminder' : 'Add task'}><Icon name="arrow-up" /></button></form>
+        {addKind === 'reminder' && <div className="when-row"><label className="file-field"><span className="small-note">Remind me at</span><input className="select" type="datetime-local" aria-label="Remind me at" value={when} onChange={e => setWhen(e.target.value)} /></label>
+          <div className="when-quick" role="group" aria-label="Quick times">{reminderChoices(new Date()).map(ch => <button type="button" key={ch.label} className="mini-button" onClick={() => setWhen(localInput(ch.at))}>{ch.label}</button>)}</div></div>}
+        <ul className="raw-list grouped">
+          {entries.slice(0, limit).map(row)}
+          {!entries.length && !done.length && (live || archived) ? <li className="empty-state">{archived ? 'Nothing archived.' : `No ${kind === 'everything' ? 'entries' : KIND_LABEL[kind].toLowerCase()} here${scope.kind === 'folder' ? ` in ${scopeName}` : ''}.`}</li> : null}
         </ul>
+        {done.length > 0 && <details className="t-done list-done"><summary>Done ({done.length})</summary><ul className="raw-list grouped">{done.slice(0, limit).map(row)}</ul></details>}
         {entries.length > limit && <div className="inbox-footer"><button className="quiet-button" onClick={() => setLimit(n => n + 200)}>Show 200 more ({entries.length - limit} more)</button></div>}
         <div className="inbox-footer"><button className="quiet-button" aria-pressed={archived} onClick={() => setArchived(a => !a)}>{archived ? 'Back to list' : 'View archived'}</button></div>
       </section>

@@ -1469,6 +1469,10 @@ body::before {
 .ai-mark.ask { background: var(--exe-badge); color: #fff; }
 :root[data-theme="dark"] .ai-mark:not(.ask) { color: #a5a3ff; }
 .t-done { margin: 0 0 22px; } .t-done summary { min-height: 44px; display: flex; align-items: center; padding-left: 4px; font-size: 15px; font-weight: 500; color: var(--secondary); cursor: pointer; }
+.t-done summary { list-style: none; gap: 8px; } .t-done summary::-webkit-details-marker { display: none; }
+.t-done summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.t-done[open] summary::before { transform: rotate(45deg); }
+.list-done .raw-list { margin-top: 4px; }
 .back-link { margin-bottom: 0; font-size: 16px; }
 .ax-layer { position: fixed; inset: 0; z-index: 140; }
 .ax-layer.wide { inset: 0 0 0 auto; width: 440px; pointer-events: none; }

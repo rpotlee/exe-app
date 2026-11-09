@@ -46,10 +46,10 @@ with sync_playwright() as p:
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
-        first = page.locator('.raw-row input[type=checkbox]').first; first.check()
+        first = page.locator('.raw-row input[type=checkbox]').first; first.click()
         d = S(page); assert sum(1 for c in d['captures'] if c['completed_at']) == 1 and d['tasks'] == []
-        page.locator('.seg:not(.sub) button', has_text='Tasks').click(); page.locator('.seg.sub button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
-        page.locator('.seg.sub button', has_text='All').click(); page.locator('.seg:not(.sub) button', has_text='Everything').click()
+        expect(page.locator('.seg.sub')).to_have_count(0)                 # one filter bar; finished tasks go to Done
+        expect(page.locator('.list-done summary')).to_have_text('Done (1)'); page.locator('.list-done summary').click(); expect(page.locator('.list-done .raw-row')).to_have_count(1)
         # folders and outcomes
         nav(page, 'map'); page.get_by_role('button', name='New folder').click(); page.locator('#modal-root input[name=name]').fill('Home'); page.get_by_role('button', name='Create folder').click()
         for name in ['Plan reunion', 'Fix garage', 'Book venue', 'Clean attic', 'Sort photos']:

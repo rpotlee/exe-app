@@ -72,7 +72,7 @@ ${steps(['Type in the box at the top. The small button on its left shows the typ
 <h2>Priority</h2>
 <p>Priority is shown as a small colored dot: red is High, orange is Medium, yellow is Low. A filled dot is one you chose. A ring is the AI’s suggestion. Your choice always wins. In Settings, <strong>Priority labels</strong> lets you show AI suggestions, only your own, or none.</p>
 <h2>Finding things</h2>
-<p>Use the filters at the top (Everything, Tasks, Notes, Reminders). For tasks you can also show All, Active or Done. <strong>View archived</strong> shows what you archived, and <strong>Restore</strong> brings it back. Very long lists show 200 at a time (<strong>Show 200 more</strong>).</p>
+<p>Use the filter at the top (All, Tasks, Notes, Reminders). Finished tasks move to <strong>Done</strong> at the bottom of the list; tap it to open. <strong>View archived</strong> shows what you archived, and <strong>Restore</strong> brings it back. Very long lists show 200 at a time (<strong>Show 200 more</strong>).</p>
 ${note('The List has no AI help on purpose. The AI assistant is on the Status screens. See <a href="assistant.html">The AI assistant</a>.')}` },
 
 { slug: 'reminders', title: 'Reminders', nav: 'Reminders', summary: 'Be reminded inside Exe at a time you choose.', body: `
