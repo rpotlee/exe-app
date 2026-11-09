@@ -2,14 +2,14 @@
 
 Write everything on your mind as a plain to-do list. Exe (optionally, with your own AI key) finds what belongs together, what has to happen first, and where it can help: an email draft to copy, official sources to check, a quick answer. Then it shows you the few things to work on now, and why.
 
-**Status: a working prototype, not a finished product.** Sign-in, saving, offline queue and the AI functions are built; the AI help has been tested only against a fake AI so far, and the app has not had a real-device or multi-user trial.
+**Status: an actively developed production prototype.** Sign-in, saving, offline queue, AI functions, and the Cloudflare deployment are built; real-device and multi-user coverage is still limited.
 
 ## How it works
 
 - **Inbox:** a raw, checkable to-do list. Works with no AI.
 - **AI Review:** suggestions to organize captures; nothing changes until you approve.
 - **Map / Decisions / Focus:** folders, outcomes, steps, blockers and decisions; at most three active priorities, ranked by explainable rules.
-- AI is optional and bring-your-own-key (Anthropic, OpenAI or Google Gemini). Keys are stored encrypted on the server and never reach the browser again.
+- AI is optional and bring-your-own-key (Anthropic, OpenAI, Google Gemini, or Groq). Keys are stored encrypted on the server and never reach the browser again.
 
 Help for users is in the app's help center (`/support/`, built from `support/pages.mjs`).
 
@@ -28,7 +28,8 @@ Copy `.env.example` to `.env` and fill in your Supabase project's public URL and
 
 - `web/` the React app · `src/` shared domain logic, stores and generated database types · `supabase/` migrations, tests and edge functions
 - `ui-kit/` the design system (Apple HIG based) · `support/` help-center content · `test-data/` sample files for Settings → Import
-- `DECISIONS.md` why things are the way they are · `HANDOFF.md` current state · `AGENTS.md` engineering guardrails
+- `CURRENT_STATE.md` active architecture and deployment brief · `docs/EXE_EXECUTION_PROTOCOL.md` change/verification protocol · `DECISIONS.md` approved decisions · `AGENTS.md` engineering guardrails
+- `HANDOFF.md` historical phase log; use `CURRENT_STATE.md` for the current state
 - `index.html`, `app.js`, `styles.css` are the original single-file prototype, kept for reference.
 
 ## License

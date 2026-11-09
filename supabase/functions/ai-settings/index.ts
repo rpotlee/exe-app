@@ -16,7 +16,7 @@ Deno.serve(async (req: Request) => {
   let body: Record<string, unknown>; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
   if (body.action === 'remove') { await admin.from('user_ai_settings').delete().eq('owner_id', uid); return json({ ok: true }); }
   if (body.action !== 'save') return json({ error: 'Unknown action.' }, 400);
-  if (!isProvider(body.provider)) return json({ error: 'Choose Anthropic, OpenAI or Gemini.' }, 400);
+  if (!isProvider(body.provider)) return json({ error: 'Choose Anthropic, OpenAI, Gemini or Groq.' }, 400);
   if (!validModel(body.model)) return json({ error: 'Enter the model name your provider gave you.' }, 400);
   if (!validKey(body.apiKey)) return json({ error: 'That does not look like an API key.' }, 400);
   const key = body.apiKey;
