@@ -534,14 +534,6 @@ body::before {
   :root[data-theme="light"] #view :is(.card, .priority-hero, .priority-mini, .g-body, .x-grouped) { background: var(--surface); border: 1px solid var(--edge); border-radius: 18px; box-shadow: none; }
   :root[data-theme="light"] #view .t-list > .t-row { background: var(--surface); border: 1px solid var(--edge); border-radius: 18px; box-shadow: none; }
   :root[data-theme="light"] #view .raw-inbox { padding-top: 0; }
-  :root[data-theme="light"] #view .raw-inbox .seg { padding: 0; margin: 0 0 18px; background: none; border-radius: 0; border-bottom: 1px solid var(--edge); gap: 4px; }
-  :root[data-theme="light"] #view .raw-inbox .seg button { position: relative; min-height: 44px; border-radius: 0; padding: 0 2px 9px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--secondary); box-shadow: none; background: none; }
-  :root[data-theme="light"] #view .raw-inbox .seg button[aria-pressed="true"] { color: var(--exe-accent-ink); font-weight: 650; }
-  :root[data-theme="light"] #view .raw-inbox .seg button[aria-pressed="true"]::after { content: ""; position: absolute; height: 2px; border-radius: 2px; background: currentColor; bottom: -1px; left: 12%; right: 12%; }
-  :root[data-theme="light"] #view .raw-inbox .seg.sub { border-bottom: 0; gap: 6px; margin-top: -6px; }
-  :root[data-theme="light"] #view .raw-inbox .seg.sub button { min-height: 44px; padding: 0 12px; border-radius: 10px; }
-  :root[data-theme="light"] #view .raw-inbox .seg.sub button[aria-pressed="true"] { background: var(--surface-blue); }
-  :root[data-theme="light"] #view .raw-inbox .seg.sub button::after { display: none; }
   :root[data-theme="light"] #view .raw-inbox .add-row { min-height: 56px; padding: 4px; margin-bottom: 22px; gap: 4px; border: 1px solid var(--edge-strong); border-radius: 14px; background: var(--surface); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
   :root[data-theme="light"] #view .raw-inbox .add-row:focus-within { border-color: var(--exe-accent); box-shadow: 0 0 0 3px var(--focus-glow); }
   :root[data-theme="light"] #view .raw-inbox .add-row .add-kind { min-height: 44px; padding-inline: 9px; border-radius: 9px; font-size: 12px; font-weight: 600; background: var(--surface-soft); color: var(--secondary); }
@@ -1240,14 +1232,15 @@ body::before {
 .nav-scope { margin-left: auto; font-size: 13px; color: var(--secondary); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crumb-scope { background: none; border: 0; padding: 0 2px; font: inherit; font-weight: 600; color: var(--exe-accent-ink); cursor: pointer; }
 /* List screen: dense, one row per control. A single segmented control for the type, one compact add row, and entries in one grouped card. */
-.seg { display: flex; padding: 2px; border-radius: 999px; background: var(--input-bg); margin: 0 0 10px; }
-.seg button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); white-space: nowrap; }
-.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 2px 8px rgba(18, 31, 53, .14), inset 0 0 0 1px rgba(255,255,255,.72); font-weight: 600; }
-:root[data-theme="dark"] .seg button[aria-pressed="true"] { background: #48484a; }
-.seg .seg-n { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--secondary); }
+/* Filters: the same glass pill as the navigation bar, with a filled blue pill for the selected filter (DEC-022) */
+.seg { display: flex; padding: 4px; border-radius: 999px; background: var(--dock-bg); border: var(--dock-edge); box-shadow: var(--dock-shadow); -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%); margin: 0 0 12px; }
+.seg button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 550; color: var(--dock-ink); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--dock-selected-bg); color: var(--dock-active); box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 6px 16px rgba(13,47,168,.35); font-weight: 650; }
+.seg .seg-n { margin-left: 4px; font-size: 12px; font-weight: 500; color: inherit; opacity: .8; }
 .seg.sub { width: fit-content; margin: -2px 0 10px; }
 .seg.sub button { min-height: 44px; padding: 0 14px; font-size: 13px; }
 @media (max-width: 440px) { .seg:not(.sub) .seg-n { display: none; } .seg:not(.sub) button { font-size: 13px; } }
+@media (max-width: 360px) { .seg:not(.sub) { padding: 3px; } .seg:not(.sub) button { flex: 1 1 auto; padding: 0 8px; font-size: 12px; letter-spacing: -.2px; } }
 .add-row { display: flex; align-items: center; gap: 6px; margin: 0 0 16px; padding: 6px; min-height: 56px; border: 1px solid color-mix(in srgb, var(--exe-accent) 18%, var(--edge)); border-radius: 16px; background: color-mix(in srgb, var(--surface) 92%, var(--exe-accent) 8%); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); }
 :root[data-theme="light"] .raw-inbox { padding-top: 4px; }
 :root[data-theme="light"] .raw-inbox .add-row { min-height: 72px; padding: 8px; border-radius: 20px; background: rgba(255,255,255,.82); border-color: rgba(49,94,232,.22); box-shadow: 0 2px 4px rgba(23,25,28,.04), 0 16px 32px rgba(49,94,232,.1); }
