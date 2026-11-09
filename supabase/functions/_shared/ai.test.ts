@@ -15,12 +15,13 @@ describe('adapters', () => {
   });
   it('extracts the reply text from each provider shape, and returns empty for anything else', () => {
     expect(extractText('anthropic', { content: [{ type: 'text', text: 'hi' }, { type: 'thinking' }] })).toBe('hi');
-    expect(extractText('openai', { choices: [{ message: { content: 'hi' } }] })).toBe('hi');
+    expect(extractText('openai', { choices: [{ message: { content: 'hi' } }] })).toBe('hi'); expect(extractText('groq', { choices: [{ message: { content: '{"ok":true}', reasoning: 'x' } }] })).toBe('{"ok":true}');
+    { const q = buildRequest('groq', 'openai/gpt-oss-20b', 'KEY12345', 'sys', 'usr'); expect(q.url).toBe('https://api.groq.com/openai/v1/chat/completions'); expect(q.headers.authorization).toBe('Bearer KEY12345'); expect(JSON.stringify(q)).not.toContain('api.openai.com'); }
     expect(extractText('gemini', { candidates: [{ content: { parts: [{ text: 'h' }, { text: 'i' }] } }] })).toBe('hi');
-    for (const p of ['anthropic', 'openai', 'gemini'] as const) { expect(extractText(p, null)).toBe(''); expect(extractText(p, { weird: 1 })).toBe(''); }
+    for (const p of ['anthropic', 'openai', 'gemini', 'groq'] as const) { expect(extractText(p, null)).toBe(''); expect(extractText(p, { weird: 1 })).toBe(''); }
   });
   it('validates provider, model and key without hard-coding any model', () => {
-    expect(isProvider('openai')).toBe(true); expect(isProvider('someone-else')).toBe(false);
+    expect(isProvider('openai')).toBe(true); expect(isProvider('groq')).toBe(true); expect(isProvider('someone-else')).toBe(false);
     expect(validModel('my-model-1.5:latest')).toBe(true); expect(validModel('bad model; drop')).toBe(false); expect(validModel('')).toBe(false);
     expect(validKey('sk-abcdefgh')).toBe(true); expect(validKey('short')).toBe(false); expect(validKey('has space in it 1234')).toBe(false);
   });

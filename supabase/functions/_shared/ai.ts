@@ -2,8 +2,8 @@
 // Pure functions only (no network, no storage), so they are unit-tested in Node and run unchanged in Supabase Edge Functions (Deno).
 // Model output is UNTRUSTED: it is parsed against a strict schema, unknown ids are discarded, and the result is only ever a PROPOSAL.
 
-export type Provider = 'anthropic' | 'openai' | 'gemini';
-export const PROVIDERS: readonly Provider[] = ['anthropic', 'openai', 'gemini'];
+export type Provider = 'anthropic' | 'openai' | 'gemini' | 'groq';
+export const PROVIDERS: readonly Provider[] = ['anthropic', 'openai', 'gemini', 'groq'];
 export const TYPES = ['Task', 'Outcome', 'Decision', 'Idea', 'Note'] as const;
 export type ProposalType = (typeof TYPES)[number];
 export interface Proposal { captureId: string; type: ProposalType; folderId: string | null; outcomeId: string | null; explanation: string; uncertainties: string[] }
@@ -18,8 +18,8 @@ export function buildRequest(provider: Provider, model: string, apiKey: string, 
     headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
     body: { model, max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] },
   };
-  if (provider === 'openai') return {
-    url: 'https://api.openai.com/v1/chat/completions',
+  if (provider === 'openai' || provider === 'groq') return {      // Groq speaks the same request and reply shape as OpenAI
+    url: provider === 'groq' ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
     body: { model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], response_format: { type: 'json_object' } },
   };
@@ -35,7 +35,7 @@ export function extractText(provider: Provider, json: unknown): string {
   const j = json as Record<string, unknown> | null;
   try {
     if (provider === 'anthropic') return ((j?.content as { type: string; text?: string }[]) ?? []).filter(b => b?.type === 'text').map(b => b.text ?? '').join('\n');
-    if (provider === 'openai') return String(((j?.choices as { message?: { content?: unknown } }[])?.[0]?.message?.content) ?? '');
+    if (provider === 'openai' || provider === 'groq') return String(((j?.choices as { message?: { content?: unknown } }[])?.[0]?.message?.content) ?? '');
     return ((((j?.candidates as { content?: { parts?: { text?: string }[] } }[])?.[0]?.content?.parts) ?? []).map(p => p.text ?? '')).join('');
   } catch { return ''; }
 }
