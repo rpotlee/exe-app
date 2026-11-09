@@ -772,6 +772,7 @@ body::before {
 .raw-check { align-items: flex-start; min-height: 56px; padding: 16px 0; gap: 14px; font-size: 16px; line-height: 1.45; letter-spacing: -.35px; }
 .raw-check input { margin-top: 2px; }
 .raw-text { flex: 1 1 auto; min-width: 0; }
+.raw-check > .pill { flex: 0 0 auto; margin-left: auto; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .raw-more { margin-top: 8px; color: var(--raw-more); }
 @media (hover: hover) {
   .raw-more { opacity: 0; transition: opacity .15s; }
@@ -1090,6 +1091,7 @@ body::before {
 .raw-list.grouped .raw-row::after { left: 16px; background: var(--edge); }
 .raw-list.grouped .raw-row:last-child::after { display: none; }
 .raw-list.grouped .raw-check { min-height: 48px; padding: 11px 0; align-items: center; font-size: 17px; line-height: 22px; letter-spacing: -.43px; }
+.raw-list.grouped .raw-check > .pill { align-self: flex-start; margin-top: 2px; font-size: 11px; line-height: 16px; }
 .raw-list.grouped .raw-more { margin-top: 0; align-self: center; }
 .raw-list.grouped .kind-body { align-items: flex-start; }
 .raw-list.grouped .raw-detail-panel, .raw-list.grouped .assist-help { margin-inline: 0; padding-right: 10px; }
