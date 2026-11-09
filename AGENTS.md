@@ -47,3 +47,11 @@
 - Mobile Safari browser experience is first-class. Verify iPhone Safari, 320–430px viewports (and 481–760px wide phones), keyboard and safe areas, keyboard accessibility, and reduced motion/transparency. Require mobile/desktop functionality parity.
 - Use a feature branch, tests, real screenshots, and a PR for each phase. Do not silently redesign the interface. Obtain user review before major visual changes or deploys.
 - Before restyling, snapshot computed styles for the key screens and diff after, so only intended changes ship.
+
+## Active execution protocol
+
+- Read `CURRENT_STATE.md` before implementation; it supersedes stale phase notes in `HANDOFF.md`.
+- For every behavior change, search for all screens/components that implement it before editing. Verify each affected screen independently.
+- Convert broad requests into explicit goal, affected surfaces, acceptance criteria, non-goals, and verification target before making changes.
+- Run the relevant checks plus `npm run typecheck`, `npm run test:unit`, `npm run build`, and `git diff --check` before reporting completion.
+- For production work, confirm the deployed commit is the intended merged commit and smoke-test the live affected flow.
