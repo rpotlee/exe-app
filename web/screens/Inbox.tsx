@@ -26,21 +26,24 @@ export function List() {
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
   const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set()), [helpOpen, setHelpOpen] = useState<string | null>(null);
+  // Keep a task in its current list until this screen is revisited. Completion
+  // is still persisted immediately, but regrouping is intentionally deferred.
+  const [completedHere, setCompletedHere] = useState<Set<string>>(new Set());
   const [menuOpen, setMenuOpen] = useState(false), [draft, setDraft] = useState(''), [addKind, setAddKind] = useState<'todo' | 'note' | 'reminder'>('todo'), [when, setWhen] = useState(''), [limit, setLimit] = useState(200);   // very long lists are shown 200 at a time
   const remember = (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch { /* convenience only */ } };
   const pickKind = (k: KindFilter) => { setKind(k); remember('exe-kind-filter', k); if (k === 'note') setAddKind('note'); else if (k === 'todo') setAddKind('todo'); };
   const counts = kindCounts(ws, scope);
   // One filter bar: open entries first; finished tasks wait in a collapsible Done section at the bottom (owner, 2026-11-09)
   const all = executables(ws, scope, kind, { archived });
-  const entries = archived ? all : all.filter(c => !(kindOf(c) === 'todo' && c.completed_at));
-  const done = archived ? [] : all.filter(c => kindOf(c) === 'todo' && c.completed_at);
+  const entries = archived ? all : all.filter(c => !(kindOf(c) === 'todo' && c.completed_at && !completedHere.has(c.id)));
+  const done = archived ? [] : all.filter(c => kindOf(c) === 'todo' && c.completed_at && !completedHere.has(c.id));
   const live = counts.everything;
   const toggle = (id: string) => setOpen(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const submit = (e: React.FormEvent) => { e.preventDefault(); const box = (e.currentTarget as HTMLFormElement).querySelector('textarea'); if (addKind === 'reminder' && !when) return; if (api.run((w, c) => addCaptures(w, c, draft, 'List', { kind: addKind, folderId: scope.kind === 'folder' ? scope.id : null, remindAt: addKind === 'reminder' ? new Date(when).toISOString() : null }))) { setDraft(''); setWhen(''); setArchived(false); if (box) box.style.height = ''; } };
 
   const row = (c: typeof all[number]) => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
-              {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
+              {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => { const checked = e.target.checked; if (api.run((w, cx) => setCaptureDone(w, cx, c.id, checked))) setCompletedHere(s => { const n = new Set(s); if (checked) n.add(c.id); else n.delete(c.id); return n; }); }} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} mobileName={k === 'note' ? 'mobile-note' : 'mobile-bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : <time dateTime={c.remind_at} title={niceWhen(c.remind_at)}><span className="reminder-date-wide">{niceWhen(c.remind_at)}</span><span className="reminder-date-compact">{compactWhen(c.remind_at)}</span></time>}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
               {!c.completed_at && !c.archived_at && <HelpChip id={c.id} open={helpOpen === c.id} onToggle={() => setHelpOpen(o => (o === c.id ? null : c.id))} />}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
