@@ -1,5 +1,5 @@
 import { scrollToTop } from '../app/scroll';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { countsOf, missionGroups, type MissionTask } from '../../src/domain/mission';
 import { setCaptureDone, setTaskDone } from '../../src/domain/commands';
 import { useApp } from '../app/context';
@@ -12,13 +12,18 @@ const RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 /** Status (owner direction, DEC-017): an "All tasks" card (the top few, high priority first) and your groups below it. */
 export function Mission() {
   const { api, scope, assistState, priorityMode, go } = useApp();
+  const [completedHere, setCompletedHere] = useState<Set<string>>(new Set());
   const ws = api.ws, labels = priorityMode !== 'off';
   const hints = useMemo(() => ({ priorities: assistState.prios, groups: assistState.groups.map(g => ({ name: g.name, ids: g.ids })) }), [assistState.prios, assistState.groups]);
   const groups = useMemo(() => missionGroups(ws, scope, hints, priorityMode), [ws, scope, hints, priorityMode]);
   const all = useMemo(() => groups.flatMap(g => g.tasks).sort((a, b) => Number(a.done) - Number(b.done) || (RANK[a.level ?? ''] ?? 3) - (RANK[b.level ?? ''] ?? 3)), [groups]);   // open work first; completed stays visible for undo
-  const open = all.filter(t => !t.done), n = countsOf(open), show = typeof matchMedia === 'function' && matchMedia('(min-width: 761px)').matches ? 5 : 3, shown = all.slice(0, show);
+  const open = all.filter(t => !t.done), n = countsOf(open), show = typeof matchMedia === 'function' && matchMedia('(min-width: 761px)').matches ? 5 : 3;
+  // Keep tasks completed during this visit in the Status card so they remain
+  // visible and struck through. A fresh visit restores normal open-first order.
+  const recentDone = all.filter(t => t.done && completedHere.has(t.key)).slice(0, show);
+  const shown = [...all.filter(t => !t.done).slice(0, Math.max(0, show - recentDone.length)), ...recentDone];
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
-  const toggle = (t: MissionTask, on: boolean) => api.run((w, c) => (t.kind === 'task' ? setTaskDone(w, c, t.id, on) : setCaptureDone(w, c, t.id, on)));
+  const toggle = (t: MissionTask, on: boolean) => { if (api.run((w, c) => (t.kind === 'task' ? setTaskDone(w, c, t.id, on) : setCaptureDone(w, c, t.id, on)))) { setCompletedHere(s => { const n = new Set(s); if (on) n.add(t.key); else n.delete(t.key); return n; }); } };
   const openGroup = (id: string) => { location.hash = `#/group/${encodeURIComponent(id)}`; scrollToTop(); };
   return (
     <>
