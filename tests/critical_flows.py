@@ -44,10 +44,11 @@ def workspace():
     }
 
 
-def seed(page):
-    page.goto(BASE)
+def seed(page, url):
+    page.goto(url)
     page.evaluate("localStorage.clear()")
     page.evaluate("value => localStorage.setItem('exe-v2:local', JSON.stringify(value))", workspace())
+    page.reload()
 
 
 def run():
@@ -56,8 +57,8 @@ def run():
         for theme in ("light", "dark"):
             context = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme=theme)
             page = context.new_page()
-            seed(page)
-            page.goto(f"{BASE}&theme={theme}#/list")
+            list_url = f"{BASE}&theme={theme}#/list"
+            seed(page, list_url)
             row = page.locator(".raw-row", has_text="List contract task")
             checkbox = row.get_by_role("checkbox")
             expect(checkbox).not_to_be_checked()
