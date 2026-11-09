@@ -282,3 +282,14 @@ test('exe_apply_writes_once: a retried key never applies twice, and a failed att
   });
   await asUser(db, B, async d => { const f = folder('30000000-0000-4000-8000-000000000009', 'b'); f.row.owner_id = B; assert.equal((await once(d, KEY, [f])).rows[0].applied, true); });   // keys are per user
 });
+
+test('assistant sessions: readable only by their owner, writable by nobody through the client', async () => {
+  const db = await freshDb();
+  const cap = (await asUser(db, A, async d => (await d.query("insert into captures (text) values ('Reach out to Rachel') returning id")).rows[0].id));
+  await db.query("insert into assistant_sessions (owner_id, capture_id, state) values ($1, $2, '{\"turns\":[]}')", [A, cap]);        // the server role writes
+  assert.equal((await asUser(db, A, d => d.query('select 1 from assistant_sessions'))).rows.length, 1);
+  assert.equal((await asUser(db, B, d => d.query('select 1 from assistant_sessions'))).rows.length, 0);                              // another person sees nothing
+  await assert.rejects(asUser(db, A, d => d.query("insert into assistant_sessions (capture_id, state) values ($1, '{}')", [cap])));   // no client writes
+  await assert.rejects(asUser(db, A, d => d.query("update assistant_sessions set state = '{}'")));
+  await db.query('delete from captures'); assert.equal((await db.query('select 1 from assistant_sessions')).rows.length, 0);          // removed with its entry
+});

@@ -1,6 +1,7 @@
 import type { AssistItem } from './ai';
 import { emptyState, type AssistantState, type Artifact } from '../../src/domain/assistant';
 import { evaluate } from './demoAssistant';
+import { cachedState } from './assistantApi';
 
 const key = (id: string) => `exe-assistant-demo:${id}`;
 /** Demo assistant state for an entry: what was saved on this device, else what the demo rules say about the text. Device-only, labeled Demo. */
@@ -11,7 +12,8 @@ export function loadDemo(id: string, text: string): AssistantState {
 export function saveDemo(id: string, text: string, state: AssistantState): void { try { localStorage.setItem(key(id), JSON.stringify({ text, state })); } catch { /* device storage is best effort */ } }
 
 /** The existing real AI results shown as read-only work: one prepared result per entry. Follow-ups are not connected until the assistant service ships. */
-export function fromAssist(item: AssistItem | undefined): AssistantState | null {
+export function fromAssist(item: AssistItem | undefined, id?: string): AssistantState | null {
+  const saved = id ? cachedState(id) : null; if (saved) return saved;      // what the server last told this device wins over the first batch result
   if (!item) return null;
   const s = emptyState(false);
   let a: Artifact | null = null;

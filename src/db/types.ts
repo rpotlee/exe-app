@@ -76,6 +76,39 @@ export interface Database {
         };
         Relationships: [];
       };
+      assistant_sessions: {
+        Row: {
+          id: string;
+          owner_id: string;
+          capture_id: string;
+          capture_revision: number;
+          state: Json;
+          created_at: string;
+          updated_at: string;
+          revision: number;
+        };
+        Insert: {
+          id?: string;
+          owner_id?: string;
+          capture_id: string;
+          capture_revision?: number;
+          state?: Json;
+          created_at?: string;
+          updated_at?: string;
+          revision?: number;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          capture_id?: string;
+          capture_revision?: number;
+          state?: Json;
+          created_at?: string;
+          updated_at?: string;
+          revision?: number;
+        };
+        Relationships: [];
+      };
       audit_events: {
         Row: {
           id: string;
@@ -717,6 +750,7 @@ export type TablesUpdate<T extends keyof Database['public']['Tables']> = Databas
 /** Real column names per table, for code that must refuse anything unexpected (imports). */
 export const COLUMNS = {
   ai_proposals: ['id', 'owner_id', 'capture_id', 'source_version', 'schema_version', 'fingerprint', 'suggested_type', 'suggested_folder_id', 'suggested_outcome_id', 'relationship_proposals', 'duplicate_candidate_ids', 'research_suggestion', 'explanation', 'uncertainties', 'provider', 'model', 'status', 'decided_at', 'created_at', 'updated_at', 'revision'],
+  assistant_sessions: ['id', 'owner_id', 'capture_id', 'capture_revision', 'state', 'created_at', 'updated_at', 'revision'],
   audit_events: ['id', 'owner_id', 'at', 'actor', 'action', 'entity_type', 'entity_id', 'proposal_id', 'before', 'after', 'undo_of'],
   captures: ['id', 'owner_id', 'text', 'edited_text', 'source', 'folder_id', 'batch_id', 'batch_text', 'completed_at', 'archived_at', 'status', 'organized_as', 'review_state', 'review_at', 'rejected_fingerprints', 'task_id', 'merged_into', 'created_at', 'updated_at', 'revision', 'kind', 'display_title', 'user_priority'],
   decision_log: ['id', 'owner_id', 'decision_id', 'type', 'text', 'at'],

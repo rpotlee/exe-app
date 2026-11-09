@@ -77,3 +77,8 @@ Eight entities only; five tabs; max three Now outcomes; AI suggests, never silen
 - 2026-11-08: Wording pass (branch revamp/wording): Inbox->List, To-do->Task, Show all->View all tasks, Mission Status->Status (tab 'Status', hashes #/status #/list). Internal names unchanged.
 - 2026-11-08: DEC-019: calendar file (.ics) put on hold by the owner. Reminder scheduling/snooze/in-app alerts still undecided; Reminder type stays disabled.
 - 2026-11-08: Assistant phase 1 (branch assistant/phase-1, stacked on revamp/wording #17): panel + status lines on a labeled demo assistant; DEC-020; tests/assistant_phase1.py. Needs owner approval for the persistence migration and the real assistant function.
+
+## Assistant service (release/assistant-service)
+- Migration 11 `assistant_sessions` (select-only RLS; written by the `assistant` edge function only). Tested in-process; NOT applied live.
+- `supabase/functions/assistant` + `_shared/assistant.ts` (12 unit tests): open/send/choose/act, server-side guards, idempotent request ids, Activity events. NOT deployed.
+- Client: `web/app/assistantApi.ts` adapter (demo vs real). Demo path verified at 320/390/1280. Real path needs the owner's key to verify live.

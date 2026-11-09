@@ -1260,3 +1260,5 @@ body.assistant-open .mobile-navigation { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .t-page { max-width: 720px; }
+.ax-error { margin: 0; font-size: 15px; line-height: 20px; color: var(--red); }
+.ax-error .ax-link { display: inline; min-height: 0; margin: 0 0 0 6px; }

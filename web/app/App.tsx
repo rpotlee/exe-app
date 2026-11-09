@@ -4,6 +4,7 @@ import { QueuedStore } from '../../src/store/queued';
 import { makeClient, SupabaseStore, type Db } from '../../src/store/supabase';
 import { AuthGate } from '../auth/AuthGate';
 import { makeAi } from './ai';
+import { makeAssistantApi } from './assistantApi';
 import { Shell } from './Shell';
 import { makeFakeAi } from './fakeAi';
 
@@ -27,5 +28,6 @@ function RemoteApp({ db, owner, email }: { db: Db; owner: string; email: string 
   const [out, setOut] = useState(false);
   useEffect(() => { if (out) void db.auth.signOut(); }, [out, db]);
   const ai = useMemo(() => makeAi(db, owner), [db, owner]);
-  return <Shell store={store} where={email} onSignOut={() => setOut(true)} ai={ai} />;
+  const assistantApi = useMemo(() => makeAssistantApi(db), [db]);
+  return <Shell store={store} where={email} onSignOut={() => setOut(true)} ai={ai} assistantApi={assistantApi} />;
 }
