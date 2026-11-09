@@ -40,39 +40,39 @@
 }
 :root, :root[data-theme="light"] {
   color-scheme: light;
-  --canvas: #f2f2f7;
-  --canvas-base: #f2f2f7;
+  --canvas: #f4f6fb;
+  --canvas-base: #f4f6fb;
   --surface: #ffffff;
-  --surface-soft: #f2f2f7;
-  --surface-blue: rgba(10, 103, 216, .1);
+  --surface-soft: #eef2f8;
+  --surface-blue: rgba(49, 94, 232, .1);
   --ink: #000000;
   --text: #000000;
-  --secondary: #55555a;
-  --muted: #6c6c72;
-  --blue: #0a62cc;
-  --blue-dark: #0a4fae;
-  --blue-light: rgba(10, 103, 216, .12);
+  --secondary: #4b5563;
+  --muted: #667085;
+  --blue: #315ee8;
+  --blue-dark: #2448bd;
+  --blue-light: rgba(49, 94, 232, .12);
   --red: #a81d16;
   --red-bg: rgba(255, 59, 48, .12);
-  --edge: rgba(60, 60, 67, .22);
-  --edge-strong: #c6c6c8;
-  --control-border: #8e8e93;
+  --edge: rgba(71, 85, 105, .18);
+  --edge-strong: #cfd7e5;
+  --control-border: #98a2b3;
   --track: rgba(120, 120, 128, .2);
   --overlay-surface: rgba(0, 0, 0, .4);
 
   --logo-ink: #000000;
   --exe-muted: #6c6c72;
   --exe-slate: #55555a;
-  --exe-accent: #0a62cc;
-  --exe-accent-ink: #0a62cc;
+  --exe-accent: #315ee8;
+  --exe-accent-ink: #2448bd;
   --exe-badge: #5856d6;
   --ring: #ffffff;
 
   --glass-card: #ffffff;
   --glass-soft: #ffffff;
-  --glass-inner: #f2f2f7;
-  --glass-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 4px 14px rgba(0, 0, 0, .04);
-  --hairline: linear-gradient(90deg, rgba(60, 60, 67, .22), rgba(60, 60, 67, .22));
+  --glass-inner: #eef2f8;
+  --glass-shadow: 0 1px 2px rgba(18, 31, 53, .06), 0 10px 24px rgba(18, 31, 53, .07);
+  --hairline: linear-gradient(90deg, rgba(71, 85, 105, .18), rgba(71, 85, 105, .18));
   --hero-fill: #ffffff;
   --hero-solid: #ffffff;
   --hero-shadow: var(--glass-shadow);
@@ -83,11 +83,11 @@
   --dock-shadow: 0 6px 24px rgba(0, 0, 0, .14), 0 1px 3px rgba(0, 0, 0, .1);
   --dock-ink: #55555a;
   --dock-active: #0a62cc;
-  --dock-selected-bg: rgba(118, 118, 128, .1);
+  --dock-selected-bg: rgba(49, 94, 232, .1);
   --dock-ring: #ffffff;
   --dock-edge-color: rgba(255, 255, 255, .85);
-  --sidebar-edge: rgba(60, 60, 67, .22);
-  --sidebar-bg: rgba(249, 249, 249, .8);
+  --sidebar-edge: rgba(71, 85, 105, .16);
+  --sidebar-bg: rgba(247, 249, 253, .9);
 
   --checkbox-bg: #ffffff;
   --checkbox-edge: #8e8e93;
@@ -104,7 +104,7 @@
   --blocked-pill-bg: rgba(255, 59, 48, .16);
   --blocked-pill-edge: rgba(196, 35, 26, .35);
 
-  --input-bg: rgba(118, 118, 128, .12);
+  --input-bg: rgba(71, 85, 105, .08);
   --input-edge: 1px solid transparent;
   --focus-edge: #0a62cc;
   --focus-glow: rgba(10, 103, 216, .2);
@@ -204,7 +204,7 @@ body::before {
   background: var(--mesh), radial-gradient(circle at 15% 0%, rgba(109, 140, 255, .08), transparent 34%), radial-gradient(circle at 95% 30%, rgba(94, 234, 212, .045), transparent 28%);
 }
 
-:root[data-theme="light"] body::before { background: radial-gradient(circle at 10% 0%, rgba(10, 103, 216, .05), transparent 32%), radial-gradient(circle at 100% 20%, rgba(88, 86, 214, .035), transparent 28%); }
+:root[data-theme="light"] body::before { background: radial-gradient(circle at 10% 0%, rgba(49, 94, 232, .07), transparent 32%), radial-gradient(circle at 100% 20%, rgba(88, 86, 214, .05), transparent 28%); }
 
 /* ---------- 2. type + logo ---------- */
 .mission-heading h1, .page-heading h1 { font-size: clamp(34px, 3vw, 42px); line-height: 1.12; letter-spacing: -.035em; font-weight: 700; color: var(--ink); }
@@ -1047,6 +1047,10 @@ body::before {
 .raw-list.grouped .raw-row { padding: 0 6px 0 16px; }
 .raw-list.grouped .raw-row { background: color-mix(in srgb, var(--surface) 94%, var(--exe-accent) 6%); }
 .raw-list.grouped .raw-row:hover { background: color-mix(in srgb, var(--surface) 86%, var(--exe-accent) 14%); }
+.raw-list.grouped .raw-row.kind-note { background: color-mix(in srgb, var(--surface) 92%, #5b7ee8 8%); }
+.raw-list.grouped .raw-row.kind-reminder { background: color-mix(in srgb, var(--surface) 92%, #f59e0b 8%); }
+.raw-list.grouped .raw-row.kind-note:hover { background: color-mix(in srgb, var(--surface) 84%, #5b7ee8 16%); }
+.raw-list.grouped .raw-row.kind-reminder:hover { background: color-mix(in srgb, var(--surface) 84%, #f59e0b 16%); }
 .raw-list.grouped .raw-row::after { left: 16px; background: var(--edge); }
 .raw-list.grouped .raw-row:last-child::after { display: none; }
 .raw-list.grouped .raw-check { min-height: 48px; padding: 11px 0; align-items: center; font-size: 17px; line-height: 22px; letter-spacing: -.43px; }
