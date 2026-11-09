@@ -968,7 +968,7 @@ body::before {
 .brand-mobile { min-height: 44px; }
 .inbox-filters button { height: 44px; min-height: 44px; }
 /* one checkbox everywhere: 24px circle, 3:1 edge, flat accent when done */
-.check-row input, .raw-check input { width: 24px; height: 24px; border-radius: 50%; }
+.check-row input, .raw-check input { width: 20px; height: 20px; border-radius: 50%; }
 .check-row input:checked, .raw-check input:checked { background: var(--exe-accent); box-shadow: none; }
 /* one primary button: flat accent; sheet and detail actions are full-size capsules */
 .primary-button { background: var(--exe-accent); box-shadow: none; }
@@ -1198,7 +1198,7 @@ body::before {
 .hero-checks .check-row, .hero-checks .check-row.is-next { min-height: 52px; padding: 8px 0; gap: 12px; align-items: center; background: none; box-shadow: none; border: 0; border-radius: 0; font-size: 17px; line-height: 22px; font-weight: 400; letter-spacing: -.43px; }
 .hero-checks .check-row + .check-row { border-top: 1px solid var(--edge); }
 .hero-checks .check-row.is-complete > span:not(.pill):not(.prio-dot) { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; }
-.hero-checks .check-row input, .hero-checks .check-row.is-next input { width: 24px; height: 24px; }
+.hero-checks .check-row input, .hero-checks .check-row.is-next input { width: 20px; height: 20px; }
 .hero-bottom { margin-top: 16px; }
 .hero-bottom .primary-button { height: 50px; min-height: 50px; font-size: 17px; font-weight: 600; letter-spacing: -.43px; }
 .mission-other, .mission-lanes, .mission-suggest, .mission-extras { margin-top: 0; }
