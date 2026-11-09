@@ -190,6 +190,12 @@ test('AI can never delete or complete anything: it can read and add proposals, n
   });
 });
 
+test('Groq is an allowed provider and unknown ones are not', async () => {
+  const db = await freshDb();
+  await db.query(`insert into user_ai_settings (owner_id, provider, model, key_ciphertext, key_last4) values ($1,'groq','openai/gpt-oss-20b','\\x00ff'::bytea,'1a2b')`, [A]);
+  assert.match(await fails(db.query(`insert into user_ai_settings (owner_id, provider, model, key_ciphertext, key_last4) values ($1,'nobody','m','\\x00ff'::bytea,'1a2b')`, [B])), /check/);
+});
+
 test('the AI key never reaches the browser role', async () => {
   const db = await freshDb();
   await db.query(`insert into user_ai_settings (owner_id, provider, model, key_ciphertext, key_last4) values ($1,'openai','my-model','\\x00ff'::bytea,'9z9z')`, [A]);

@@ -1,7 +1,7 @@
 import type { Db } from '../../src/store/supabase';
 
-export type Provider = 'anthropic' | 'openai' | 'gemini';
-export const PROVIDER_NAMES: Record<Provider, string> = { anthropic: 'Anthropic', openai: 'OpenAI', gemini: 'Google Gemini' };
+export type Provider = 'anthropic' | 'openai' | 'gemini' | 'groq';
+export const PROVIDER_NAMES: Record<Provider, string> = { anthropic: 'Anthropic', openai: 'OpenAI', gemini: 'Google Gemini', groq: 'Groq' };
 export interface AiSettings { provider: Provider; model: string; key_last4: string; enabled: boolean; disclosure_accepted_at: string | null }
 export interface AiProposal { captureId: string; type: 'Task' | 'Outcome' | 'Decision' | 'Idea' | 'Note'; folderId: string | null; outcomeId: string | null; explanation: string; uncertainties: string[] }
 export interface Suggestions { proposals: AiProposal[]; dropped: number; provider: Provider; model: string }

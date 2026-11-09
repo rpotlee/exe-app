@@ -140,11 +140,13 @@ ${steps(['Press the folder name at the top (computer) or open the folders contro
 <h2>Set it up</h2>
 ${steps([
  'Sign in (AI needs an account, because your key is stored encrypted on the server).',
- 'Get an API key from <strong>Anthropic</strong>, <strong>OpenAI</strong> or <strong>Google Gemini</strong>, and note the <strong>model name</strong> your provider gives you.',
+ 'Get an API key from <strong>Anthropic</strong>, <strong>OpenAI</strong>, <strong>Google Gemini</strong> or <strong>Groq</strong>, and note the <strong>model name</strong> your provider gives you.',
  'Open <strong>Settings → AI (your own key)</strong>. Choose the provider, type the model name, paste the key, and press <strong>Save key</strong>.',
  'Read the notice, then press <strong>I understand, turn on AI</strong>.',
  'Press <strong>Test connection</strong>. It sends only a tiny test message, no personal text.'])}
 ${warn('Your key is shown only as its last 4 characters after you save it. Treat it like a password. If you lose track of it, press <strong>Remove key</strong> and make a new one with your provider.')}
+<h2>Which provider?</h2>
+<p>OpenAI and Anthropic need prepaid credit. Groq has a free plan with usage limits (try the model <code>openai/gpt-oss-20b</code>). Gemini’s free tier is not available in every region or account. Free plans may keep or use your prompts, so check the provider’s privacy terms before sending anything personal.</p>
 <h2>What is sent</h2>
 <p>Only when you ask (or open the assistant on a task), Exe sends that task’s text, or for suggestions the text of your open tasks and your folder names, to your provider. Nothing is sent otherwise.</p>
 <h2>Turning it off</h2>
