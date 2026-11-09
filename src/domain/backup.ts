@@ -136,7 +136,7 @@ export function importWrites(current: Workspace, ctx: Ctx, incoming: Workspace, 
     if (f.lane === 'now' && nowKept + ++nowSeen > MAX_NOW) { f.lane = 'next'; summary.push('Some active priorities were moved to Next to keep the limit of three.'); }
     push('focus_assignments', f);
   }
-  for (const r of incoming.tasks as unknown as Row[]) { const t = clean('tasks', r); t.outcome_id = id(r.outcome_id); t.sources = sources(r.sources); push('tasks', t); }
+  for (const r of incoming.tasks as unknown as Row[]) { const t = clean('tasks', r); t.outcome_id = id(r.outcome_id); t.folder_id = id(r.folder_id); t.sources = sources(r.sources); push('tasks', t); }
   const caps = incoming.captures as unknown as Row[];
   for (const r of [...caps.filter(c => !c.merged_into), ...caps.filter(c => c.merged_into)]) { const c = clean('captures', r); c.folder_id = id(r.folder_id); c.task_id = id(r.task_id); c.merged_into = id(r.merged_into); c.batch_id = r.batch_id ? mint('batch:' + String(r.batch_id)) : null; push('captures', c); }
   for (const r of incoming.decisions as unknown as Row[]) { const d = clean('decisions', r); d.folder_id = id(r.folder_id); d.sources = sources(r.sources); push('decisions', d); }
