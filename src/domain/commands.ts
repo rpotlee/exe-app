@@ -13,6 +13,8 @@ const fail = (error: string, extra: { needsSwap?: boolean } = {}): Result => ({ 
 const done = (writes: Write[], note?: string): Result => ({ ok: true, writes, ...(note ? { note } : {}) });
 const ins = (table: Table, row: Row): Write => ({ table, op: 'insert', row });
 const upd = (table: Table, existing: { id: string; revision: number }, changes: Row): Write => ({ table, op: 'update', row: { id: existing.id, revision: existing.revision, ...changes } });
+const auditAs = (ctx: Ctx, actor: 'user' | 'ai', action: string, entityType: string | null, entityId: string | null, before: unknown = null, after: unknown = null): Write =>
+  ins('audit_events', { id: ctx.id(), owner_id: ctx.owner, at: ctx.now(), actor, action, entity_type: entityType, entity_id: entityId, proposal_id: null, before, after, undo_of: null });
 const audit = (ctx: Ctx, action: string, entityType: string | null, entityId: string | null, before: unknown = null, after: unknown = null): Write =>
   ins('audit_events', { id: ctx.id(), owner_id: ctx.owner, at: ctx.now(), actor: 'user', action, entity_type: entityType, entity_id: entityId, proposal_id: null, before, after, undo_of: null });
 
@@ -460,6 +462,7 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
     edges.push([a, b]);
     writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
   }
+  writes.push(auditAs(ctx, 'user', 'user-group-ai', null, null, null, { name, n: caps.length, ids: caps.map(c => c.id) }));
   return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in your List.`);
 }
 
@@ -471,9 +474,11 @@ export function convertKind(ws: Workspace, id: string, kind: 'todo' | 'note' | '
   return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a to-do' : kind === 'note' ? 'a note' : 'a reminder'}.`);
 }
 /** The person's own priority label. It never touches Now/Next/Later or the current focus. null clears it. */
-export function setCapturePriority(ws: Workspace, id: string, label: 'high' | 'medium' | 'low' | null): Result {
+export function setCapturePriority(ws: Workspace, ctx: Ctx, id: string, label: 'high' | 'medium' | 'low' | null, aiSuggested: 'high' | 'medium' | 'low' | null = null): Result {
   const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
-  return done([upd('captures', c, { user_priority: label })]);
+  const writes = [upd('captures', c, { user_priority: label })];
+  if (aiSuggested && label) writes.push(auditAs(ctx, 'user', 'user-priority-ai', 'capture', id, { ai: aiSuggested }, { level: label }));      // you answered the AI's suggestion
+  return done(writes);
 }
 /** Move a loose step to a folder. A step inside an outcome follows its outcome instead. */
 export function moveLooseTask(ws: Workspace, id: string, folderId: string | null): Result {
@@ -490,4 +495,12 @@ export function moveOutcome(ws: Workspace, id: string, folderId: string | null):
   const o = ws.outcomes.find(x => x.id === id); if (!o) return fail('That outcome no longer exists.');
   if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
   return done([upd('outcomes', o, { folder_id: folderId })]);
+}
+
+// ------------------------------------------------------------------ the AI activity log (DEC-018)
+/** Records what the AI prepared. Only small facts are stored (kind, counts, ids); generated text is never copied into the log. */
+export function logAiEvents(ws: Workspace, ctx: Ctx, events: { action: string; entityType?: string | null; entityId?: string | null; after?: Record<string, unknown> }[]): Result {
+  void ws;
+  if (!events.length) return fail('Nothing to record.');
+  return done(events.map(e => auditAs(ctx, 'ai', e.action, e.entityType ?? null, e.entityId ?? null, null, e.after ?? null)));
 }

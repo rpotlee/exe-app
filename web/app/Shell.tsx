@@ -5,6 +5,8 @@ import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
 import type { AiApi } from './ai';
 import { useAssist, type AssistClient } from './useAssist';
+import * as C from '../../src/domain/commands';
+import type { AiEventInput } from '../../src/domain/activity';
 
 import { Icon } from '../ui/Icon';
 import { Ctx, type AppCtx, type ModalState, type Page } from './context';
@@ -20,14 +22,15 @@ import { Inbox } from '../screens/Inbox';
 const MapScreen = lazy(() => import('../screens/Map').then(m => ({ default: m.MapScreen })));
 const Later = lazy(() => import('../screens/Later').then(m => ({ default: m.Later })));
 const Decisions = lazy(() => import('../screens/Decisions').then(m => ({ default: m.Decisions })));
+const Activity = lazy(() => import('../screens/Activity').then(m => ({ default: m.Activity })));
 const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Review })));
 
-const PAGES: Page[] = ['focus', 'priorities', 'tasks', 'group', 'lanes', 'inbox', 'review', 'map', 'decisions'];
+const PAGES: Page[] = ['focus', 'approvals', 'priorities', 'tasks', 'group', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 // New names for the three primary screens; the old hashes still work and land on the same screens (revamp spec §2.3).
 const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', mission: 'focus', assistant: 'review' };
-const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'mission', review: 'assistant', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
+const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'mission', review: 'assistant', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
 const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, '').replace(/^group\/.*/, 'group'); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
-const PAGE_NAME: Record<Page, string> = { priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
+const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'AI Assistant', map: 'Map', decisions: 'Decisions' };
 // The primary destinations. Map, Decisions and Next & Later are reached from Mission Status ("Explore work"), so Mission stays highlighted for them.
 const TABS: { page: Page; label: string; icon: string }[] = [
   { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'AI Assistant', icon: 'sparkles' },
@@ -39,7 +42,8 @@ const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem
 export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null }) {
   const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
-  const assistState = useAssist(assist, api.ws ?? emptyWorkspace());   // one AI helper for the whole app, so two screens never ask twice
+  const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
+  const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi);   // one AI helper for the whole app, so two screens never ask twice
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
   const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);
@@ -77,12 +81,12 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
 
-  const navPage: Page = ['lanes', 'map', 'decisions', 'priorities', 'tasks', 'group'].includes(page) ? 'focus' : page;   // Map, Decisions and Next & Later live under Mission
+  const navPage: Page = ['lanes', 'map', 'decisions', 'priorities', 'tasks', 'group'].includes(page) ? 'focus' : page === 'approvals' ? 'review' : page;   // Map, Decisions and Next & Later live under Mission
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const name = ws.settings?.workspace_name || 'My workspace';
   const save = qs?.conflict ? 'Needs your attention' : qs && qs.pending > 0 ? (qs.offline ? 'Saved on this device, not synced' : 'Saving…') : api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
-  const screen = page === 'focus' ? <Mission /> : page === 'priorities' ? <Focus /> : page === 'tasks' ? <TaskScreen /> : page === 'group' ? <TaskScreen groupId={decodeURIComponent(location.hash.replace(/^#\/?group\//, ''))} /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Review /> : <Later which={page} />;
-  const badge = (p: Page) => (p === 'review' && awaiting > 0 ? awaiting : 0);
+  const screen = page === 'focus' ? <Mission /> : page === 'priorities' ? <Focus /> : page === 'tasks' ? <TaskScreen /> : page === 'group' ? <TaskScreen groupId={decodeURIComponent(location.hash.replace(/^#\/?group\//, ''))} /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Activity /> : page === 'approvals' ? <Review /> : <Later which={page} />;
+  const badge = (_p: Page) => 0;   // the AI tab is a log now (DEC-018): nothing is waiting on you there, so no count
   const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} items for the AI Assistant`}>{n > 99 ? '99+' : n}</span> : null);
 
   return (
