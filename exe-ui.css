@@ -1090,7 +1090,7 @@ body::before {
 .raw-list.grouped .raw-row.kind-reminder:hover { background: color-mix(in srgb, var(--surface) 84%, #f59e0b 16%); }
 .raw-list.grouped .raw-row::after { left: 16px; background: var(--edge); }
 .raw-list.grouped .raw-row:last-child::after { display: none; }
-.raw-list.grouped .raw-check { min-height: 48px; padding: 11px 0; align-items: center; font-size: 17px; line-height: 22px; letter-spacing: -.43px; }
+.raw-list.grouped .raw-check { min-height: 48px; padding: 11px 0; align-items: center; font-size: 15.5px; line-height: 21px; letter-spacing: -.18px; }
 .raw-list.grouped .raw-check > .pill { align-self: flex-start; margin-top: 2px; font-size: 11px; line-height: 16px; }
 .raw-list.grouped .raw-more { margin-top: 0; align-self: center; }
 .raw-list.grouped .kind-body { align-items: flex-start; }
