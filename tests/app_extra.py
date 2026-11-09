@@ -20,7 +20,7 @@ def big():
             for t in range(5):
                 ws['tasks'].append({**base(n), 'outcome_id': oid, 'name': f'Step {t} of {f}-{o}', 'notes': '', 'done_at': None, 'archived_at': None, 'deadline': None, 'effort': None, 'position': t, 'sources': []}); n += 1
     for c in range(2000):
-        ws['captures'].append({**base(n), 'text': f'Captured thought number {c} about pricing, plumber and venue', 'edited_text': None, 'source': 'Inbox', 'folder_id': None, 'batch_id': None, 'batch_text': None, 'completed_at': None, 'archived_at': None, 'status': 'organized' if c % 3 else 'pending', 'organized_as': None, 'review_state': None, 'review_at': None, 'rejected_fingerprints': [], 'task_id': None, 'merged_into': None}); n += 1
+        ws['captures'].append({**base(n), 'text': f'Captured thought number {c} about pricing, plumber and venue', 'edited_text': None, 'source': 'List', 'folder_id': None, 'batch_id': None, 'batch_text': None, 'completed_at': None, 'archived_at': None, 'status': 'organized' if c % 3 else 'pending', 'organized_as': None, 'review_state': None, 'review_at': None, 'rejected_fingerprints': [], 'task_id': None, 'merged_into': None}); n += 1
     for d in range(200):
         ws['decisions'].append({**base(n), 'folder_id': None, 'name': f'Decision {d}?', 'description': '', 'status': 'open', 'evidence': '', 'notes': '', 'chosen_option': '', 'conclusion': '', 'rationale': '', 'resolved_at': None, 'sources': []}); n += 1
     return ws
@@ -49,7 +49,7 @@ with sync_playwright() as p:
         ctx = b.new_context(viewport={'width': w, 'height': 900}, reduced_motion='reduce'); pg = ctx.new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e))); pg.goto(URL); pg.evaluate(f"localStorage.setItem('{KEY}', arguments[0])" if False else "(d)=>localStorage.setItem('exe-v2:local', d)", json.dumps(ws)); t0 = time.time(); pg.reload(); pg.locator('#view h1').wait_for(); load = time.time() - t0
         times = {}
-        for r, title in [('inbox', 'List'), ('map', 'Map'), ('decisions', 'Decisions'), ('approvals', 'Approvals'), ('focus', 'Mission Status')]:
+        for r, title in [('inbox', 'List'), ('map', 'Map'), ('decisions', 'Decisions'), ('approvals', 'Approvals'), ('focus', 'Status')]:
             t = time.time(); (pg.evaluate(f"location.hash = '#/{r}'") if r in ('map', 'decisions', 'lanes', 'priorities', 'approvals') else pg.locator(f'[data-nav={r}]').filter(visible=True).first.click()); pg.locator('#view h1', has_text=title).wait_for(); pg.evaluate('new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))'); times[r] = time.time() - t
         t = time.time(); pg.keyboard.press('/'); pg.get_by_label('Search all work').fill('plumber 1999'); pg.locator('.search-result').first.wait_for(); times['search'] = time.time() - t
         assert load < 5 and all(v < 2.5 for v in times.values()), (w, load, times)

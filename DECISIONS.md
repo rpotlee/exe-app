@@ -272,3 +272,10 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - The old AI Review approvals screen is kept, unlinked, at `#/approvals` (same treatment as Map and Decisions, DEC-017).
 - Not yet logged: edits the AI never makes, calendar files and reminders (Phase 4), and the saved-AI-help-across-devices work.
 - Style: renamed Activity Log, a plain timeline (dated headings with a dot on a line, small bold AI/You, details with colored priority words and accent item names, time). No cards or images. Nav icon: history.
+
+## DEC-019 — Calendar file (.ics) is on hold (2026-11-08)
+**Source:** owner: "Put a hold on this. We will figure it out later."
+
+- The optional "Download calendar event" button for Reminders (revamp spec §5.3) is **not built and not planned for now**. No UI for it exists.
+- When it comes back, keep the spec's honesty rule: the button says "Download calendar event", never "Added to calendar", because the app cannot confirm that the person imported the file.
+- The rest of Phase 4 (real Reminder scheduling, snooze, in-app due alerts) is separate and still undecided. The Reminder type stays visible but disabled until then.

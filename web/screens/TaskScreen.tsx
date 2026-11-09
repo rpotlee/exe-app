@@ -23,7 +23,7 @@ export function TaskScreen({ groupId }: { groupId?: string }) {
   return (
     <>
       <MobileTopline />
-      <button type="button" className="back-link" onClick={() => go('focus')}><Icon name="chevron-left" /> Mission Status</button>
+      <button type="button" className="back-link" onClick={() => go('focus')}><Icon name="chevron-left" /> Status</button>
       <div className="mission-heading"><h1>{title}</h1><p className="mission-sub">{groupId && !g ? 'This group no longer exists.' : <>{c.total} open {c.total === 1 ? 'task' : 'tasks'}{labels && c.total > 0 && <PriorityCounts {...c} />}</>}</p></div>
       {g && <div className="t-actions">
         {g.kind === 'suggested' && <button className="primary-button" onClick={() => api.run((w, cx) => groupCaptures(w, cx, { ids: g.captureIds, name: g.name, deps: assistState.deps.filter(d => g.captureIds.includes(d.before) && g.captureIds.includes(d.after)) }))}>Group these</button>}

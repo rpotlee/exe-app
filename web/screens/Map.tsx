@@ -107,7 +107,7 @@ export function MapScreen() {
           {!ideas.some(i => !i.archived_at) && <p className="small-note">No ideas yet.</p>}
           {ideas.some(i => i.archived_at) && <button className="quiet-button" aria-pressed={showArchivedIdeas} onClick={() => setShowArchivedIdeas(v => !v)}>{showArchivedIdeas ? 'Hide archived ideas' : 'Show archived ideas'}</button>}
           {caps.length > 0 && <><div className="divider"></div><h3 className="section-heading" style={{ marginBottom: 10 }}>{isAll ? 'Captures not filed yet' : 'Captures filed here'}</h3>
-            {caps.slice(0, 6).map(c => <div key={c.id} className="backlog-row"><span className="folder"><Icon name="inbox" /></span><strong>{c.edited_text ?? c.text}</strong></div>)}{caps.length > 6 && <p className="small-note">{caps.length - 6} more in the Inbox.</p>}</>}
+            {caps.slice(0, 6).map(c => <div key={c.id} className="backlog-row"><span className="folder"><Icon name="inbox" /></span><strong>{c.edited_text ?? c.text}</strong></div>)}{caps.length > 6 && <p className="small-note">{caps.length - 6} more in the List.</p>}</>}
           <p className="endnote">Only confirmed “blocks” relationships hold work up; suggestions never do.</p></section>
       </div>
     </>

@@ -9,7 +9,7 @@ with sync_playwright() as p:
         pg = b.new_page(viewport={'width': w, 'height': 900}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         pg.goto('http://127.0.0.1:5173/?local=1&fakeai=1'); pg.evaluate('localStorage.clear(); sessionStorage.clear()'); pg.reload()
         expect(pg.get_by_role('heading', name='List')).to_be_visible()                                       # a first visit opens the list
-        box = pg.get_by_label('Add a to-do')
+        box = pg.get_by_label('Add a task')
         for t in ['Email Rachel about the open position at company A', 'Prepare interview questions for the open position', 'Research how to register a business in New York City', 'What is the capital of Australia?', 'Buy a standing desk']:
             box.fill(t); box.press('Enter')
         pg.wait_for_timeout(4500)

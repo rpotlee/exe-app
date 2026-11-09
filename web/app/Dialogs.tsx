@@ -76,12 +76,12 @@ function CaptureSheet() {
     <Modal title="Capture" onClose={() => modal(null)}>
       <form onSubmit={submit}>
         <div className="kind-picker" role="group" aria-label="What are you capturing?">
-          <button type="button" aria-pressed={kind === 'todo'} onClick={() => pick('todo')}>To-do</button>
+          <button type="button" aria-pressed={kind === 'todo'} onClick={() => pick('todo')}>Task</button>
           <button type="button" aria-pressed={kind === 'note'} onClick={() => pick('note')}>Note</button>
           <button type="button" disabled aria-disabled="true" title="Reminders need a date and time, which arrive in a later update">Reminder</button>
         </div>
         <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={kind === 'note' ? 'Write a note…' : 'What needs doing?\nPaste a list to add several.'} />
-        {kind === 'todo' && n > 1 && <label className="split-note"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Keep as one to-do (otherwise {n} to-dos are added)</label>}
+        {kind === 'todo' && n > 1 && <label className="split-note"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Keep as one task (otherwise {n} tasks are added)</label>}
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="capture-foot"><span className="small-note">Saving to {scopeName}{scope.kind === 'all' ? ' (Unfiled)' : ''}</span><button className="primary-button" type="submit">Save</button></div>
       </form>
@@ -332,10 +332,10 @@ function CaptureEdit({ id }: { id: string }) {
   const c = api.ws.captures.find(x => x.id === id);
   if (!c) return null;
   return (
-    <Modal title="Edit to-do" onClose={() => modal(null)}>
+    <Modal title="Edit task" onClose={() => modal(null)}>
       <p className="helper">The original capture is kept exactly as you wrote it.</p>
       <form onSubmit={e => { e.preventDefault(); if (api.run(w => C.editCapture(w, id, val(new FormData(e.currentTarget), 'text')))) modal(null); }}>
-        <label className="form-field">To-do text<textarea name="text" className="text-input" required maxLength={4000} defaultValue={c.edited_text ?? c.text} /></label>
+        <label className="form-field">Task text<textarea name="text" className="text-input" required maxLength={4000} defaultValue={c.edited_text ?? c.text} /></label>
         <button type="submit" className="primary-button">Save changes</button>
       </form>
     </Modal>
@@ -356,7 +356,7 @@ function FocusMode({ id }: { id: string }) {
       <div className="focus-body"><div className="focus-label">FOCUS MODE / {folder.toUpperCase()}</div><h1>{o.name}</h1><p className="lead">One priority. The next clear action. Everything else can wait.</p>
         <div className="focus-panel"><div className="row-between"><h3 className="section-heading">Your checklist</h3><span className="pill blue">{p.done} of {p.total} done</span></div>
           {steps.map(t => <CheckRow key={t.id} task={t} />)}{!steps.length && <p className="small-note">No steps yet.</p>}</div>
-        <div className="focus-actions"><span className="small-note">New thoughts go to Inbox, not your active work.</span><button className="quiet-button" onClick={() => modal({ kind: 'steps', outcomeId: id })}><Icon name="list-checks" /> Break it down</button><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
+        <div className="focus-actions"><span className="small-note">New thoughts go to List, not your active work.</span><button className="quiet-button" onClick={() => modal({ kind: 'steps', outcomeId: id })}><Icon name="list-checks" /> Break it down</button><button className="quiet-button" onClick={close}>Finish session <Icon name="check" /></button></div></div>
     </div>, document.getElementById('modal-root') as HTMLElement);
 }
 
@@ -463,7 +463,7 @@ function MergePreview({ id, otherId, folderId, type }: { id: string; otherId: st
   };
   return (
     <Modal title="Preview merge" onClose={() => modal(null)}>
-      <p className="helper">Nothing is deleted. Both captures stay in your Inbox exactly as written, and both are linked to the result.</p>
+      <p className="helper">Nothing is deleted. Both captures stay in your List exactly as written, and both are linked to the result.</p>
       <div className="merge-grid"><div><div className="eyebrow">CAPTURE A</div><p className="review-original">{captureText(a)}</p></div><div><div className="eyebrow">CAPTURE B</div><p className="review-original">{captureText(b)}</p></div></div>
       <div className="recommendation"><span className="review-tag">RESULT</span><p>One {type === 'Note' ? 'note' : type.toLowerCase()}: <strong>{p.title}</strong>. Both captures point to it. You can undo this.</p></div>
       <div className="capture-foot"><button className="quiet-button" onClick={() => modal(null)}>Cancel</button><button className="primary-button" onClick={confirm}>Merge</button></div>

@@ -1,4 +1,4 @@
-// The Mission Status state line (DEC-003): parts that are zero are omitted; "blocked" counts only confirmed blocks.
+// The Status state line (DEC-003): parts that are zero are omitted; "blocked" counts only confirmed blocks.
 import { blockedCount } from './blocking';
 import { currentFocusId, type Workspace } from './model';
 

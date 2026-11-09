@@ -17,7 +17,7 @@ def nav(page, route): _go(page, route)
 def cap(page, text):
     page.locator('.dock-capture, .top-capture').filter(visible=True).last.click(); page.get_by_label('Capture text').fill(text); page.locator('.modal-sheet button[type=submit]').click()
 def status(page):
-    if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the Inbox now
+    if not page.locator('#status-line').is_visible(): nav(page, 'focus')   # a first visit opens the List now
     page.locator('#status-line').wait_for(); page.wait_for_timeout(80)
     return ' '.join(page.locator('#status-line').inner_text().split())
 def pick(page, w, label):
@@ -42,13 +42,13 @@ with sync_playwright() as p:
         # empty first run
         assert status(page) == 'Nothing here yet.' and page.get_by_role('heading', name='Nothing here yet').count() == 1
         labels = [t.strip() for t in (page.locator('.mobile-dock small') if mobile else page.locator('.sidebar-menu .nav-link span:not(.nav-scope):not(.nav-count)')).all_inner_texts() if t.strip()]
-        assert labels == (['List', 'Mission', 'Activity', 'Folders'] if mobile else ['List', 'Mission Status', 'Activity Log', 'Folders']), labels   # revamp: five positions, the + in the middle
+        assert labels == (['List', 'Status', 'Activity', 'Folders'] if mobile else ['List', 'Status', 'Activity Log', 'Folders']), labels   # revamp: five positions, the + in the middle
         # capture: a list splits, the badge shows, raw completion touches nothing else
         cap(page, 'Call the plumber\nBook flights\nRenew passport'); nav(page, 'inbox')
         expect(page.locator('.raw-row')).to_have_count(3); assert 'Renew passport' in page.locator('.raw-row').first.inner_text()      # newest first
         first = page.locator('.raw-row input[type=checkbox]').first; first.check()
         d = S(page); assert sum(1 for c in d['captures'] if c['completed_at']) == 1 and d['tasks'] == []
-        page.locator('.seg:not(.sub) button', has_text='To-dos').click(); page.locator('.seg.sub button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
+        page.locator('.seg:not(.sub) button', has_text='Tasks').click(); page.locator('.seg.sub button', has_text='Done').click(); expect(page.locator('.raw-row')).to_have_count(1)
         page.locator('.seg.sub button', has_text='All').click(); page.locator('.seg:not(.sub) button', has_text='Everything').click()
         # folders and outcomes
         nav(page, 'map'); page.get_by_role('button', name='New folder').click(); page.locator('#modal-root input[name=name]').fill('Home'); page.get_by_role('button', name='Create folder').click()

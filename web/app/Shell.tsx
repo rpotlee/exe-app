@@ -18,7 +18,7 @@ import { Focus } from '../screens/Focus';
 import { Mission } from '../screens/Mission';
 import { TaskScreen } from '../screens/TaskScreen';
 const Lanes = lazy(() => import('../screens/Lanes').then(m => ({ default: m.Lanes })));
-import { Inbox } from '../screens/Inbox';
+import { List } from '../screens/Inbox';
 const MapScreen = lazy(() => import('../screens/Map').then(m => ({ default: m.MapScreen })));
 const Later = lazy(() => import('../screens/Later').then(m => ({ default: m.Later })));
 const Decisions = lazy(() => import('../screens/Decisions').then(m => ({ default: m.Decisions })));
@@ -27,13 +27,13 @@ const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Re
 
 const PAGES: Page[] = ['focus', 'approvals', 'priorities', 'tasks', 'group', 'lanes', 'inbox', 'review', 'map', 'decisions'];
 // New names for the three primary screens; the old hashes still work and land on the same screens (revamp spec §2.3).
-const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', mission: 'focus', assistant: 'review' };
-const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'mission', review: 'assistant', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
+const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', status: 'focus', mission: 'focus', assistant: 'review', activity: 'review' };
+const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'status', review: 'activity', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
 const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, '').replace(/^group\/.*/, 'group'); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
-const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Mission Status', lanes: 'Next & Later', inbox: 'List', review: 'Activity Log', map: 'Map', decisions: 'Decisions' };
-// The primary destinations. Map, Decisions and Next & Later are reached from Mission Status ("Explore work"), so Mission stays highlighted for them.
+const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Status', lanes: 'Next & Later', inbox: 'List', review: 'Activity Log', map: 'Map', decisions: 'Decisions' };
+// The primary destinations. Map, Decisions and Next & Later are reached from Status ("Explore work"), so Mission stays highlighted for them.
 const TABS: { page: Page; label: string; icon: string }[] = [
-  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Mission', icon: 'target' }, { page: 'review', label: 'Activity Log', icon: 'history' },
+  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Status', icon: 'target' }, { page: 'review', label: 'Activity Log', icon: 'history' },
 ];
 const SCOPE_KEY = 'exe-scope', PRIO_KEY = 'exe-priority-mode';
 const loadPrio = (): PriorityMode => { try { const v = localStorage.getItem(PRIO_KEY); if (v === 'mine' || v === 'off') return v; } catch { /* default */ } return 'ai'; };
@@ -85,7 +85,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const name = ws.settings?.workspace_name || 'My workspace';
   const save = qs?.conflict ? 'Needs your attention' : qs && qs.pending > 0 ? (qs.offline ? 'Saved on this device, not synced' : 'Saving…') : api.state === 'saving' ? 'Saving…' : api.state === 'error' ? 'Not saved' : store.kind === 'local' ? 'Saved on this device' : 'Saved';
-  const screen = page === 'focus' ? <Mission /> : page === 'priorities' ? <Focus /> : page === 'tasks' ? <TaskScreen /> : page === 'group' ? <TaskScreen groupId={decodeURIComponent(location.hash.replace(/^#\/?group\//, ''))} /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <Inbox /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Activity /> : page === 'approvals' ? <Review /> : <Later which={page} />;
+  const screen = page === 'focus' ? <Mission /> : page === 'priorities' ? <Focus /> : page === 'tasks' ? <TaskScreen /> : page === 'group' ? <TaskScreen groupId={decodeURIComponent(location.hash.replace(/^#\/?group\//, ''))} /> : page === 'lanes' ? <Lanes /> : page === 'inbox' ? <List /> : page === 'map' ? <MapScreen /> : page === 'decisions' ? <Decisions /> : page === 'review' ? <Activity /> : page === 'approvals' ? <Review /> : <Later which={page} />;
   const badge = (_p: Page) => 0;   // the AI tab is a log now (DEC-018): nothing is waiting on you there, so no count
   const bubble = (n: number) => (n ? <span className="dock-bubble" aria-label={`${n} items for the AI Assistant`}>{n > 99 ? '99+' : n}</span> : null);
 
@@ -97,7 +97,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
           <button className="brand" onClick={() => go('focus')} aria-label="Exe home"><span className="brand-symbol" aria-hidden="true"><i></i><i></i></span><span>Exe</span></button>
                     <nav className="sidebar-menu">{TABS.map(t => (
             <button key={t.page} className={`nav-link ${navPage === t.page ? 'active' : ''}`} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.icon} /><span>{t.page === 'focus' ? 'Mission Status' : t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} items for the AI Assistant`}>{badge(t.page)}</span>}</button>))}
+              <Icon name={t.icon} /><span>{t.page === 'focus' ? 'Status' : t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} items for the AI Assistant`}>{badge(t.page)}</span>}</button>))}
             <button className="nav-link" aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><span>Folders</span><span className="nav-scope">{scopeName}</span></button></nav>
           <div className="sidebar-bottom">
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'search' })}><Icon name="search" /><span>Search</span></button>
@@ -112,7 +112,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
             <div className="breadcrumb"><button className="crumb-scope" onClick={() => setModal({ kind: 'folders' })} aria-haspopup="dialog">{scopeName}</button> <span>/</span> <b>{PAGE_NAME[page]}</b></div>
             <div className="top-actions">
               <span className="saved-indicator" role="status"><Icon name="cloud" /> {save}</span>
-              <button className="top-capture" aria-label="Capture to-do, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /> Capture <kbd>⌘ K</kbd></button>
+              <button className="top-capture" aria-label="Capture task, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /> Capture <kbd>⌘ K</kbd></button>
               <span className="desktop-avatar">{name.slice(0, 1).toUpperCase()}</span>
             </div>
           </header>
@@ -124,7 +124,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null }: { s
           {TABS.slice(0, 2).map(t => (
             <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
               <Icon name={t.icon} /><small>{t.label}</small></button>))}
-          <button className="dock-capture" aria-label="Capture to-do, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
+          <button className="dock-capture" aria-label="Capture task, note or reminder" onClick={() => setModal({ kind: 'capture' })}><Icon name="plus" /></button>
           {TABS.slice(2).map(t => (
             <button key={t.page} className={`dock-item ${navPage === t.page ? 'active' : ''}`} aria-label={t.label} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
               <Icon name={t.icon} /><small>Activity</small>{bubble(badge(t.page))}</button>))}
