@@ -114,6 +114,8 @@ function FolderDrawer() {
 
 function Settings() {
   const { api, modal, where, signOut, priorityMode, setPriorityMode } = useApp();
+  const [look, setLook] = useState<'system' | 'light' | 'dark'>(() => { try { const v = localStorage.getItem('exe-appearance'); return v === 'light' || v === 'dark' ? v : 'system'; } catch { return 'system'; } });
+  const pickLook = (v: 'system' | 'light' | 'dark') => { setLook(v); try { if (v === 'system') localStorage.removeItem('exe-appearance'); else localStorage.setItem('exe-appearance', v); } catch { /* the choice just won't be remembered */ } (window as unknown as { __exeApplyAppearance?: () => void }).__exeApplyAppearance?.(); };
   const ws = api.ws;
   const [name, setName] = useState(ws.settings?.workspace_name ?? '');
   const [note, setNote] = useState('');
@@ -127,6 +129,10 @@ function Settings() {
         <label className="form-field"><span className="small-note">Workspace name</span><input className="text-input" value={name} onChange={e => setName(e.target.value)} maxLength={60} placeholder="My workspace" /></label>
         <div className="button-row"><button className="mini-button" type="submit">Save name</button></div>
       </form>
+      <fieldset className="prio-setting"><legend className="small-note">Appearance</legend>
+        {([['system', 'Match this device'], ['light', 'Light'], ['dark', 'Dark']] as const).map(([v, t]) => (
+          <label key={v} className="radio-row"><input type="radio" name="appearance" checked={look === v} onChange={() => pickLook(v)} /> {t}</label>))}
+      </fieldset>
       <fieldset className="prio-setting"><legend className="small-note">Priority labels</legend>
         {([['ai', 'AI suggests, I can change it'], ['mine', 'Only the ones I set'], ['off', 'Don’t show priority labels']] as const).map(([v, t]) => (
           <label key={v} className="radio-row"><input type="radio" name="prio-mode" checked={priorityMode === v} onChange={() => setPriorityMode(v)} /> {t}</label>))}
