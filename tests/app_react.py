@@ -9,7 +9,8 @@ def S(page):
     return json.loads(page.evaluate(f"localStorage.getItem('{KEY}')"))
 def _go(page, route):
     # Map, Decisions and Next & Later are reached under Mission (revamp); the three primary tabs are clicked as before
-    if route in ('map', 'decisions', 'lanes'): page.evaluate(f"location.hash = '#/{route}'")
+    if route == 'focus': page.evaluate("location.hash = '#/priorities'")   # the old Current Priority screen now lives at Priorities (DEC-017)
+    elif route in ('map', 'decisions', 'lanes'): page.evaluate(f"location.hash = '#/{route}'")
     else: page.locator(f'[data-nav="{route}"]').filter(visible=True).first.click()
 def nav(page, route): _go(page, route)
 def cap(page, text):
@@ -84,7 +85,7 @@ with sync_playwright() as p:
         assert {'now'} == {f['lane'] for f in d['focus'] if f['outcome_id'] == sp['id']} and len([f for f in d['focus'] if f['lane'] == 'now']) == 3
         # Next & Later screen
         page.locator('.lanes-link', has_text='Next').click(); expect(page.get_by_role('heading', name='Next & Later')).to_have_count(1); expect(page.locator('.lane-item')).to_have_count(2)
-        page.get_by_role('button', name='Back to Focus').click()
+        page.get_by_role('button', name='Back to Focus').click(); page.evaluate("location.hash = '#/priorities'")   # Focus Mode and the old priority card are unlinked now (DEC-017, option C)
         # Focus Mode: capture opens over it and returns to it
         page.get_by_role('button', name='Enter Focus Mode').click(); page.get_by_role('dialog', name='Focus Mode').wait_for()
         page.get_by_role('button', name='Capture thought').click(); page.get_by_label('Capture text').fill('Interruption'); page.locator('.modal-sheet button[type=submit]').click()

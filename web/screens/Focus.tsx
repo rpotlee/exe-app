@@ -61,7 +61,7 @@ export function Focus() {
       <MobileTopline />
       <div className="mission-heading">
         <div className="eyebrow mission-eyebrow">{(scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All').toUpperCase()}</div>
-        <h1>Mission Status</h1>
+        <h1>Priorities</h1>
         <p className="mission-sub" id="status-line">
           {empty ? 'Nothing here yet.' : <>
             {currentId && <span>1 current focus of up to 3 active.</span>}

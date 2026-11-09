@@ -1155,3 +1155,19 @@ body::before {
 .g-row-t small { font-size: 13px; line-height: 18px; color: var(--secondary); }
 .g-row-chev { width: 16px; height: 16px; flex: none; color: var(--muted); }
 @media (min-width: 1100px) { .hero-stack { margin-top: 0; } .mission-layout { align-items: start; row-gap: 0; } }
+
+/* ---------- 19. Mission Status: All tasks card, groups, task screens (DEC-017) ---------- */
+.back-link { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; margin: 0 0 4px -6px; padding: 0 6px; border: 0; background: none; font: inherit; font-size: 17px; color: var(--exe-accent-ink); }
+.back-link svg { width: 20px; height: 20px; }
+.m-counts { display: flex; align-items: center; }
+.m-counts .prio-counts { margin-left: 0; }
+.m-more { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--secondary); }
+.all-tasks .hero-checks { margin-top: 12px; }
+.mission-sub .prio-counts { margin-left: 12px; }
+.t-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.t-list { list-style: none; margin: 0; padding: 0; background: var(--glass-card); border-radius: var(--r-md); box-shadow: var(--glass-shadow); overflow: hidden; }
+.t-row { padding: 0 16px; }
+.t-row + .t-row { border-top: 1px solid var(--edge); }
+.t-row .check-row { min-height: 52px; padding: 8px 0; gap: 12px; align-items: center; font-size: 17px; line-height: 22px; width: 100%; }
+.t-row .assist-help { margin: 0 0 12px 36px; }
+.t-row.is-complete .check-row > span:not(.prio-dot) { color: var(--muted); text-decoration: line-through; }

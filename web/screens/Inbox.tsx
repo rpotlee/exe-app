@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { addCaptures, archiveCapture, convertKind, fileCapture, groupCaptures, setCaptureDone, setCapturePriority } from '../../src/domain/commands';
+import { addCaptures, archiveCapture, convertKind, fileCapture, setCaptureDone, setCapturePriority } from '../../src/domain/commands';
 import { executables, kindCounts, kindOf, type CaptureKind, type KindFilter } from '../../src/domain/scope';
-import { AssistBanner, Help, Suggestions } from '../ui/AssistParts';
+import { PriorityDot } from '../ui/PriorityDot';
+import { labelFor } from '../../src/domain/mission';
 import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
@@ -13,8 +14,8 @@ type Status = 'all' | 'active' | 'done';
 /** List: everything captured, as To-dos, Notes and Reminders, for All or one folder. It works with no AI at all.
  *  A type filter is only a view. Checking a to-do changes nothing else. */
 export function Inbox() {
-  const { api, modal, assist: assistClient, scope } = useApp();
-  const ws = api.ws, assist = useApp().assistState;
+  const { api, modal, scope, assistState, priorityMode } = useApp();
+  const ws = api.ws;
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
   const [status, setStatus] = useState<Status>(() => (sessionStorage.getItem('exe-todo-status') as Status | null) ?? 'all');
@@ -34,8 +35,6 @@ export function Inbox() {
     <>
       <PageHeading label={scopeName.toUpperCase()} title="List" sub={archived ? `${entries.length} archived` : live ? `${live} ${live === 1 ? 'entry' : 'entries'}` : 'Type something and save it'} />
       <section className="raw-inbox" aria-label="List">
-        <AssistBanner a={assist} onSettings={() => modal({ kind: 'settings' })} hasAi={!!assistClient} />
-        <Suggestions a={assist} apply={g => api.run((w, c) => groupCaptures(w, c, { ids: g.ids, name: g.name, deps: assist.deps.filter(d => g.ids.includes(d.before) && g.ids.includes(d.after)) }))} />
         <div className="seg" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
           <button key={k} aria-pressed={kind === k} aria-label={`${KIND_LABEL[k]}, ${counts[k]}`} onClick={() => pickKind(k)}>{KIND_LABEL[k]}<span className="seg-n" aria-hidden="true">{counts[k]}</span></button>))}</div>
         {kind === 'todo' && <div className="seg sub" role="group" aria-label="To-do status">{(['all', 'active', 'done'] as const).map(v => (
@@ -56,7 +55,7 @@ export function Inbox() {
         <ul className="raw-list grouped">
           {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
-              {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}{c.user_priority && <span className={`pill prio prio-${c.user_priority}`}>{c.user_priority}</span>}</span></label>
+              {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => api.run((w, cx) => setCaptureDone(w, cx, c.id, e.target.checked))} /><span className="raw-text">{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{k === 'reminder' && <span className="pill">Not scheduled</span>}</div>}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
@@ -70,7 +69,6 @@ export function Inbox() {
                 <div className="raw-actions"><button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => archiveCapture(w, cx, c.id, !c.archived_at))}>{c.archived_at ? 'Restore' : 'Archive'}</button></div>
               </div>
-              <Help item={assist.items[c.id]} text={text} />
             </li>); })}
           {!entries.length && (live || archived) ? <li className="empty-state">{archived ? 'Nothing archived.' : `No ${kind === 'everything' ? 'entries' : KIND_LABEL[kind].toLowerCase()} here${scope.kind === 'folder' ? ` in ${scopeName}` : ''}.`}</li> : null}
         </ul>

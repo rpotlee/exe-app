@@ -254,3 +254,11 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 - **Setting (Settings → Priority labels):** "AI suggests, I can change it" (default), "Only the ones I set", or "Don't show priority labels".
 - AI suggestions for priority are still device-local until Phase 3 stores assistance in the database.
 - Steps with no source capture show no label (a step has no priority column); this is a known gap.
+
+## DEC-017 — Mission Status is "All tasks" plus groups; the List shows no AI help (2026-11-08)
+**Source:** owner direction. Supersedes the Mission layout in DEC-016 (priority labels there still apply, now as a colored dot).
+
+- **Mission Status** opens to an **All tasks** card: the top 3 (phone) or 5 (desktop) open tasks, high priority first, how many more there are, and a **Show all** button (it replaces the old Focus button on this card). Below it are **Groups**: your outcomes, groups the AI named from related tasks (provisional until you tap **Group these**), and one "Not grouped yet" group, each with an item count and a count per priority.
+- **Show all** and each group open a screen with every task and the **AI help under each task** (email drafts, sources, quick answers). A group screen also has **Focus Mode** (outcome groups), **Make current priority**, and **Group these** (suggested groups).
+- **The List shows no AI help** (no pills, banner or group cards). It stays a plain list of everything captured, where you can still set the type and a priority label. AI help still runs in the background and is shown on the task screens.
+- **Replaced, per the owner:** Mission no longer has a Current Priority card, a Focus button, "Make current priority" or an Explore list; "All tasks" and Groups replace them. The old screens' code and routes (`#/priorities`, `#/map`, `#/decisions`, `#/lanes`) are NOT deleted but are no longer linked from anywhere, so Map, Decisions, Next & Later and Focus Mode are currently unreachable from the UI. DECIDED by the owner (option C): keep them, unlinked, for now. The three-Now limit and current focus remain in the data and the database rules.
