@@ -40,3 +40,9 @@ When a request is broad, capture it as:
 - Acceptance criteria
 - Non-goals
 - Verification target (local, preview, or production)
+
+## Automated gates
+
+The repository workflow in `.github/workflows/verify.yml` runs the TypeScript
+checks, unit tests, production build, whitespace validation, and critical
+browser behavior checks on every pull request and on `main`.

@@ -1,4 +1,9 @@
-# Exe — Handoff for the next developer or AI
+# Exe — Historical handoff log
+
+> This file is a historical phase log, not the current architecture brief.
+> Read [`CURRENT_STATE.md`](CURRENT_STATE.md) and [`AGENTS.md`](AGENTS.md) first.
+> Old branch names, prototype status, and phase TODOs below are preserved for
+> history and may no longer describe production.
 
 Keep this file current. Update it in every commit that changes project state. Last updated: 2026-11-08 (see Progress log).
 
