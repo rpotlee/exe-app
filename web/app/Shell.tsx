@@ -1,3 +1,4 @@
+import { scrollToTop } from './scroll';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DueReminders } from '../ui/DueReminders';
 import { currentFocusId, emptyWorkspace } from '../../src/domain/model';
@@ -60,7 +61,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   // the same dialog is never stacked on itself (a double tap while it loads must not open two)
   const setModal = useCallback((m: ModalState | null) => setStack(s => (m ? (JSON.stringify(s[s.length - 1]) === JSON.stringify(m) ? s : [...s, m]) : s.slice(0, -1))), []);
   useEffect(() => { const h = () => setPage(fromHash()); window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h); }, []);
-  const go = useCallback((p: Page) => { location.hash = `#/${PAGE_TO_HASH[p]}`; window.scrollTo({ top: 0 }); }, []);
+  const go = useCallback((p: Page) => { location.hash = `#/${PAGE_TO_HASH[p]}`; scrollToTop(); }, []);
   useEffect(() => { document.body.classList.toggle('page-is-focus', page === 'focus'); document.title = 'Exe — ' + PAGE_NAME[page]; }, [page]);
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setModal({ kind: 'capture' }); }

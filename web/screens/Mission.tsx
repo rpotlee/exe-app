@@ -1,3 +1,4 @@
+import { scrollToTop } from '../app/scroll';
 import { useMemo } from 'react';
 import { countsOf, missionGroups, type MissionTask } from '../../src/domain/mission';
 import { setCaptureDone, setTaskDone } from '../../src/domain/commands';
@@ -18,7 +19,7 @@ export function Mission() {
   const open = all.filter(t => !t.done), n = countsOf(open), show = typeof matchMedia === 'function' && matchMedia('(min-width: 761px)').matches ? 5 : 3, shown = all.slice(0, show);
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const toggle = (t: MissionTask, on: boolean) => api.run((w, c) => (t.kind === 'task' ? setTaskDone(w, c, t.id, on) : setCaptureDone(w, c, t.id, on)));
-  const openGroup = (id: string) => { location.hash = `#/group/${encodeURIComponent(id)}`; window.scrollTo({ top: 0 }); };
+  const openGroup = (id: string) => { location.hash = `#/group/${encodeURIComponent(id)}`; scrollToTop(); };
   return (
     <>
       <MobileTopline />
