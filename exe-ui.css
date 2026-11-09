@@ -1688,3 +1688,65 @@ body.assistant-open .mobile-navigation { display: none; }
 :root[data-theme="dark"] #view .due-body strong { font-size: 14px; line-height: 20px; font-weight: 600; }
 :root[data-theme="dark"] #view .due-body small { font-size: 12px; line-height: 17px; }
 }
+
+/* Navigation parity: the dark shell uses the light shell's exact geometry. */
+@media (max-width: 760px), ((pointer: coarse) and (max-height: 500px)) {
+  :root[data-theme="dark"] .mobile-navigation .mobile-dock {
+    position: fixed;
+    left: max(14px, env(safe-area-inset-left), calc((100vw - 570px) / 2));
+    right: max(80px, calc(env(safe-area-inset-right) + 76px), calc((100vw - 570px) / 2 + 66px));
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    max-width: none;
+    margin: 0;
+    height: 62px;
+    padding: 5px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 1px solid var(--edge-strong);
+    border-radius: 999px;
+    background: var(--dock-bg);
+    box-shadow: var(--dock-shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  :root[data-theme="dark"] .mobile-navigation .dock-item { padding: 5px 0; gap: 3px; border-radius: 999px; color: var(--dock-ink); }
+  :root[data-theme="dark"] .mobile-navigation .dock-item.active { background: var(--dock-selected-bg); color: var(--dock-active); box-shadow: none; }
+  :root[data-theme="dark"] .mobile-navigation .dock-item svg { width: 21px; height: 21px; stroke-width: 1.8; }
+  :root[data-theme="dark"] .mobile-navigation .dock-item small { font-size: 10px; line-height: 13px; font-weight: 550; letter-spacing: 0; }
+  :root[data-theme="dark"] .mobile-navigation .dock-capture { display: none; }
+  :root[data-theme="dark"] .mobile-capture-action {
+    position: fixed;
+    z-index: 77;
+    display: grid;
+    place-items: center;
+    right: max(17px, env(safe-area-inset-right), calc((100vw - 570px) / 2 + 3px));
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 54px;
+    height: 54px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 19px;
+    background: var(--exe-accent);
+    color: #10131b;
+    box-shadow: 0 4px 12px rgba(0,0,0,.24);
+  }
+  :root[data-theme="dark"] .mobile-capture-action svg { width: 25px; height: 25px; stroke-width: 1.8; }
+}
+
+@media (min-width: 761px) and (not ((pointer: coarse) and (max-height: 500px))) {
+  :root[data-theme="dark"] .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--edge);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  :root[data-theme="dark"] .sidebar-menu { gap: 6px; }
+  :root[data-theme="dark"] .nav-link { height: 44px; gap: 12px; border-radius: 10px; font-size: 16px; font-weight: 500; letter-spacing: -.3px; color: var(--ink); }
+  :root[data-theme="dark"] .nav-link:hover { background: var(--surface-soft); }
+  :root[data-theme="dark"] .nav-link.active { color: var(--exe-accent-ink); font-weight: 600; background: var(--surface-blue); }
+  :root[data-theme="dark"] .nav-link svg { width: 22px; height: 22px; }
+  :root[data-theme="dark"] .nav-count { min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--exe-badge); color: #10131b; font-size: 11px; font-weight: 700; line-height: 19px; }
+  :root[data-theme="dark"] .workspace-switch { height: 46px; padding: 6px 12px 6px 8px; border-radius: 23px; gap: 8px; background: var(--surface-soft); border: 1px solid var(--edge); }
+  :root[data-theme="dark"] .workspace-switch .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink); }
+  :root[data-theme="dark"] .workspace-switch strong { font-size: 13.6px; white-space: nowrap; }
+}
