@@ -16,7 +16,7 @@ type KV = Pick<Storage, 'getItem' | 'setItem'>;
 /** Keeps the whole workspace in browser storage: works with no account and no network. */
 /** Data saved on this device before the revamp lacks the new columns; fill them with what the database would use, changing nothing else. */
 function upgrade(ws: Workspace): Workspace {
-  return { ...ws, captures: ws.captures.map(c => (c.kind ? c : { ...c, kind: 'todo', display_title: null, user_priority: null })), tasks: ws.tasks.map(t => (t.folder_id === undefined ? { ...t, folder_id: null } : t)) };
+  return { ...ws, captures: ws.captures.map(c => (c.kind ? c : { ...c, kind: 'todo', display_title: null, user_priority: null, remind_at: null, remind_done_at: null })), tasks: ws.tasks.map(t => (t.folder_id === undefined ? { ...t, folder_id: null } : t)) };
 }
 export class LocalStore implements Store {
   readonly kind = 'local' as const;

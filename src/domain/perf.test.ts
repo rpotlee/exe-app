@@ -14,7 +14,7 @@ function big(outcomes = 300, tasksPer = 5, captures = 2000, rels = 400): Workspa
     for (let t = 0; t < tasksPer; t++) ws.tasks.push({ ...base, id: `t${o}-${t}`, outcome_id: `o${o}`, name: `Step ${t}`, notes: '', folder_id: null, done_at: null, archived_at: null, deadline: null, effort: null, position: t, sources: [] });
   }
   for (let r = 0; r < rels; r++) ws.relationships.push({ ...base, id: `r${r}`, from_type: 'task', from_id: `t${r}-0`, to_type: 'task', to_id: `t${r + 1}-0`, kind: 'blocks', description: '', confirmed: true, source: 'user' });
-  for (let c = 0; c < captures; c++) ws.captures.push({ ...base, id: `c${c}`, kind: 'todo', display_title: null, user_priority: null, text: `thought ${c} plumber`, edited_text: null, source: 'Inbox', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null });
+  for (let c = 0; c < captures; c++) ws.captures.push({ ...base, id: `c${c}`, kind: 'todo', display_title: null, user_priority: null, remind_at: null, remind_done_at: null, text: `thought ${c} plumber`, edited_text: null, source: 'Inbox', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null });
   return ws;
 }
 const ms = (fn: () => unknown): number => { const t = performance.now(); fn(); return performance.now() - t; };

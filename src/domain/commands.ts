@@ -26,7 +26,7 @@ function settingsWrite(ws: Workspace, ctx: Ctx, changes: Row): Write {
 const trimmed = (s: string): string => s.trim();
 
 // ------------------------------------------------------------------ captures
-export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture', opts: { kind?: 'todo' | 'note' | 'reminder'; folderId?: string | null; keepAsOne?: boolean } = {}): Result {
+export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture', opts: { kind?: 'todo' | 'note' | 'reminder'; folderId?: string | null; keepAsOne?: boolean; remindAt?: string | null } = {}): Result {
   const kind = opts.kind ?? 'todo', folderId = opts.folderId ?? null;
   if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
   // Tasks split a pasted list into one item per line; a note or a reminder is never split, and a task can be kept whole on request
@@ -36,7 +36,7 @@ export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Qui
   const where = kind === 'todo' ? 'List' : kind === 'note' ? 'List as a note' : 'List as a reminder';
   return done(lines.map(line => ins('captures', {
     ...baseRow(ctx), text: line, edited_text: null, source, folder_id: folderId, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
-    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null })),
+    status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null, remind_at: opts.remindAt ?? null, remind_done_at: null })),
   lines.length === 1 ? `Saved to ${where}.` : `${lines.length} tasks saved to ${where}.`);
 }
 const capture = (ws: Workspace, id: string) => ws.captures.find(c => c.id === id);
@@ -503,4 +503,38 @@ export function logAiEvents(ws: Workspace, ctx: Ctx, events: { action: string; e
   void ws;
   if (!events.length) return fail('Nothing to record.');
   return done(events.map(e => auditAs(ctx, 'ai', e.action, e.entityType ?? null, e.entityId ?? null, null, e.after ?? null)));
+}
+
+// ------------------------------------------------------------------ reminders
+/** Sets or changes when an entry is due (ISO time). A task can carry one too. null clears it. */
+export function setReminder(ws: Workspace, ctx: Ctx, id: string, at: string | null): Result {
+  const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
+  if (at !== null && Number.isNaN(Date.parse(at))) return fail('That date is not valid.');
+  const writes = [upd('captures', c, { remind_at: at, remind_done_at: null }), auditAs(ctx, 'user', at ? 'reminder-set' : 'reminder-cleared', 'capture', id, c.remind_at ? { at: c.remind_at } : null, at ? { at } : null)];
+  return done(writes, at ? 'Reminder set.' : 'Reminder removed.');
+}
+/** Moves a due reminder later. */
+export function snoozeReminder(ws: Workspace, ctx: Ctx, id: string, at: string): Result {
+  const c = capture(ws, id); if (!c || !c.remind_at) return fail('That reminder no longer exists.');
+  if (Number.isNaN(Date.parse(at))) return fail('That date is not valid.');
+  return done([upd('captures', c, { remind_at: at, remind_done_at: null }), auditAs(ctx, 'user', 'reminder-snoozed', 'capture', id, { at: c.remind_at }, { at })], 'Snoozed.');
+}
+/** Dismisses a reminder; it stops showing as due. The entry itself is untouched. */
+export function dismissReminder(ws: Workspace, ctx: Ctx, id: string, now: string): Result {
+  const c = capture(ws, id); if (!c || !c.remind_at) return fail('That reminder no longer exists.');
+  return done([upd('captures', c, { remind_done_at: now }), auditAs(ctx, 'user', 'reminder-dismissed', 'capture', id, null, null)], 'Dismissed.');
+}
+/** Reminders that are due now (not dismissed, not archived, task not done), oldest first. */
+export function dueReminders(ws: Workspace, nowMs: number) {
+  return ws.captures.filter(c => c.remind_at && !c.remind_done_at && !c.archived_at && !(c.kind === 'todo' && c.completed_at) && Date.parse(c.remind_at) <= nowMs).sort((a, b) => Date.parse(a.remind_at!) - Date.parse(b.remind_at!));
+}
+/** Quick choices for the picker, in the person's local time. */
+export function reminderChoices(now: Date): { label: string; at: Date }[] {
+  const at = (days: number, h: number) => { const d = new Date(now); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d; };
+  const out: { label: string; at: Date }[] = [];
+  const later = new Date(now.getTime() + 3 * 3600_000); later.setMinutes(0, 0, 0);
+  if (later.getDate() === now.getDate() && later.getHours() < 22) out.push({ label: 'Later today', at: later });
+  out.push({ label: 'Tomorrow morning', at: at(1, 9) });
+  const mon = (8 - now.getDay()) % 7 || 7; out.push({ label: 'Next week', at: at(mon, 9) });
+  return out;
 }

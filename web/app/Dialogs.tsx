@@ -62,15 +62,16 @@ function CaptureSheet() {
   const { api, modal, scope } = useApp();
   const ws = api.ws, scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [text, setText] = useState(() => { try { return sessionStorage.getItem(DRAFT) ?? ''; } catch { return ''; } });
-  const [kind, setKind] = useState<CaptureKind>(() => { try { const k = sessionStorage.getItem(DRAFT + '-kind'); return k === 'note' ? 'note' : 'todo'; } catch { return 'todo'; } });
-  const [whole, setWhole] = useState(false), [error, setError] = useState('');
+  const [kind, setKind] = useState<CaptureKind>(() => { try { const k = sessionStorage.getItem(DRAFT + '-kind'); return k === 'note' || k === 'reminder' ? k : 'todo'; } catch { return 'todo'; } });
+  const [whole, setWhole] = useState(false), [when, setWhen] = useState(''), [error, setError] = useState('');
   const keep = (v: string, k: CaptureKind) => { try { sessionStorage.setItem(DRAFT, v); sessionStorage.setItem(DRAFT + '-kind', k); } catch { /* a draft is a convenience */ } };
   const change = (v: string) => { setText(v); setError(''); keep(v, kind); };
   const pick = (k: CaptureKind) => { setKind(k); keep(text, k); };      // switching type never clears the text
   const n = kind === 'todo' ? segmentCapture(text).length : 1;
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (api.run((w, c) => C.addCaptures(w, c, text, 'List', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
+    if (kind === 'reminder' && !when) { setError('Choose when to remind you.'); return; }
+    if (api.run((w, c) => C.addCaptures(w, c, text, 'List', { kind, folderId: scope.kind === 'folder' ? scope.id : null, keepAsOne: whole, remindAt: kind === 'reminder' && when ? new Date(when).toISOString() : null }))) { try { sessionStorage.removeItem(DRAFT); sessionStorage.removeItem(DRAFT + '-kind'); } catch { /* ignore */ } modal(null); } else setError('Write something first.');
   };
   return (
     <Modal title="Capture" onClose={() => modal(null)}>
@@ -78,9 +79,11 @@ function CaptureSheet() {
         <div className="kind-picker" role="group" aria-label="What are you capturing?">
           <button type="button" aria-pressed={kind === 'todo'} onClick={() => pick('todo')}>Task</button>
           <button type="button" aria-pressed={kind === 'note'} onClick={() => pick('note')}>Note</button>
-          <button type="button" disabled aria-disabled="true" title="Reminders need a date and time, which arrive in a later update">Reminder</button>
+          <button type="button" aria-pressed={kind === 'reminder'} onClick={() => pick('reminder')}>Reminder</button>
         </div>
         <textarea className="capture-textarea" aria-label="Capture text" value={text} onChange={e => change(e.target.value)} placeholder={kind === 'note' ? 'Write a note…' : 'What needs doing?\nPaste a list to add several.'} />
+        {kind === 'reminder' && <div className="when-row"><label className="file-field"><span className="small-note">Remind me at</span><input className="select" type="datetime-local" aria-label="Remind me at" value={when} onChange={e => { setWhen(e.target.value); setError(''); }} /></label>
+          <div className="when-quick" role="group" aria-label="Quick times">{C.reminderChoices(new Date()).map(ch => <button type="button" key={ch.label} className="mini-button" onClick={() => setWhen(new Date(ch.at.getTime() - ch.at.getTimezoneOffset() * 60000).toISOString().slice(0, 16))}>{ch.label}</button>)}</div></div>}
         {kind === 'todo' && n > 1 && <label className="split-note"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Keep as one task (otherwise {n} tasks are added)</label>}
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="capture-foot"><span className="small-note">Saving to {scopeName}{scope.kind === 'all' ? ' (Unfiled)' : ''}</span><button className="primary-button" type="submit">Save</button></div>

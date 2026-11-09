@@ -1262,3 +1262,17 @@ body.assistant-open .mobile-navigation { display: none; }
 .t-page { max-width: 720px; }
 .ax-error { margin: 0; font-size: 15px; line-height: 20px; color: var(--red); }
 .ax-error .ax-link { display: inline; min-height: 0; margin: 0 0 0 6px; }
+
+/* ---- reminders ---- */
+.due-reminders { display: grid; gap: 8px; margin: 0 0 14px; }
+.due-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 20px; background: var(--surface); box-shadow: var(--glass-shadow); border-left: 4px solid var(--blue); }
+.due-icon { color: var(--blue); flex: none; }
+.due-body { flex: 1 1 160px; min-width: 0; display: grid; }
+.due-body strong { overflow-wrap: anywhere; }
+.due-body small { color: var(--secondary); }
+.due-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.due-actions .mini-button { min-height: 44px; }
+.when-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 8px 0 12px; }
+.when-quick { display: flex; gap: 8px; flex-wrap: wrap; }
+.when-quick .mini-button { min-height: 44px; }
+.pill.pill-due { background: var(--red-bg); color: var(--red); }

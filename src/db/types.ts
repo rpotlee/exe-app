@@ -176,6 +176,8 @@ export interface Database {
           kind: string;
           display_title: string | null;
           user_priority: string | null;
+          remind_at: string | null;
+          remind_done_at: string | null;
         };
         Insert: {
           id?: string;
@@ -201,6 +203,8 @@ export interface Database {
           kind?: string;
           display_title?: string | null;
           user_priority?: string | null;
+          remind_at?: string | null;
+          remind_done_at?: string | null;
         };
         Update: {
           id?: string;
@@ -226,6 +230,8 @@ export interface Database {
           kind?: string;
           display_title?: string | null;
           user_priority?: string | null;
+          remind_at?: string | null;
+          remind_done_at?: string | null;
         };
         Relationships: [];
       };
@@ -752,7 +758,7 @@ export const COLUMNS = {
   ai_proposals: ['id', 'owner_id', 'capture_id', 'source_version', 'schema_version', 'fingerprint', 'suggested_type', 'suggested_folder_id', 'suggested_outcome_id', 'relationship_proposals', 'duplicate_candidate_ids', 'research_suggestion', 'explanation', 'uncertainties', 'provider', 'model', 'status', 'decided_at', 'created_at', 'updated_at', 'revision'],
   assistant_sessions: ['id', 'owner_id', 'capture_id', 'capture_revision', 'state', 'created_at', 'updated_at', 'revision'],
   audit_events: ['id', 'owner_id', 'at', 'actor', 'action', 'entity_type', 'entity_id', 'proposal_id', 'before', 'after', 'undo_of'],
-  captures: ['id', 'owner_id', 'text', 'edited_text', 'source', 'folder_id', 'batch_id', 'batch_text', 'completed_at', 'archived_at', 'status', 'organized_as', 'review_state', 'review_at', 'rejected_fingerprints', 'task_id', 'merged_into', 'created_at', 'updated_at', 'revision', 'kind', 'display_title', 'user_priority'],
+  captures: ['id', 'owner_id', 'text', 'edited_text', 'source', 'folder_id', 'batch_id', 'batch_text', 'completed_at', 'archived_at', 'status', 'organized_as', 'review_state', 'review_at', 'rejected_fingerprints', 'task_id', 'merged_into', 'created_at', 'updated_at', 'revision', 'kind', 'display_title', 'user_priority', 'remind_at', 'remind_done_at'],
   decision_log: ['id', 'owner_id', 'decision_id', 'type', 'text', 'at'],
   decision_options: ['id', 'owner_id', 'decision_id', 'text', 'position', 'created_at', 'updated_at', 'revision', 'pros', 'cons'],
   decisions: ['id', 'owner_id', 'folder_id', 'name', 'description', 'status', 'evidence', 'notes', 'chosen_option', 'conclusion', 'rationale', 'resolved_at', 'sources', 'created_at', 'updated_at', 'revision', 'criteria'],

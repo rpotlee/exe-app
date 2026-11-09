@@ -67,7 +67,7 @@ describe('weekly review', () => {
   it('reports only what really happened in the last 7 days', () => {
     const now = new Date('2027-03-10T12:00:00Z');
     const w = ws({ outcomes: [outcome('o', { done_at: '2027-03-08T00:00:00Z' })], tasks: [task('a', 'o', { done_at: '2027-03-09T00:00:00Z' }), task('b', 'o', { done_at: '2027-02-01T00:00:00Z' })],
-      captures: [{ ...base, id: 'c', created_at: '2027-03-09T00:00:00Z', kind: 'todo', display_title: null, user_priority: null, text: 'x', edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null }] });
+      captures: [{ ...base, id: 'c', created_at: '2027-03-09T00:00:00Z', kind: 'todo', display_title: null, user_priority: null, remind_at: null, remind_done_at: null, text: 'x', edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null }] });
     const s = weeklySummary(w, now);
     expect(s.stepsDone).toEqual([{ outcomeId: 'o', name: 'o', count: 1 }]); expect(s.outcomesDone).toEqual(['o']); expect(s.capturesAdded).toBe(1); expect(s.waitingReview).toBe(1); expect(s.anything).toBe(true);
     expect(weeklySummary(ws(), now).anything).toBe(false);

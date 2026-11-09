@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DueReminders } from '../ui/DueReminders';
 import { currentFocusId, emptyWorkspace } from '../../src/domain/model';
 import type { Store } from '../../src/store/store';
 import { QueuedStore, type QueueState } from '../../src/store/queued';
@@ -120,7 +121,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
               <span className="desktop-avatar">{name.slice(0, 1).toUpperCase()}</span>
             </div>
           </header>
-          <section id="view" className="view"><Suspense fallback={<p className="auth-note" role="status">Loading…</p>}>{screen}</Suspense></section>
+          <section id="view" className="view"><DueReminders /><Suspense fallback={<p className="auth-note" role="status">Loading…</p>}>{screen}</Suspense></section>
         </main>
       </div>
       <div className="mobile-navigation">

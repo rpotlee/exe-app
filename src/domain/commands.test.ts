@@ -8,6 +8,7 @@ import { applyWrites, type Ctx, type Write } from './writes';
 import { asUser, freshDb, A } from '../../supabase/tests/harness.mjs';
 
 let n = 0, clock = 0;
+const noteIdForReminder = (w: Workspace) => w.captures.find(c => !c.remind_at)?.id ?? 'x';
 const ctx: Ctx = { owner: A, now: () => new Date(Date.UTC(2027, 0, 1, 0, 0, clock++)).toISOString(), id: () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}` };
 
 /** One command = one all-or-nothing call, exactly as the app sends it. */
@@ -172,6 +173,12 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       expect(ws.captures.filter(c => c.kind === 'note')).toHaveLength(1);
       await ok(C.addCaptures(ws, ctx, 'Call dentist', 'List', { kind: 'reminder' })); expect(ws.captures.find(c => c.text === 'Call dentist')!.kind).toBe('reminder');
       expect(C.addCaptures(ws, ctx, 'x', 'List', { folderId: 'nope' }).ok).toBe(false);
+      const dent = ws.captures.find(c => c.text === 'Call dentist')!;
+      await ok(C.setReminder(ws, ctx, dent.id, '2027-01-01T09:00:00.000Z')); expect(C.dueReminders(ws, Date.parse('2027-01-01T08:59:00Z'))).toHaveLength(0); expect(C.dueReminders(ws, Date.parse('2027-01-01T09:00:00Z')).map(c => c.id)).toEqual([dent.id]);
+      await ok(C.snoozeReminder(ws, ctx, dent.id, '2027-01-02T09:00:00.000Z')); expect(C.dueReminders(ws, Date.parse('2027-01-01T10:00:00Z'))).toHaveLength(0);
+      await ok(C.dismissReminder(ws, ctx, dent.id, '2027-01-02T09:05:00.000Z')); expect(C.dueReminders(ws, Date.parse('2027-02-01T00:00:00Z'))).toHaveLength(0);
+      expect(C.setReminder(ws, ctx, dent.id, 'not a date').ok).toBe(false); expect(C.snoozeReminder(ws, ctx, noteIdForReminder(ws), '2027-01-02T09:00:00.000Z').ok).toBe(false);
+      await ok(C.setReminder(ws, ctx, dent.id, null)); expect(ws.captures.find(c => c.id === dent.id)!.remind_at).toBeNull();
       await ok(C.convertKind(ws, noteRow.id, 'todo')); expect(ws.captures.find(c => c.id === noteRow.id)).toMatchObject({ kind: 'todo', text: noteRow.text, completed_at: null });
       expect(C.convertKind(ws, noteRow.id, 'todo').ok).toBe(false);
       await ok(C.setCapturePriority(ws, ctx, noteRow.id, 'high', 'low')); expect(ws.captures.find(c => c.id === noteRow.id)!.user_priority).toBe('high'); await ok(C.setCapturePriority(ws, ctx, noteRow.id, null));
@@ -181,7 +188,7 @@ describe('commands: memory and database agree, and no rule is ever tripped', () 
       await ok(C.logAiEvents(ws, ctx, [{ action: 'ai-help', entityType: 'capture', entityId: noteRow.id, after: { kind: 'email' } }, { action: 'ai-priorities', after: { total: 2, high: 1, medium: 1, low: 0 } }]));
       expect(C.logAiEvents(ws, ctx, []).ok).toBe(false);
       const audits = (await d.query('select action from audit_events order by at')).rows.map((r: any) => r.action);
-      expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done', 'idea-promoted', 'ai-help', 'ai-priorities', 'user-priority-ai', 'user-group-ai']));
+      expect(audits).toEqual(expect.arrayContaining(['folder-delete', 'priority-apply', 'outcome-done', 'idea-promoted', 'ai-help', 'ai-priorities', 'user-priority-ai', 'user-group-ai', 'reminder-set', 'reminder-snoozed', 'reminder-dismissed', 'reminder-cleared']));
       const ai = (await d.query("select actor from audit_events where action like 'ai-%'")).rows.map((r: any) => r.actor); expect(ai.every((a: string) => a === 'ai')).toBe(true);
     });
   }, 120_000);
