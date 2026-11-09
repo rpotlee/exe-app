@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
+import { aiErrorResponse, withAiProvider } from '../_shared/ai-runtime.ts';
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
@@ -15,6 +16,8 @@ Deno.serve(async (req: Request) => {
   if (error || !data.user) return json({ error: 'Sign in first.' }, 401);
   const uid = data.user.id;
   let body: Record<string, unknown>; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
+  // Deployed old clients used this mode on list load. Reject them without calling the provider.
+  if (body.mode === 'assist' && body.intent !== 'analyze') return json({ error: 'Choose Analyze entries to ask AI for suggestions.', code: 'AI_EXPLICIT_ACTION_REQUIRED' }, 400);
 
   const { data: s } = await admin.from('user_ai_settings').select('provider, model, key_ciphertext, enabled, disclosure_accepted_at').eq('owner_id', uid).maybeSingle();
   if (!s) return json({ error: 'Add your AI key in Settings first.' }, 400);
@@ -51,20 +54,16 @@ Deno.serve(async (req: Request) => {
     user = buildPrompt({ captures: caps.data.map(c => ({ id: c.id, text: c.edited_text ?? c.text })), folders: folders.data ?? [], outcomes: outcomes.data ?? [] });
   }
 
-  const spec = buildRequest(s.provider as Provider, s.model, apiKey, system, user, assistMode ? ASSIST_TOKENS : undefined);
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25_000);
-  let res: Response;
-  try { res = await fetch(spec.url, { method: 'POST', headers: spec.headers, body: JSON.stringify(spec.body), signal: ctl.signal }); }
-  catch { return json({ error: 'Could not reach your AI provider (timeout or network). Nothing was changed.' }, 502); }
-  finally { clearTimeout(timer); }
-  if (!res.ok) {                          // never pass provider text through: it can echo parts of a key
-    const why = res.status === 401 || res.status === 403 ? 'Your provider rejected the key. Check it and save it again.' : res.status === 404 ? 'Your provider does not know that model name. Check it in Settings.' : res.status === 429 ? 'Your provider says you hit a rate or spending limit.' : `Your provider returned an error (${res.status}).`;
-    return json({ error: why, status: res.status }, 502);
-  }
-  const text = extractText(s.provider as Provider, await res.json().catch(() => null));
-  if (test) return json({ ok: /"ok"\s*:\s*true/.test(text), provider: s.provider, model: s.model });
-  if (assistMode) return json({ ...parseAssist(text, assistIds), provider: s.provider, model: s.model });
-  if (stepsMode) return json({ steps: parseSteps(text, existingSteps), provider: s.provider, model: s.model });
-  const { proposals, dropped } = parseProposals(text, allowed);
-  return json({ proposals, dropped, provider: s.provider, model: s.model });
+  const tokens = test ? 64 : assistMode ? ASSIST_TOKENS : stepsMode ? 600 : 1500;
+  const spec = buildRequest(s.provider as Provider, s.model, apiKey, system, user, tokens);
+  try {
+    return await withAiProvider(admin, uid, spec, system, user, tokens, providerData => {
+      const text = extractText(s.provider as Provider, providerData);
+      if (test) return json({ ok: /"ok"\s*:\s*true/.test(text), provider: s.provider, model: s.model });
+      if (assistMode) return json({ ...parseAssist(text, assistIds), items: [], provider: s.provider, model: s.model });
+      if (stepsMode) return json({ steps: parseSteps(text, existingSteps), provider: s.provider, model: s.model });
+      const { proposals, dropped } = parseProposals(text, allowed);
+      return json({ proposals, dropped, provider: s.provider, model: s.model });
+    });
+  } catch (e) { return aiErrorResponse(e); }
 });

@@ -28,6 +28,6 @@ function RemoteApp({ db, owner, email }: { db: Db; owner: string; email: string 
   const [out, setOut] = useState(false);
   useEffect(() => { if (out) void db.auth.signOut(); }, [out, db]);
   const ai = useMemo(() => makeAi(db, owner), [db, owner]);
-  const assistantApi = useMemo(() => makeAssistantApi(db), [db]);
+  const assistantApi = useMemo(() => makeAssistantApi(db, owner), [db, owner]);
   return <Shell store={store} where={email} onSignOut={() => setOut(true)} ai={ai} assistantApi={assistantApi} />;
 }

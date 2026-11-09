@@ -4,6 +4,42 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export interface Database {
   public: {
     Tables: {
+      ai_admission: {
+        Row: {
+          owner_id: string;
+          lease_id: string | null;
+          lease_until: string;
+          next_allowed_at: string;
+          cooldown_until: string;
+          window_started_at: string;
+          reserved_tokens: number;
+          provider_remaining_tokens: number | null;
+          provider_reset_at: string;
+        };
+        Insert: {
+          owner_id: string;
+          lease_id?: string | null;
+          lease_until?: string;
+          next_allowed_at?: string;
+          cooldown_until?: string;
+          window_started_at?: string;
+          reserved_tokens?: number;
+          provider_remaining_tokens?: number | null;
+          provider_reset_at?: string;
+        };
+        Update: {
+          owner_id?: string;
+          lease_id?: string | null;
+          lease_until?: string;
+          next_allowed_at?: string;
+          cooldown_until?: string;
+          window_started_at?: string;
+          reserved_tokens?: number;
+          provider_remaining_tokens?: number | null;
+          provider_reset_at?: string;
+        };
+        Relationships: [];
+      };
       ai_proposals: {
         Row: {
           id: string;
@@ -755,6 +791,7 @@ export type TablesUpdate<T extends keyof Database['public']['Tables']> = Databas
 
 /** Real column names per table, for code that must refuse anything unexpected (imports). */
 export const COLUMNS = {
+  ai_admission: ['owner_id', 'lease_id', 'lease_until', 'next_allowed_at', 'cooldown_until', 'window_started_at', 'reserved_tokens', 'provider_remaining_tokens', 'provider_reset_at'],
   ai_proposals: ['id', 'owner_id', 'capture_id', 'source_version', 'schema_version', 'fingerprint', 'suggested_type', 'suggested_folder_id', 'suggested_outcome_id', 'relationship_proposals', 'duplicate_candidate_ids', 'research_suggestion', 'explanation', 'uncertainties', 'provider', 'model', 'status', 'decided_at', 'created_at', 'updated_at', 'revision'],
   assistant_sessions: ['id', 'owner_id', 'capture_id', 'capture_revision', 'state', 'created_at', 'updated_at', 'revision'],
   audit_events: ['id', 'owner_id', 'at', 'actor', 'action', 'entity_type', 'entity_id', 'proposal_id', 'before', 'after', 'undo_of'],

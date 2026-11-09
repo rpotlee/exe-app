@@ -11,9 +11,9 @@ export function loadDemo(id: string, text: string): AssistantState {
 }
 export function saveDemo(id: string, text: string, state: AssistantState): void { try { localStorage.setItem(key(id), JSON.stringify({ text, state })); } catch { /* device storage is best effort */ } }
 
-/** The existing real AI results shown as read-only work: one prepared result per entry. Follow-ups are not connected until the assistant service ships. */
-export function fromAssist(item: AssistItem | undefined, id?: string): AssistantState | null {
-  const saved = id ? cachedState(id) : null; if (saved) return saved;      // what the server last told this device wins over the first batch result
+/** Saved per-entry work, with read-only compatibility for older batch-prepared results. */
+export function fromAssist(item: AssistItem | undefined, id?: string, text?: string, owner?: string): AssistantState | null {
+  const saved = id ? cachedState(id, text, owner) : null; if (saved) return saved;
   if (!item) return null;
   const s = emptyState(false);
   let a: Artifact | null = null;
@@ -22,6 +22,6 @@ export function fromAssist(item: AssistItem | undefined, id?: string): Assistant
   else if (item.research) a = { id: 'real-sources', type: 'sources', title: 'Where to look', body: item.research.topic, revision: 1, links: item.research.sources.map(r => ({ title: r.title, url: `https://www.google.com/search?q=${encodeURIComponent(`site:${r.domain} ${r.query || item.research!.topic}`)}`, label: 'Search this site' })) };
   if (!a) return null;
   s.artifact = a; s.actions = a.type === 'message_draft' ? [{ id: 'copy', intent: 'copy', label: 'Copy', kind: 'safe_local', priority: 1 }] : [];
-  s.note = 'Follow-up questions arrive with the assistant service. This is the result prepared earlier.';
+  s.note = 'Prepared earlier. Open this entry to ask for new help.';
   return s;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as C from '../../src/domain/commands';
 import { captureText, duplicateOf, needsPlacement, pendingCaptures, propose, proposalFingerprint, rejectedBefore, setAside, type Proposal, type ProposalType } from '../../src/domain/review';
 import type { Capture } from '../../src/domain/model';
@@ -6,8 +6,14 @@ import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
 import { PROVIDER_NAMES, type AiProposal, type AiSettings } from '../app/ai';
+import { onAiSettingsChanged } from '../app/aiRequests';
+import { useAiCooldown } from '../ui/useAiCooldown';
 
 const TYPES: ProposalType[] = ['Task', 'Outcome', 'Decision', 'Idea', 'Note'];
+export function aiReviewBatch<T extends { id: string }>(pending: T[], selected: ReadonlySet<string>): T[] {
+  const chosen = pending.filter(c => selected.has(c.id));
+  return (chosen.length ? chosen : pending).slice(0, 4);
+}
 
 /** AI Review. A SIMULATION: simple local keyword rules, not an AI model. Every action asks; nothing is applied silently. */
 export function Review() {
@@ -15,15 +21,22 @@ export function Review() {
   const ws = api.ws, [edits, setEdits] = useState<Record<string, Partial<Proposal>>>({});
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [cfg, setCfg] = useState<AiSettings | null>(null), [sug, setSug] = useState<Record<string, AiProposal>>({}), [who, setWho] = useState(''), [aiMsg, setAiMsg] = useState(''), [busy, setBusy] = useState(false);
-  useEffect(() => { ai?.settings().then(setCfg).catch(() => setCfg(null)); }, [ai]);
+  const locked = useRef(false), [retryAt, setRetryAt] = useState<number | null>(null), wait = useAiCooldown(retryAt);
+  useEffect(() => {
+    let version = 0;
+    const refresh = () => { const request = ++version; ai?.settings().then(config => { if (request === version) setCfg(config); }).catch(() => { if (request === version) setCfg(null); }); };
+    refresh(); const off = onAiSettingsChanged(api.ctx.owner, refresh);
+    return () => { version++; off(); };
+  }, [ai, api.ctx.owner]);
   const allPending = pendingCaptures(ws), aside = setAside(ws), [shown, setShown] = useState(30), pending = allPending.slice(0, shown);   // big lists are shown 30 at a time
+  const requestBatch = aiReviewBatch(allPending, sel), selectedPending = allPending.some(c => sel.has(c.id));
   const recent = ws.captures.filter(c => c.status === 'organized' && c.organized_as && c.organized_as !== 'Merged').slice(-5).reverse();
   const merged = (id: string) => ws.captures.some(x => x.merged_into === id);
   const prop = (c: Capture): Proposal => { const a = sug[c.id]; return { ...propose(ws, c), ...(a ? { type: a.type, folderId: a.folderId, outcomeId: a.outcomeId } : {}), ...edits[c.id] }; };
   const ask = async () => {
-    if (!ai) return; setBusy(true); setAiMsg('');
-    try { const r = await ai.suggest(pending.map(c => c.id).slice(0, 20)); setSug(Object.fromEntries(r.proposals.map(p => [p.captureId, p]))); setWho(`${PROVIDER_NAMES[r.provider]} (${r.model})`); setAiMsg(r.proposals.length ? `${r.proposals.length} suggestion${r.proposals.length === 1 ? '' : 's'} received${r.dropped ? `; ${r.dropped} unusable ${r.dropped === 1 ? 'answer was' : 'answers were'} ignored` : ''}. Nothing is applied until you approve.` : 'The AI gave no usable suggestions. You can organize by hand.'); }
-    catch (e) { setAiMsg((e as Error).message + ' You can still organize by hand.'); } finally { setBusy(false); }
+    if (!ai || !cfg?.enabled || locked.current || wait > 0 || !requestBatch.length) return; locked.current = true; setBusy(true); setAiMsg('');
+    try { const r = await ai.suggest(requestBatch.map(c => c.id)); setRetryAt(null); setSug(Object.fromEntries(r.proposals.map(p => [p.captureId, p]))); setWho(`${PROVIDER_NAMES[r.provider]} (${r.model})`); setAiMsg(r.proposals.length ? `${r.proposals.length} suggestion${r.proposals.length === 1 ? '' : 's'} received${r.dropped ? `; ${r.dropped} unusable ${r.dropped === 1 ? 'answer was' : 'answers were'} ignored` : ''}. Nothing is applied until you approve.` : 'The AI gave no usable suggestions. You can organize by hand.'); }
+    catch (e) { setRetryAt((e as { retryAt?: number | null }).retryAt ?? null); setAiMsg((e as Error).message + ' You can still organize by hand.'); } finally { locked.current = false; setBusy(false); }
   };
   const edit = (id: string, patch: Partial<Proposal>) => setEdits(e => ({ ...e, [id]: { ...e[id], ...patch } }));
   const toApproval = (p: Proposal): C.Approval => ({ type: p.type, folderId: p.folderId, outcomeId: p.outcomeId, title: p.title });
@@ -43,7 +56,7 @@ export function Review() {
         extra={<div className="page-tools">{chosen.length > 0 && <button className="primary-button" onClick={() => modal({ kind: 'approveSelected', items: chosen.map(c => ({ id: c.id, ...toApproval(prop(c)) })) })}><Icon name="check" /> Approve selected ({chosen.length})</button>}{allPending.length > 0 && <button className="quiet-button" onClick={approveAll}><Icon name="check-check" /> Approve all ({allPending.length})</button>}<button className="quiet-button" onClick={() => go('inbox')}>Back to inbox</button></div>} />
       <div className="review-layout">
         <section className="stack">
-          {pending.length > 0 && <div className="card review-aside">{cfg?.enabled ? <div className="button-row"><button className="primary-button" disabled={busy} onClick={ask}><Icon name="sparkles" /> {busy ? 'Asking…' : 'Get AI suggestions'}</button><span className="small-note">Sends the text of up to 20 waiting captures to {PROVIDER_NAMES[cfg.provider]} with your key.</span></div> : <p className="small-note">{ai ? 'Want real AI suggestions? Add your own key in Settings. Nothing is sent anywhere until you turn it on and ask.' : 'Real AI suggestions need an account (they use your own key, stored on the server).'}</p>}{aiMsg && <p className="small-note" role="status">{aiMsg}</p>}</div>}
+          {pending.length > 0 && <div className="card review-aside">{cfg?.enabled ? <div className="button-row"><button className="primary-button" disabled={busy || wait > 0 || !requestBatch.length} onClick={ask}><Icon name="sparkles" /> {busy ? 'Asking…' : wait ? `Try again in ${wait}s` : 'Get AI suggestions'}</button><span className="small-note">Sends the first {requestBatch.length} {selectedPending ? 'selected' : 'waiting'} {requestBatch.length === 1 ? 'capture' : 'captures'} to {PROVIDER_NAMES[cfg.provider]}. Runs once when you ask.</span></div> : <p className="small-note">{ai ? 'Want real AI suggestions? Add your own key in Settings. Nothing is sent anywhere until you turn it on and ask.' : 'Real AI suggestions need an account (they use your own key, stored on the server).'}</p>}{aiMsg && <p className="small-note" role="status">{aiMsg}</p>}</div>}
           {pending.length ? pending.map(c => {
             const p = prop(c), dup = duplicateOf(ws, c), again = rejectedBefore(c, p);
             return (
