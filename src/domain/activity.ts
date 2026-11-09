@@ -23,14 +23,14 @@ export function describe(ws: Workspace, e: AuditEvent): Line | null {
   switch (e.action) {
     case 'ai-help': return mk([a.kind === 'email' ? 'Prepared an email draft for ' : a.kind === 'research' ? 'Found where to look for ' : 'Answered the question in ', cap(e.entity_id)]);
     case 'ai-priorities': {
-      const parts: Part[] = [`Suggested priorities for ${a.total} ${Number(a.total) === 1 ? 'to-do' : 'to-dos'}`], ks = (['high', 'medium', 'low'] as const).filter(k => Number(a[k]) > 0);
+      const parts: Part[] = [`Suggested priorities for ${a.total} ${Number(a.total) === 1 ? 'task' : 'tasks'}`], ks = (['high', 'medium', 'low'] as const).filter(k => Number(a[k]) > 0);
       if (ks.length) { parts.push(' ('); ks.forEach((k, i) => { if (i) parts.push(', '); parts.push(`${a[k]} `, lv(k)); }); parts.push(')'); }
       return mk(parts);
     }
-    case 'ai-group': return mk([`Suggested grouping ${Array.isArray(a.ids) ? a.ids.length : 'some'} to-dos as `, grp(a.name)]);
+    case 'ai-group': return mk([`Suggested grouping ${Array.isArray(a.ids) ? a.ids.length : 'some'} tasks as `, grp(a.name)]);
     case 'ai-depends': return mk(['Noticed ', cap(a.after, 30), ' may depend on ', cap(a.before, 30)]);
     case 'ai-failed': return mk([{ t: 'Couldn’t prepare help', tone: 'fail' }, a.message ? `: ${snip(String(a.message), 90)}` : '']);
-    case 'user-group-ai': return mk([`Grouped ${a.n} to-dos as `, grp(a.name), ' from the AI’s suggestion'], 'you');
+    case 'user-group-ai': return mk([`Grouped ${a.n} tasks as `, grp(a.name), ' from the AI’s suggestion'], 'you');
     case 'user-priority-ai': { const parts: Part[] = ['Set ', cap(e.entity_id), ' to ', lv(a.level), ' priority']; if (b.ai) parts.push(' (the AI suggested ', lv(b.ai), ')'); return mk(parts, 'you'); }
     default: return null;
   }

@@ -1,5 +1,5 @@
 // Quick Capture segmentation (master §5.4, DEC-006). Deterministic and reversible.
-// A block is a to-do list, one capture per line, when it has 2+ non-empty lines and either every line is short
+// A block is a task list, one capture per line, when it has 2+ non-empty lines and either every line is short
 // (<= 100 characters) or any line starts with a list marker. Otherwise it is ONE capture with its line breaks kept.
 const MARKER = /^([-*•]|\d+[.)])\s+/;
 export const SHORT_LINE = 100;

@@ -12,7 +12,7 @@ export function AssistBanner({ a, onSettings, hasAi }: { a: ReturnType<typeof us
   return a.busy ? <p className="assist-note" role="status">Looking at your list…</p> : null;
 }
 
-/** Groups Exe noticed. Approving one makes an outcome (in Later) with those to-dos as its steps; suggested order is saved as unconfirmed. */
+/** Groups Exe noticed. Approving one makes an outcome (in Later) with those tasks as its steps; suggested order is saved as unconfirmed. */
 export function Suggestions({ a, apply }: { a: ReturnType<typeof useAssist>; apply: (g: { ids: string[]; name: string }) => unknown }) {
   if (!a.groups.length) return null;
   return (<div className="assist-groups" aria-label="Suggested groups">{a.groups.map(g => { const order = a.deps.filter(d => g.ids.includes(d.before) && g.ids.includes(d.after)); return (
@@ -22,7 +22,7 @@ export function Suggestions({ a, apply }: { a: ReturnType<typeof useAssist>; app
       <div className="action-line"><button className="primary-button" onClick={() => apply(g)}>Group these</button><button className="mini-button" onClick={() => a.dismiss(g.ids)}>Not now</button></div></div>); })}</div>);
 }
 
-/** Help for one to-do, in one dropdown so the list stays tidy. It is closed until opened; the summary says what is inside. Everything is a suggestion from AI. */
+/** Help for one task, in one dropdown so the list stays tidy. It is closed until opened; the summary says what is inside. Everything is a suggestion from AI. */
 export function Help({ item, text }: { item: AssistItem | undefined; text: string }) {
   const [copied, setCopied] = useState(false);
   if (!item) return null;

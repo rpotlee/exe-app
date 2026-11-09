@@ -7,7 +7,7 @@ import type { Scope } from '../../src/domain/scope';
 import type { PriorityMode } from '../../src/domain/mission';
 import type { Approval as C_Approval } from '../../src/domain/commands';
 
-export type Page = 'focus' | 'approvals' | 'priorities' | 'tasks' | 'group' | 'lanes' | 'inbox' | 'review' | 'map' | 'decisions';   // internal ids; the screens are called Mission Status, Executables and AI Assistant
+export type Page = 'focus' | 'approvals' | 'priorities' | 'tasks' | 'group' | 'lanes' | 'inbox' | 'review' | 'map' | 'decisions';   // internal ids; the screens are called Status, Executables and AI Assistant
 export type ModalState =
   | { kind: 'capture' } | { kind: 'folders' } | { kind: 'settings' } | { kind: 'complete'; id: string; prompted: boolean } | { kind: 'swap'; toId: string } | { kind: 'priority' }
   | { kind: 'folder'; id: string | null } | { kind: 'folderDelete'; id: string } | { kind: 'outcomeNew'; folderId: string | null } | { kind: 'outcomeEdit'; id: string }

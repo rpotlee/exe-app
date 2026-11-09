@@ -8,7 +8,7 @@ import { PriorityCounts, PriorityDot } from '../ui/PriorityDot';
 
 const RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
-/** Mission Status (owner direction, DEC-017): an "All tasks" card (the top few, high priority first) and your groups below it. */
+/** Status (owner direction, DEC-017): an "All tasks" card (the top few, high priority first) and your groups below it. */
 export function Mission() {
   const { api, scope, assistState, priorityMode, go } = useApp();
   const ws = api.ws, labels = priorityMode !== 'off';
@@ -22,8 +22,8 @@ export function Mission() {
   return (
     <>
       <MobileTopline />
-      <div className="mission-heading"><div className="eyebrow mission-eyebrow">{scopeName.toUpperCase()}</div><h1>Mission Status</h1></div>
-      {groups.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="list-checks" /></span><h2>Nothing to work on yet</h2><p>Add a to-do to your list and it shows up here.</p><div className="button-row"><button className="primary-button" onClick={() => go('inbox')}>Open List</button></div></div> : <>
+      <div className="mission-heading"><div className="eyebrow mission-eyebrow">{scopeName.toUpperCase()}</div><h1>Status</h1></div>
+      {groups.length === 0 ? <div className="empty-state"><span className="empty-icon"><Icon name="list-checks" /></span><h2>Nothing to work on yet</h2><p>Add a task to your list and it shows up here.</p><div className="button-row"><button className="primary-button" onClick={() => go('inbox')}>Open List</button></div></div> : <>
         <div className="hero-stack"><section className="priority-hero all-tasks" aria-labelledby="all-tasks-title">
           <div className="hero-head"><div className="hero-heading"><div className="hero-copy"><div className="overline">ALL TASKS</div><h2 id="all-tasks-title">{n.total} open {n.total === 1 ? 'task' : 'tasks'}</h2>
             <div className="type-label m-counts">{labels && n.total > 0 ? <PriorityCounts {...n} /> : `${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}</div></div></div></div>
@@ -32,7 +32,7 @@ export function Mission() {
               {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}</label>))}
             {!open.length && <p className="small-note">Everything is done.</p>}</div>
           {open.length > shown.length && <p className="m-more">{open.length - shown.length} more</p>}
-          <div className="hero-bottom"><button className="primary-button" onClick={() => go('tasks')}>Show all</button></div>
+          <div className="hero-bottom"><button className="primary-button" onClick={() => go('tasks')}>View all tasks</button></div>
         </section></div>
         <section className="mission-other" aria-label="Groups"><div className="mission-other-head"><div className="mission-other-heading">Groups</div></div>
           <div className="side-priorities">{groups.map(g => { const c = countsOf(g.tasks), tag = g.kind === 'suggested' ? 'Suggested by AI' : ''; return (

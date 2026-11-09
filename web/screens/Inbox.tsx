@@ -8,12 +8,12 @@ import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
 
 const niceDate = (iso: string) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
-const KIND_LABEL: Record<KindFilter, string> = { everything: 'Everything', todo: 'To-dos', note: 'Notes', reminder: 'Reminders' };
+const KIND_LABEL: Record<KindFilter, string> = { everything: 'Everything', todo: 'Tasks', note: 'Notes', reminder: 'Reminders' };
 type Status = 'all' | 'active' | 'done';
 
-/** List: everything captured, as To-dos, Notes and Reminders, for All or one folder. It works with no AI at all.
- *  A type filter is only a view. Checking a to-do changes nothing else. */
-export function Inbox() {
+/** List: everything captured, as Tasks, Notes and Reminders, for All or one folder. It works with no AI at all.
+ *  A type filter is only a view. Checking a task changes nothing else. */
+export function List() {
   const { api, modal, scope, assistState, priorityMode } = useApp();
   const ws = api.ws;
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
@@ -37,21 +37,21 @@ export function Inbox() {
       <section className="raw-inbox" aria-label="List">
         <div className="seg" role="group" aria-label="Show">{(['everything', 'todo', 'note', 'reminder'] as const).map(k => (
           <button key={k} aria-pressed={kind === k} aria-label={`${KIND_LABEL[k]}, ${counts[k]}`} onClick={() => pickKind(k)}>{KIND_LABEL[k]}<span className="seg-n" aria-hidden="true">{counts[k]}</span></button>))}</div>
-        {kind === 'todo' && <div className="seg sub" role="group" aria-label="To-do status">{(['all', 'active', 'done'] as const).map(v => (
+        {kind === 'todo' && <div className="seg sub" role="group" aria-label="Task status">{(['all', 'active', 'done'] as const).map(v => (
           <button key={v} aria-pressed={status === v} onClick={() => pickStatus(v)}>{v[0]?.toUpperCase()}{v.slice(1)}</button>))}</div>}
         <form className="add-row" onSubmit={submit}>
           <div className="kind-menu-wrap">
-            <button type="button" className="add-kind" aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`Adding a ${addKind === 'note' ? 'note' : 'to-do'}. Change type`} onClick={() => setMenuOpen(o => !o)}>{addKind === 'note' ? 'Note' : 'To-do'}<Icon name="chevron-down" /></button>
+            <button type="button" className="add-kind" aria-haspopup="menu" aria-expanded={menuOpen} aria-label={`Adding a ${addKind === 'note' ? 'note' : 'task'}. Change type`} onClick={() => setMenuOpen(o => !o)}>{addKind === 'note' ? 'Note' : 'Task'}<Icon name="chevron-down" /></button>
             {menuOpen && <ul className="kind-menu" role="menu" onKeyDown={e => { if (e.key === 'Escape') setMenuOpen(false); }}>
-              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'todo'} onClick={() => { setAddKind('todo'); setMenuOpen(false); }}><Icon name="circle-check" /><span>To-do<small>A task with a checkbox</small></span></button></li>
+              <li role="none"><button role="menuitemradio" aria-checked={addKind === 'todo'} onClick={() => { setAddKind('todo'); setMenuOpen(false); }}><Icon name="circle-check" /><span>Task<small>Something to do, with a checkbox</small></span></button></li>
               <li role="none"><button role="menuitemradio" aria-checked={addKind === 'note'} onClick={() => { setAddKind('note'); setMenuOpen(false); }}><Icon name="file-text" /><span>Note<small>A thought or some info</small></span></button></li>
               <li role="none"><button role="menuitemradio" aria-checked="false" disabled><Icon name="bell" /><span>Reminder<small>Needs a date; coming soon</small></span></button></li>
             </ul>}
           </div>
-          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : 'Add a to-do'} placeholder={addKind === 'note' ? 'Write a note…' : 'Add a to-do or paste a list'} rows={1} maxLength={20000} value={draft}
+          <textarea className="text-input" aria-label={addKind === 'note' ? 'Add a note' : 'Add a task'} placeholder={addKind === 'note' ? 'Write a note…' : 'Add a task or paste a list'} rows={1} maxLength={20000} value={draft}
             onChange={e => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'; }}
             onKeyDown={e => { if (addKind === 'todo' && e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); if (draft.trim()) e.currentTarget.form?.requestSubmit(); } }} />
-          <button className="add-submit" type="submit" disabled={!draft.trim()} aria-label={addKind === 'note' ? 'Add note' : 'Add to-do'}><Icon name="arrow-up" /></button></form>
+          <button className="add-submit" type="submit" disabled={!draft.trim()} aria-label={addKind === 'note' ? 'Add note' : 'Add task'}><Icon name="arrow-up" /></button></form>
         <ul className="raw-list grouped">
           {entries.slice(0, limit).map(c => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
@@ -59,10 +59,10 @@ export function Inbox() {
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{k === 'reminder' && <span className="pill">Not scheduled</span>}</div>}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
-                <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'To-do' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>
+                <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'Task' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>
                 {c.edited_text && c.edited_text !== c.text && <p className="raw-original"><strong>Original capture</strong><br />{c.text}</p>}
                 <div className="detail-fields">
-                  <label className="file-field"><span className="small-note">Type</span><select className="select" aria-label={`Type: ${text}`} value={k} onChange={e => api.run(w => convertKind(w, c.id, e.target.value as CaptureKind))}><option value="todo">To-do</option><option value="note">Note</option><option value="reminder" disabled>Reminder (needs a date; coming soon)</option></select></label>
+                  <label className="file-field"><span className="small-note">Type</span><select className="select" aria-label={`Type: ${text}`} value={k} onChange={e => api.run(w => convertKind(w, c.id, e.target.value as CaptureKind))}><option value="todo">Task</option><option value="note">Note</option><option value="reminder" disabled>Reminder (needs a date; coming soon)</option></select></label>
                   <label className="file-field"><span className="small-note">Folder</span><select className="select" aria-label={`Move to folder: ${text}`} value={c.folder_id ?? ''} onChange={e => api.run(w => fileCapture(w, c.id, e.target.value || null))}><option value="">Unfiled</option>{ws.folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
                   {k === 'todo' && <label className="file-field"><span className="small-note">Priority</span><select className="select" aria-label={`Priority: ${text}`} value={c.user_priority ?? ''} onChange={e => api.run((w, cx) => setCapturePriority(w, cx, c.id, (e.target.value || null) as 'high' | 'medium' | 'low' | null))}><option value="">None</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>}
                 </div>

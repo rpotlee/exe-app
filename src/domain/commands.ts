@@ -29,7 +29,7 @@ const trimmed = (s: string): string => s.trim();
 export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Quick Capture', opts: { kind?: 'todo' | 'note' | 'reminder'; folderId?: string | null; keepAsOne?: boolean } = {}): Result {
   const kind = opts.kind ?? 'todo', folderId = opts.folderId ?? null;
   if (folderId && !ws.folders.some(f => f.id === folderId)) return fail('That folder no longer exists.');
-  // To-dos split a pasted list into one item per line; a note or a reminder is never split, and a to-do can be kept whole on request
+  // Tasks split a pasted list into one item per line; a note or a reminder is never split, and a task can be kept whole on request
   const lines = kind === 'todo' && !opts.keepAsOne ? segmentCapture(text) : trimmed(text) ? [text.replace(/\r\n/g, '\n').trim()] : [];
   if (!lines.length) return fail('Write something first.');
   const batch = lines.length > 1 ? ctx.id() : null;
@@ -37,7 +37,7 @@ export function addCaptures(ws: Workspace, ctx: Ctx, text: string, source = 'Qui
   return done(lines.map(line => ins('captures', {
     ...baseRow(ctx), text: line, edited_text: null, source, folder_id: folderId, batch_id: batch, batch_text: batch ? text : null, completed_at: null, archived_at: null,
     status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind, display_title: null, user_priority: null })),
-  lines.length === 1 ? `Saved to ${where}.` : `${lines.length} to-dos saved to ${where}.`);
+  lines.length === 1 ? `Saved to ${where}.` : `${lines.length} tasks saved to ${where}.`);
 }
 const capture = (ws: Workspace, id: string) => ws.captures.find(c => c.id === id);
 /** Raw completion is independent: it never touches tasks, decisions, the Focus board or AI review state. */
@@ -308,7 +308,7 @@ function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: stri
     writes.push(ins('decisions', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Newly captured decision; add evidence and options.', status: 'open', evidence: '', notes: '', chosen_option: '', conclusion: '', rationale: '', resolved_at: null, criteria: '', sources }), logRow(ctx, itemId, 'created', 'Approved from a capture.'));
   } else if (a.type === 'Idea') {
     itemId = ctx.id();
-    writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the Inbox.', archived_at: null, sources }));
+    writes.push(ins('ideas', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), notes: 'Approved from the List.', archived_at: null, sources }));
   }
   if (!skipCapture) writes.push({ table: 'captures', op: 'update', row: { id: c.id, revision: c.revision, status: 'organized', organized_as: a.type, task_id: taskId, review_state: null, review_at: null, folder_id: c.folder_id ?? a.folderId } });
   void at;
@@ -439,12 +439,12 @@ function undoSplit(ws: Workspace, ctx: Ctx, c: Workspace['captures'][number]): R
   return done(writes, 'Split undone. The capture is back in the review list.');
 }
 
-// ------------------------------------------------------------------ group related to-dos (live help, DEC-015)
-/** One approved suggestion: related to-dos become the steps of a new outcome (in Later, not Now). Suggested dependencies are saved as
+// ------------------------------------------------------------------ group related tasks (live help, DEC-015)
+/** One approved suggestion: related tasks become the steps of a new outcome (in Later, not Now). Suggested dependencies are saved as
  *  UNCONFIRMED blocks: they show as suggestions and never hold anything up until the person confirms them. */
 export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; name: string; deps: { before: string; after: string; why: string }[] }): Result {
   const caps = [...new Set(input.ids)].map(id => capture(ws, id)).filter((c): c is NonNullable<typeof c> => !!c && c.status === 'pending' && !c.archived_at);
-  if (caps.length < 2) return fail('Choose at least two to-dos that are still waiting.');
+  if (caps.length < 2) return fail('Choose at least two tasks that are still waiting.');
   const name = trimmed(input.name).slice(0, 200); if (!name) return fail('Name the group.');
   const oid = ctx.id(), sources = caps.map(c => c.id), writes: Write[] = [];
   writes.push(ins('outcomes', { ...baseRow(ctx), id: oid, folder_id: null, name, description: 'Grouped from your list.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
@@ -463,7 +463,7 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
     writes.push(ins('relationships', { ...baseRow(ctx), from_type: 'task', from_id: a, to_type: 'task', to_id: b, kind: 'blocks', description: trimmed(d.why).slice(0, 160), confirmed: false, source: 'ai' }));
   }
   writes.push(auditAs(ctx, 'user', 'user-group-ai', null, null, null, { name, n: caps.length, ids: caps.map(c => c.id) }));
-  return done(writes, `Grouped ${caps.length} to-dos into “${name}”. Their originals are kept in your List.`);
+  return done(writes, `Grouped ${caps.length} tasks into “${name}”. Their originals are kept in your List.`);
 }
 
 // ------------------------------------------------------------------ kind, priority and moves (revamp phase 1)
@@ -471,7 +471,7 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
 export function convertKind(ws: Workspace, id: string, kind: 'todo' | 'note' | 'reminder'): Result {
   const c = capture(ws, id); if (!c) return fail('That entry no longer exists.');
   if (c.kind === kind) return fail('It is already that type.');
-  return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a to-do' : kind === 'note' ? 'a note' : 'a reminder'}.`);
+  return done([upd('captures', c, { kind })], `Changed to ${kind === 'todo' ? 'a task' : kind === 'note' ? 'a note' : 'a reminder'}.`);
 }
 /** The person's own priority label. It never touches Now/Next/Later or the current focus. null clears it. */
 export function setCapturePriority(ws: Workspace, ctx: Ctx, id: string, label: 'high' | 'medium' | 'low' | null, aiSuggested: 'high' | 'medium' | 'low' | null = null): Result {

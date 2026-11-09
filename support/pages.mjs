@@ -26,7 +26,7 @@ export const pages = [
 <h2>All the topics</h2>
 <ul class="topic-list">
   <li><a href="getting-started.html">Getting started</a>: a guided first session.</li>
-  <li><a href="capture-and-inbox.html">Capture and Inbox</a>: save thoughts fast, keep a simple to-do list.</li>
+  <li><a href="capture-and-inbox.html">Capture and List</a>: save thoughts fast, keep a simple task list.</li>
   <li><a href="ai-review.html">AI Review</a>: approve, reject, merge, split and undo suggestions.</li>
   <li><a href="map.html">Map: folders, outcomes, steps and dependencies</a>: organize real work.</li>
   <li><a href="decisions.html">Decisions</a>: options, evidence, comparing, resolving.</li>
@@ -41,14 +41,14 @@ export const pages = [
 { slug: 'getting-started', title: 'Getting started', nav: 'Getting started', summary: 'Your first 10 minutes with Exe.', body: `
 <p class="lead">Follow these steps once and you will know how everything fits together. Each step links to a longer page if you want more.</p>
 <div class="toc"><strong>On this page</strong><ol>
-<li><a href="#s1">Sign in</a></li><li><a href="#s2">Capture your first thoughts</a></li><li><a href="#s3">Look at your Inbox</a></li><li><a href="#s4">Make a folder and an outcome</a></li><li><a href="#s5">Add steps and choose what is active</a></li><li><a href="#s6">See your focus and start</a></li><li><a href="#s7">Optional: AI</a></li><li><a href="#s8">Back up your work</a></li></ol></div>
+<li><a href="#s1">Sign in</a></li><li><a href="#s2">Capture your first thoughts</a></li><li><a href="#s3">Look at your List</a></li><li><a href="#s4">Make a folder and an outcome</a></li><li><a href="#s5">Add steps and choose what is active</a></li><li><a href="#s6">See your focus and start</a></li><li><a href="#s7">Optional: AI</a></li><li><a href="#s8">Back up your work</a></li></ol></div>
 
 <h2 id="s1">1. Sign in</h2>
 ${steps([
  'Open Exe in your browser. On a phone you can add it to your home screen: in Safari tap Share, then <em>Add to Home Screen</em>; in Chrome open the menu, then <em>Add to Home screen</em>.',
  'Choose <strong>Create an account</strong>, enter your email and a password of at least 8 characters, then press <strong>Create account</strong>.',
  'If you are asked to confirm your email, open the message we sent and follow the link. Then return and press <strong>Sign in</strong>.',
- 'You land on <strong>Mission Status</strong>. It says <em>Nothing here yet</em>. That is correct: a new Exe is empty, and nothing is added for you.'])}
+ 'You land on <strong>Status</strong>. It says <em>Nothing here yet</em>. That is correct: a new Exe is empty, and nothing is added for you.'])}
 ${note('Your workspace is private to you. If Exe was set up to run <strong>on this device only</strong>, there is no sign-in and your data stays in this browser.')}
 
 <h2 id="s2">2. Capture your first thoughts</h2>
@@ -56,11 +56,11 @@ ${note('Your workspace is private to you. If Exe was set up to run <strong>on th
 ${steps([
  `Press the blue ${b('+')} button (on a computer you can also press ${k('Ctrl')}+${k('K')}, or ${k('⌘')}+${k('K')} on a Mac).`,
  'Type or paste anything on your mind. To add several at once, put each one on its own line:<pre>Call the plumber\nBook flights\nRenew passport</pre>',
- 'Press <strong>Save</strong>. Each line becomes its own to-do in your Inbox. A long paragraph stays as one item.'])}
+ 'Press <strong>Save</strong>. Each line becomes its own task in your List. A long paragraph stays as one item.'])}
 ${tip('If you close the box before saving, your text is kept as a draft and is there when you reopen it (as long as this browser tab stays open).')}
 
-<h2 id="s3">3. Look at your Inbox</h2>
-<p>Open <strong>Inbox</strong> in the bottom bar (phone) or the left menu (computer). It is a plain checklist: newest first, with <strong>All</strong>, <strong>Active</strong> and <strong>Done</strong> filters. Tick a box to mark a to-do done. That changes nothing else. See <a href="capture-and-inbox.html">Capture and Inbox</a>.</p>
+<h2 id="s3">3. Look at your List</h2>
+<p>Open <strong>List</strong> in the bottom bar (phone) or the left menu (computer). It is a plain checklist: newest first, with <strong>All</strong>, <strong>Active</strong> and <strong>Done</strong> filters. Tick a box to mark a task done. That changes nothing else. See <a href="capture-and-inbox.html">Capture and List</a>.</p>
 
 <h2 id="s4">4. Make a folder and an outcome</h2>
 <p>An <strong>outcome</strong> is a result you want, like “Book the venue”. A <strong>folder</strong> groups related things, like Home or Work.</p>
@@ -87,20 +87,20 @@ ${note('The limit of three is on purpose. Exe is built to help you finish a few 
 <h2>You are set</h2>
 <p>That is the whole loop: capture, review, map, decide, focus. Everything else in Exe is a way to make one of those steps easier. Questions? See <a href="faq.html">Questions and fixes</a>.</p>` },
 
-{ slug: 'capture-and-inbox', title: 'Capture and Inbox', nav: 'Capture & Inbox', summary: 'Save thoughts fast and keep a simple to-do list.', body: `
-<p class="lead">Capture first, organize later. The Inbox is a normal checklist that works with no AI at all.</p>
+{ slug: 'capture-and-inbox', title: 'Capture and List', nav: 'Capture & List', summary: 'Save thoughts fast and keep a simple task list.', body: `
+<p class="lead">Capture first, organize later. The List is a normal checklist that works with no AI at all.</p>
 <h2>Quick Capture</h2>
 <ul>
   <li>Tap the <strong>Capture something</strong> bar above the tab bar (always visible on a phone) or ${k('Ctrl')}/${k('⌘')}+${k('K')} on a computer. It works from every screen, including inside Focus Mode, and returns you to where you were.</li>
-  <li><strong>Several thoughts at once:</strong> put each on its own line. If there are two or more lines and each is short (up to about 100 characters), or any line starts with <code>-</code>, <code>*</code>, <code>•</code> or a number like <code>1.</code>, each line becomes its own to-do and the list markers are removed.</li>
+  <li><strong>Several thoughts at once:</strong> put each on its own line. If there are two or more lines and each is short (up to about 100 characters), or any line starts with <code>-</code>, <code>*</code>, <code>•</code> or a number like <code>1.</code>, each line becomes its own task and the list markers are removed.</li>
   <li><strong>One long thought:</strong> a paragraph, or lines that are long, stays as one item with its line breaks.</li>
   <li>Empty text cannot be saved. If you close the box, your unsaved text is kept as a draft while this browser tab stays open.</li>
 </ul>
-<h2>The Inbox</h2>
+<h2>The List</h2>
 <ul>
-  <li><strong>Add a to-do</strong> at the top adds one quickly without the capture box. Press ${k('Enter')} to add it and keep typing. Paste a whole list and each line becomes its own to-do. Use ${k('Shift')}+${k('Enter')} for a line break inside one to-do.</li>
+  <li><strong>Add a task</strong> at the top adds one quickly without the capture box. Press ${k('Enter')} to add it and keep typing. Paste a whole list and each line becomes its own task. Use ${k('Shift')}+${k('Enter')} for a line break inside one task.</li>
   <li><strong>All / Active / Done</strong> filter the list, each with a count. Newest items are first. In Done, the most recently finished is first. Very long lists show 200 at a time with <strong>Show 200 more</strong>.</li>
-  <li><strong>Tick the circle</strong> to mark a to-do done. This is only a checkmark on that to-do. It does not complete any step, decision or priority.</li>
+  <li><strong>Tick the circle</strong> to mark a task done. This is only a checkmark on that task. It does not complete any step, decision or priority.</li>
   <li><strong>The ⋯ button</strong> on a row opens its details: when and how it was captured, whether it awaits review, and its folder.</li>
 </ul>
 <h3>Row actions</h3>
@@ -110,15 +110,15 @@ ${note('The limit of three is on purpose. Exe is built to help you finish a few 
   <li><strong>Archive</strong> hides it without deleting. <strong>View archived</strong> at the bottom shows archived items, where <strong>Restore</strong> brings one back.</li>
 </ul>
 <h2>Help while you build your list</h2>
-<p>If you have turned on AI (see <a href="ai-setup.html">Turning on AI</a>), Exe looks at new to-dos a few seconds after you stop typing and quietly adds suggestions. Every one is labeled <em>AI</em>, none of it changes your list by itself, and you can ignore all of it. Without AI, the list simply works as a checklist. If AI is off, a small <strong>Turn on AI help</strong> link appears above the list.</p>
+<p>If you have turned on AI (see <a href="ai-setup.html">Turning on AI</a>), Exe looks at new tasks a few seconds after you stop typing and quietly adds suggestions. Every one is labeled <em>AI</em>, none of it changes your list by itself, and you can ignore all of it. Without AI, the list simply works as a checklist. If AI is off, a small <strong>Turn on AI help</strong> link appears above the list.</p>
 <ul>
-  <li><strong>Things that go together.</strong> A card named for the group lists the related to-dos and, when it spots one, a possible order (what to do first). <strong>Group these</strong> makes an outcome in <em>Later</em> with those to-dos as its steps. The suggested order is saved as an unconfirmed link: it does not hold anything up until you confirm it in Map. <strong>Not now</strong> hides the card. Your original to-dos stay in the Inbox.</li>
-  <li><strong>Email drafts.</strong> When a to-do is about writing to someone, an <strong>Email draft</strong> appears under it. Open it, read it, fill in any [brackets], then <strong>Copy</strong> it or choose <strong>Open in email</strong>. Exe never sends anything.</li>
-  <li><strong>Where to look.</strong> For research to-dos, such as how to register a business, Exe names a few official sources. Each link opens a search on that organization's own website, so you land on real pages rather than an address the AI guessed.</li>
+  <li><strong>Things that go together.</strong> A card named for the group lists the related tasks and, when it spots one, a possible order (what to do first). <strong>Group these</strong> makes an outcome in <em>Later</em> with those tasks as its steps. The suggested order is saved as an unconfirmed link: it does not hold anything up until you confirm it in Map. <strong>Not now</strong> hides the card. Your original tasks stay in the List.</li>
+  <li><strong>Email drafts.</strong> When a task is about writing to someone, an <strong>Email draft</strong> appears under it. Open it, read it, fill in any [brackets], then <strong>Copy</strong> it or choose <strong>Open in email</strong>. Exe never sends anything.</li>
+  <li><strong>Where to look.</strong> For research tasks, such as how to register a business, Exe names a few official sources. Each link opens a search on that organization's own website, so you land on real pages rather than an address the AI guessed.</li>
   <li><strong>Quick answers.</strong> For simple facts, such as the capital of Australia, a short answer appears labeled <em>AI answer</em> with a link to check a source. Anything uncertain, recent, legal, medical or financial is sent to <em>Where to look</em> instead of answered. AI can be wrong, so check the source for anything important.</li>
   <li>If AI cannot be reached, a short <strong>AI help paused</strong> message appears with <strong>Try again</strong>. Your list is never affected.</li>
 </ul>
-<p>What is sent: only the text of your active to-dos, to the AI company you chose, using your own key. See <a href="account-and-privacy.html">Account and privacy</a>.</p>
+<p>What is sent: only the text of your active tasks, to the AI company you chose, using your own key. See <a href="account-and-privacy.html">Account and privacy</a>.</p>
 ${note('Exe never deletes a capture for you, and AI can never delete one.')}
 <p>Next: <a href="ai-review.html">AI Review</a> turns captures into tasks, outcomes, decisions or ideas, only with your approval.</p>` },
 
@@ -218,7 +218,7 @@ ${tip('With many captures waiting, the list shows 30 at a time. Use <strong>Show
 ${tip('To say a decision is holding something up, add a <em>blocks</em> relationship in the Map from the decision to the step or outcome, and confirm it.')}` },
 
 { slug: 'focus', title: 'Focus, priorities and Focus Mode', nav: 'Focus', summary: 'The home screen, up to three active priorities, and how Exe suggests what to do next.', body: `
-<p class="lead">Focus is your home screen, called <strong>Mission Status</strong>. It shows what you are working on now, and quietly offers help choosing what to do next. Nothing on it changes unless you press a button.</p>
+<p class="lead">Focus is your home screen, called <strong>Status</strong>. It shows what you are working on now, and quietly offers help choosing what to do next. Nothing on it changes unless you press a button.</p>
 <h2>The status line</h2>
 <p>Under the heading you see something like <em>1 current focus of up to 3 active. 2 for the AI Assistant. 3 blocked.</em> Parts that are zero are left out. <em>Awaiting AI Review</em> is a link. <em>Blocked</em> counts only blocks you confirmed.</p>
 <h2>Current Priority</h2>
@@ -249,7 +249,7 @@ ${tip('To say a decision is holding something up, add a <em>blocks</em> relation
 <p>Press <strong>Enter Focus Mode</strong> on the Current Priority card. You see only that outcome and its checklist.</p>
 <ul>
   <li>Tick steps as you finish. Progress is real.</li>
-  <li><strong>Capture thought</strong> opens Quick Capture over Focus Mode and brings you back afterwards. New thoughts go to the Inbox, not into your active work.</li>
+  <li><strong>Capture thought</strong> opens Quick Capture over Focus Mode and brings you back afterwards. New thoughts go to the List, not into your active work.</li>
   <li><strong>Break it down</strong> adds steps. <strong>Return to Exe</strong> or <strong>Finish session</strong> (or ${k('Esc')}) leaves. If every step is done, Exe asks whether the outcome is finished.</li>
 </ul>` },
 
@@ -345,9 +345,9 @@ ${steps([
 { slug: 'faq', title: 'Questions, fixes and glossary', nav: 'FAQ', summary: 'Plain answers and what to do when something looks wrong.', body: `
 <h2>Questions</h2>
 <h3>Why can I only have three active priorities?</h3><p>On purpose. Exe is built to help you finish a few things, not to track everything at once. Everything else waits in Next or Later, and nothing is lost.</p>
-<h3>Why does “Mission Status” say “Nothing here yet”?</h3><p>A new Exe starts empty and nothing is added for you. Capture a thought with the blue + button, or make a folder and an outcome in the Map.</p>
+<h3>Why does “Status” say “Nothing here yet”?</h3><p>A new Exe starts empty and nothing is added for you. Capture a thought with the blue + button, or make a folder and an outcome in the Map.</p>
 <h3>I ticked every step, but the outcome is not done.</h3><p>That is by design. Only you finish an outcome. Press <strong>Mark outcome done…</strong>, or answer the question Exe asks when the last step is ticked.</p>
-<h3>I ticked a to-do in the Inbox, but my step is not done.</h3><p>An Inbox tick only marks that to-do. Steps, decisions and priorities are separate on purpose.</p>
+<h3>I ticked a task in the List, but my step is not done.</h3><p>An List tick only marks that task. Steps, decisions and priorities are separate on purpose.</p>
 <h3>What does “Blocked” mean, and why is it red?</h3><p>Something you <em>confirmed</em> must be finished first. Red is used only for that. A suggested relationship blocks nothing.</p>
 <h3>Can the AI change my work?</h3><p>No. It can only make suggestions on cards, which you approve. It cannot delete, complete, resolve, or move priorities.</p>
 <h3>Does AI cost money?</h3><p>Exe does not charge for AI. If you add your own key, your AI company bills you for what you use.</p>
@@ -370,7 +370,7 @@ ${steps([
 <tr><th scope="row">${k('/')}</th><td>Search (when you are not typing in a box).</td></tr>
 <tr><th scope="row">${k('Esc')}</th><td>Close the open box, or leave Focus Mode.</td></tr>
 <tr><th scope="row">${k('Tab')}</th><td>Move between buttons and fields. Everything in Exe can be used with a keyboard.</td></tr>
-<tr><th scope="row">${k('Enter')}</th><td>In <em>Add a to-do…</em>, adds it to your Inbox.</td></tr>
+<tr><th scope="row">${k('Enter')}</th><td>In <em>Add a task…</em>, adds it to your List.</td></tr>
 </tbody></table>
 <h2>Glossary</h2>
 <dl class="glossary">

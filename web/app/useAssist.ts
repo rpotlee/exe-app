@@ -13,7 +13,7 @@ const KEY = 'exe-assist-v1', BATCH = 8, WAIT = 2500;
 const hash = (s: string) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return String(h); };
 const load = (): Saved => { try { const j = JSON.parse(localStorage.getItem(KEY) ?? ''); if (j && typeof j === 'object') return { seen: {}, items: {}, prios: {}, groups: [], deps: [], dismissed: [], ...j }; } catch { /* none saved */ } return { seen: {}, items: {}, prios: {}, groups: [], deps: [], dismissed: [] }; };
 
-/** As the list grows, quietly asks the AI about to-dos it has not looked at yet (a few seconds after typing stops) and keeps what it finds.
+/** As the list grows, quietly asks the AI about tasks it has not looked at yet (a few seconds after typing stops) and keeps what it finds.
  *  Nothing here changes the workspace: it only produces suggestions. Without AI set up, it does nothing. */
 export function useAssist(ai: AssistClient | null, ws: Workspace, log?: (events: AiEventInput[]) => void) {
   const [saved, setSaved] = useState<Saved>(load), [ready, setReady] = useState<boolean | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
