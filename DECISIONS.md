@@ -292,3 +292,6 @@ Suggestion-only; never moves lanes by itself (spec §10). Rule order, first rule
 
 ## DEC-021: Reminders are in-app only; help center rewritten
 Date: 2026-11-08. Reminders use two columns on `captures` (`remind_at`, `remind_done_at`; migration 12). Snooze moves `remind_at`; dismiss sets `remind_done_at`. They show as a banner inside the app while it is open (checked every 30 s). There is no push, email, text or calendar file (.ics stays on hold, DEC-019), and the help and the assistant say so. The AI never sets or changes a reminder. The help center was rewritten for List, Reminders, Status/All tasks/Groups, the assistant, Activity Log and Folders; pages for the unlinked Map, Decisions, AI Review, Ideas and old Focus were removed (the code remains, DEC-017 option C). The release runbook is `docs/DEPLOYMENT-RUNBOOK.md`.
+
+## DEC-022: Glass navigation bar with a filled selected tab
+Date: 2026-11-09. Owner supplied a reference: a frosted-glass pill with a bright rim, white (dark theme) or dark-grey (light theme) icons and labels, and the selected tab as a filled deep-blue pill with white icon and label. This replaces the earlier rule that the active tab is only a color change. Values are the --dock-* tokens in exe-ui.css. Axe contrast passes on the nav in both themes.
