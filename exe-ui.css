@@ -1189,14 +1189,29 @@ body::before {
 .tone-high { color: #c4231a; font-weight: 600; } .tone-medium { color: #a85a00; font-weight: 600; } .tone-low { color: #8a6d00; font-weight: 600; } .tone-fail { color: #c4231a; }
 :root[data-theme="dark"] .tone-high { color: #ff8a82; } :root[data-theme="dark"] .tone-medium { color: #ffbf5e; } :root[data-theme="dark"] .tone-low { color: #ffe066; } :root[data-theme="dark"] .tone-fail { color: #ff8a82; }
 
-/* ---------- 21. Assistant: compact task rows and the per-entry assistant (assistant spec) ---------- */
-.t-line { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 6px 0; }
-.t-line input[type="checkbox"] { flex: none; }
-.t-text { flex: 1; min-width: 0; padding: 8px 0; border: 0; background: none; font: inherit; font-size: 17px; line-height: 22px; letter-spacing: -.43px; text-align: left; color: var(--ink); cursor: pointer; min-height: 44px; }
+/* ---------- 21. All tasks / group screens (sleek) and the per-entry assistant ---------- */
+.t-sec { margin: 0 0 22px; }
+.t-sec h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px 4px; font-size: 13px; line-height: 18px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); }
+.t-sec .dotc { width: 10px; height: 10px; }
+.t-n { margin-left: 2px; padding: 0 7px; border-radius: 999px; background: var(--chip-bg); font-size: 12px; letter-spacing: 0; color: var(--secondary); }
+.t-list { list-style: none; margin: 0; padding: 0; background: var(--glass-card); border-radius: 18px; box-shadow: var(--glass-shadow); overflow: hidden; }
+.t-row { position: relative; display: flex; align-items: center; gap: 4px; min-height: 60px; padding: 0 14px 0 4px; }
+.t-row + .t-row::before { content: ""; position: absolute; top: 0; left: 52px; right: 0; height: 1px; background: var(--edge); }
+.t-check { display: grid; place-items: center; flex: none; width: 48px; height: 48px; cursor: pointer; }
+.t-check input { appearance: none; -webkit-appearance: none; width: 26px; height: 26px; margin: 0; border: 1.6px solid var(--control-border); border-radius: 50%; background: transparent; position: relative; cursor: pointer; transition: background .15s, border-color .15s; }
+.t-check input:checked { background: var(--exe-accent); border-color: var(--exe-accent); }
+.t-check input:checked::after { content: ""; position: absolute; left: 8px; top: 3.5px; width: 6px; height: 11.5px; border: solid #fff; border-width: 0 2.4px 2.4px 0; transform: rotate(45deg); }
+.t-check input:focus-visible { outline: 2px solid var(--focus-edge); outline-offset: 3px; }
+.t-text { flex: 1; min-width: 0; padding: 12px 6px 12px 4px; border: 0; background: none; font: inherit; font-size: 17px; line-height: 22px; letter-spacing: -.43px; text-align: left; color: var(--ink); cursor: pointer; }
 .t-row.is-complete .t-text { color: var(--muted); text-decoration: line-through; }
-.t-line .prio-dot { margin-left: 0; }
-.t-status { display: block; margin: -6px 0 8px 36px; padding: 0; min-height: 24px; border: 0; background: none; font: inherit; font-size: 13px; line-height: 18px; color: var(--secondary); text-align: left; cursor: pointer; }
-.t-status::after { content: " ›"; color: var(--muted); }
+.t-row .prio-dot { margin: 0 2px 0 4px; }
+.ai-mark { position: relative; flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--exe-badge) 14%, transparent); color: #3f3dae; cursor: pointer; }
+.ai-mark svg { width: 16px; height: 16px; }
+.ai-mark::after { content: ""; position: absolute; inset: -8px; }
+.ai-mark.ask { background: var(--exe-badge); color: #fff; }
+:root[data-theme="dark"] .ai-mark:not(.ask) { color: #a5a3ff; }
+.t-done { margin: 0 0 22px; } .t-done summary { min-height: 44px; display: flex; align-items: center; padding-left: 4px; font-size: 15px; font-weight: 500; color: var(--secondary); cursor: pointer; }
+.back-link { margin-bottom: 0; font-size: 16px; }
 .ax-layer { position: fixed; inset: 0; z-index: 140; }
 .ax-layer.wide { inset: 0 0 0 auto; width: 440px; pointer-events: none; }
 .ax-scrim { position: absolute; inset: 0; background: var(--scrim); }
@@ -1243,3 +1258,5 @@ body::before {
 .ax-send svg { width: 20px; height: 20px; }
 body.assistant-open .mobile-navigation { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.t-page { max-width: 720px; }
