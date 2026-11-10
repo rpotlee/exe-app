@@ -18,6 +18,7 @@ Deno.serve(async (req: Request) => {
   let body: Record<string, unknown>; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
   // Deployed old clients used this mode on list load. Reject them without calling the provider.
   if (body.mode === 'assist' && body.intent !== 'analyze') return json({ error: 'Choose Analyze entries to ask AI for suggestions.', code: 'AI_EXPLICIT_ACTION_REQUIRED' }, 400);
+  if (body.mode === 'help' && body.manual !== true) return json({ error: 'Choose Ask Exe to generate help for an entry.', code: 'AI_EXPLICIT_ACTION_REQUIRED' }, 400);
 
   const { data: s } = await admin.from('user_ai_settings').select('provider, model, key_ciphertext, enabled, disclosure_accepted_at').eq('owner_id', uid).maybeSingle();
   if (!s) return json({ error: 'Add your AI key in Settings first.' }, 400);
@@ -33,7 +34,7 @@ Deno.serve(async (req: Request) => {
   let system = SYSTEM, user = '', allowed = { captureIds: new Set<string>(), folderIds: new Set<string>(), outcomeIds: new Set<string>() };
   if (test) { system = 'Reply with exactly this JSON and nothing else: {"ok":true}'; user = 'ping'; }
   else if (helpMode) {
-    // Assistance engine: automatic batches of up to 8, or one entry the person asked about. Text is read from the database, never trusted from the client.
+    // One entry the person asked about. Text is read from the database, never trusted from the client.
     const ids = (Array.isArray(body.captureIds) ? body.captureIds.filter((x): x is string => typeof x === 'string') : []).slice(0, manualHelp ? 1 : MAX_HELP);
     if (!ids.length) return json({ error: 'Nothing to look at.' }, 400);
     const caps = await admin.from('captures').select('id, text, edited_text, kind').eq('owner_id', uid).is('archived_at', null).in('id', ids);

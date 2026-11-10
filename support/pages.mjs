@@ -74,7 +74,7 @@ ${steps(['Type in the box at the top. The small button on its left shows the typ
 <h2>Finding things</h2>
 <p>Use the filter at the top (All, Tasks, Notes, Reminders). Finished tasks move to <strong>Done</strong> at the bottom of the list; tap it to open. <strong>View archived</strong> shows what you archived, and <strong>Restore</strong> brings it back. Very long lists show 200 at a time (<strong>Show 200 more</strong>).</p>
 <h2>AI help on entries</h2>
-<p>With AI turned on, Exe looks at new entries in the background (a few at a time, never while you type) and shows a small label when it can help: <strong>Draft ready</strong>, <strong>Answer ready</strong>, <strong>Research available</strong>, <strong>Can help break this down</strong> or <strong>Preparation available</strong>. Tap the label to see it, copy or edit a draft, or <strong>Dismiss</strong> it. Routine entries like chores are skipped. To ask about any entry, open its three dots and press <strong>Ask Exe</strong>. Drafts are never sent, research only runs when you ask, and suggested searches are not verified sources.</p>
+<p>Exe checks entries on your device and can show a small label such as <strong>Can draft this</strong>, <strong>Can answer this</strong>, <strong>Research available</strong>, <strong>Can help break this down</strong> or <strong>Preparation available</strong>. This check does not contact your AI provider. Tap a label to choose the help you want, or open an entry’s three dots and press <strong>Ask Exe</strong>. Only that action sends the entry to your provider. Drafts are never sent to other people, and suggested searches are not verified sources.</p>
 ` },
 
 { slug: 'reminders', title: 'Reminders', nav: 'Reminders', summary: 'Be reminded inside Exe at a time you choose.', body: `
@@ -152,7 +152,7 @@ ${warn('Your key is shown only as its last 4 characters after you save it. Treat
 <h2>Which provider?</h2>
 <p>OpenAI and Anthropic need prepaid credit. Groq has a free plan with usage limits (try the model <code>openai/gpt-oss-20b</code>). Gemini’s free tier is not available in every region or account. Free plans may keep or use your prompts, so check the provider’s privacy terms before sending anything personal.</p>
 <h2>What is sent</h2>
-<p>Only when you ask (or open the assistant on a task), Exe sends that task’s text, or for suggestions the text of your open tasks and your folder names, to your provider. Nothing is sent otherwise.</p>
+<p>Opening Exe or viewing a task does not contact your AI provider. When you press <strong>Ask Exe</strong>, <strong>Analyze entries</strong>, or another AI generation button, Exe sends the relevant task text to your provider. Nothing is sent otherwise.</p>
 <h2>Turning it off</h2>
 <p><strong>Turn off</strong> stops all AI. <strong>Remove key</strong> deletes the stored key. <strong>Replace key</strong> saves a new one.</p>
 ${note('If you see “AI is not set up on the server yet”, the site owner has not finished setup. Everything else still works.')}` },

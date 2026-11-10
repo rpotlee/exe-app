@@ -53,9 +53,9 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
   const [entryOpen, openEntry] = useState<string | null>(null);
   const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi, store.owner);
-  const helpClient = useMemo<HelpClient | null>(() => (fakeAi && 'help' in fakeAi ? (fakeAi as unknown as HelpClient) : ai ? { settings: () => ai.settings(), help: (ids, o) => ai.help(ids, { manual: o.manual, want: o.want }) } : null), [ai, fakeAi]);
-  const help = useHelp(helpClient, api.ws ?? emptyWorkspace(), logAi, store.owner);   // automatic, batched assistance (suggestions only)
-  const helpVersion = help.getVersion();   // one explicit review controller for the whole app
+  const helpClient = useMemo<HelpClient | null>(() => (fakeAi && 'help' in fakeAi ? (fakeAi as unknown as HelpClient) : ai ? { settings: () => ai.settings(), help: (ids, o) => ai.help(ids, { want: o.want }) } : null), [ai, fakeAi]);
+  const help = useHelp(helpClient, api.ws ?? emptyWorkspace(), logAi, store.owner);   // local screening; provider calls require Ask Exe
+  const helpVersion = help.getVersion();
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
   const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);
