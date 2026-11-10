@@ -33,6 +33,8 @@ def run():
             list_row = add_task(page, "List contract task")
             add_task(page, "Status contract task")
             list_checkbox = list_row.get_by_role("checkbox")
+            if list_checkbox.is_checked():
+                list_checkbox.uncheck()
             expect(list_checkbox).not_to_be_checked()
 
             # Clicking content is not completion.
@@ -50,6 +52,8 @@ def run():
             page.goto(f"{BASE}&theme={theme}#/status")
             status_row = page.locator(".check-row", has_text="Status contract task")
             status_checkbox = status_row.get_by_role("checkbox")
+            if status_checkbox.is_checked():
+                status_checkbox.uncheck()
             expect(status_checkbox).not_to_be_checked()
             status_checkbox.check()
             expect(status_checkbox).to_be_checked()
