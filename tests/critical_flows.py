@@ -29,6 +29,8 @@ def run():
             page.goto(list_url)
             page.evaluate("localStorage.clear()")
             page.reload()
+            page.get_by_label("Add a task").wait_for()
+            page.wait_for_timeout(500)
 
             list_row = add_task(page, "List contract task")
             add_task(page, "Status contract task")
