@@ -34,7 +34,7 @@ export function Mission() {
           <div className="hero-head"><div className="hero-heading"><div className="hero-copy"><div className="overline">ALL TASKS</div><h2 id="all-tasks-title">{n.total} open {n.total === 1 ? 'task' : 'tasks'}</h2>
             <div className="type-label m-counts">{labels && n.total > 0 ? <PriorityCounts {...n} /> : `${groups.length} ${groups.length === 1 ? 'group' : 'groups'}`}</div></div></div></div>
           <div className="hero-checks" role="list">{shown.map(t => (
-            <label key={t.key} className={`check-row ${t.done ? 'is-complete' : ''}`} role="listitem"><input type="checkbox" checked={t.done} aria-label={`${t.done ? 'Reopen' : 'Complete'} ${t.text}`} onChange={e => toggle(t, e.target.checked)} /><span>{t.text}</span>
+            <label key={t.key} className={`check-row ${t.done ? 'is-complete' : ''}`} role="listitem"><input type="checkbox" checked={t.done} aria-label={`${t.done ? 'Reopen' : 'Complete'} ${t.text}`} onChange={e => toggle(t, e.target.checked)} /><span onClick={e => e.preventDefault()}>{t.text}</span>
               {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}</label>))}
             {!open.length && <p className="small-note">Everything is done.</p>}</div>
           {all.length > shown.length && <p className="m-more">{all.length - shown.length} more</p>}
