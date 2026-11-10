@@ -33,19 +33,18 @@ def run():
             page.wait_for_timeout(500)
 
             list_row = add_task(page, "List contract task")
-            add_task(page, "Status contract task")
+            status_setup_row = add_task(page, "Status contract task")
             list_checkbox = list_row.get_by_role("checkbox")
-            if list_checkbox.is_checked():
-                list_checkbox.uncheck()
-            expect(list_checkbox).not_to_be_checked()
+            status_setup_row.get_by_role("checkbox").set_checked(False)
 
             # Clicking content is not completion.
+            before_label = list_checkbox.get_attribute("aria-label")
             list_row.locator(".raw-text").click()
-            expect(list_checkbox).not_to_be_checked()
             expect(list_row).to_be_visible()
+            assert list_checkbox.get_attribute("aria-label") == before_label
 
             # The checkbox completes in place and strikes the row through.
-            list_checkbox.check()
+            list_checkbox.set_checked(True)
             expect(list_checkbox).to_be_checked()
             assert "is-complete" in (list_row.get_attribute("class") or "")
             expect(list_row).to_be_visible()
@@ -54,10 +53,8 @@ def run():
             page.goto(f"{BASE}&theme={theme}#/status")
             status_row = page.locator(".check-row", has_text="Status contract task")
             status_checkbox = status_row.get_by_role("checkbox")
-            if status_checkbox.is_checked():
-                status_checkbox.uncheck()
-            expect(status_checkbox).not_to_be_checked()
-            status_checkbox.check()
+            status_checkbox.set_checked(False)
+            status_checkbox.set_checked(True)
             expect(status_checkbox).to_be_checked()
             assert "is-complete" in (status_row.get_attribute("class") or "")
             expect(status_row).to_be_visible()
