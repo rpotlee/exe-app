@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { buildPrompt, buildRequest, buildStepsPrompt, buildAssistPrompt, parseAssist, ASSIST_SYSTEM, extractText, isProvider, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, validKey, validModel } from './ai.ts';
+import { buildPrompt, buildRequest, buildStepsPrompt, buildAssistPrompt, parseAssist, validAssistEnvelope, ASSIST_SYSTEM, extractText, isProvider, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, validKey, validModel } from './ai.ts';
 import { decryptKey, encryptKey } from './crypto.ts';
 
 const allowed = { captureIds: new Set(['c1', 'c2']), folderIds: new Set(['f1']), outcomeIds: new Set(['o1']) };
+describe('organization response validation', () => {
+  it('accepts a deliberate empty result but rejects malformed output before a negative is cached', () => {
+    expect(validAssistEnvelope('{"items":[],"priorities":[],"groups":[],"dependencies":[]}')).toBe(true);
+    expect(validAssistEnvelope('not json')).toBe(false);
+    expect(validAssistEnvelope('{"items":[]}')).toBe(false);
+    expect(validAssistEnvelope('{"items":[],"priorities":[],"groups":{},"dependencies":[]}')).toBe(false);
+  });
+});
 
 describe('adapters', () => {
   it('builds each provider request; the key is only ever in a header', () => {

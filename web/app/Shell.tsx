@@ -7,8 +7,6 @@ import { QueuedStore, type QueueState } from '../../src/store/queued';
 import { Modal } from '../ui/Modal';
 import type { AiApi } from './ai';
 import { useAssist, type AssistClient } from './useAssist';
-import { useHelp } from './useHelp';
-import type { HelpClient } from './assistEngine';
 import * as C from '../../src/domain/commands';
 import type { AiEventInput } from '../../src/domain/activity';
 
@@ -32,30 +30,27 @@ const Activity = lazy(() => import('../screens/Activity').then(m => ({ default: 
 const Review = lazy(() => import('../screens/Review').then(m => ({ default: m.Review })));
 
 const PAGES: Page[] = ['focus', 'approvals', 'priorities', 'tasks', 'group', 'lanes', 'inbox', 'review', 'map', 'decisions'];
-// New names for the three primary screens; the old hashes still work and land on the same screens (revamp spec §2.3).
-const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', status: 'focus', mission: 'focus', assistant: 'review', activity: 'review' };
-const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'status', review: 'activity', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
+// Keep old Status/Mission links working while the destination becomes Groups.
+const HASH_TO_PAGE: Record<string, Page> = { list: 'inbox', executables: 'inbox', groups: 'focus', status: 'focus', mission: 'focus', assistant: 'review', activity: 'review' };
+const PAGE_TO_HASH: Record<Page, string> = { inbox: 'list', focus: 'groups', review: 'activity', approvals: 'approvals', priorities: 'priorities', tasks: 'tasks', group: 'group', lanes: 'lanes', map: 'map', decisions: 'decisions' };
 const fromHash = (): Page => { const h = location.hash.replace(/^#\/?/, '').replace(/^group\/.*/, 'group'); return HASH_TO_PAGE[h] ?? (PAGES.includes(h as Page) ? (h as Page) : 'inbox'); };
-const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Status', lanes: 'Next & Later', inbox: 'List', review: 'Activity Log', map: 'Map', decisions: 'Decisions' };
-// The primary destinations. Map, Decisions and Next & Later are reached from Status ("Explore work"), so Mission stays highlighted for them.
+const PAGE_NAME: Record<Page, string> = { approvals: 'Approvals', priorities: 'Priorities', tasks: 'All tasks', group: 'Group', focus: 'Groups', lanes: 'Next & Later', inbox: 'List', review: 'Activity Log', map: 'Map', decisions: 'Decisions' };
+// The primary destinations. Map, Decisions and Next & Later remain under the Groups tab.
 const TABS: { page: Page; label: string; icon: string }[] = [
-  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Status', icon: 'target' }, { page: 'review', label: 'Activity Log', icon: 'history' },
+  { page: 'inbox', label: 'List', icon: 'list-checks' }, { page: 'focus', label: 'Groups', icon: 'grid-2x2' }, { page: 'review', label: 'Activity Log', icon: 'history' },
 ];
-const MOBILE_ICON: Record<string, string> = { 'list-checks': 'mobile-list', target: 'mobile-status', history: 'mobile-activity' };
+const MOBILE_ICON: Record<string, string> = { 'list-checks': 'mobile-list', 'grid-2x2': 'mobile-status', history: 'mobile-activity' };
 const SCOPE_KEY = 'exe-scope', PRIO_KEY = 'exe-priority-mode';
 const loadPrio = (): PriorityMode => { try { const v = localStorage.getItem(PRIO_KEY); if (v === 'mine' || v === 'off') return v; } catch { /* default */ } return 'ai'; };
 const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem(SCOPE_KEY) ?? ''); if (j?.kind === 'folder' && typeof j.id === 'string') return j; } catch { /* All */ } return ALL; };
 
 export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assistantApi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null; assistantApi?: Adapter | null }) {
   const assistantAdapter = fakeAi ? demoAdapter : assistantApi;
-  const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids) } : null), [ai, fakeAi]);
+  const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids), savedIntelligence: () => ai.savedIntelligence(), dismissGroup: (id, key) => ai.dismissGroup(id, key) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
   const [entryOpen, openEntry] = useState<string | null>(null);
   const assistState = useAssist(assist, api.ws ?? emptyWorkspace(), logAi, store.owner);
-  const helpClient = useMemo<HelpClient | null>(() => (fakeAi && 'help' in fakeAi ? (fakeAi as unknown as HelpClient) : ai ? { settings: () => ai.settings(), help: (ids, o) => ai.help(ids, { want: o.want }) } : null), [ai, fakeAi]);
-  const help = useHelp(helpClient, api.ws ?? emptyWorkspace(), logAi, store.owner);   // local screening; provider calls require Ask Exe
-  const helpVersion = help.getVersion();
   const [page, setPage] = useState<Page>(fromHash);
   const [priorityMode, setPriorityModeRaw] = useState<PriorityMode>(loadPrio);
   const setPriorityMode = useCallback((m: PriorityMode) => { setPriorityModeRaw(m); try { localStorage.setItem(PRIO_KEY, m); } catch { /* convenience only */ } }, []);
@@ -88,7 +83,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
   const landed = useRef(false);   // a first visit opens the list; someone with active priorities opens Focus
   useEffect(() => { if (ws && !landed.current) { landed.current = true; if (!location.hash && ws.focus.some(f => f.lane === 'now')) setPage('focus'); } }, [ws]);
   const awaiting = ws ? ws.captures.filter(c => c.status === 'pending' && !c.review_state).length : 0;
-  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, help, helpVersion, assistState, assistantDemo: !!fakeAi, assistantAdapter, openEntry, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, help, helpVersion, assistState, fakeAi, assistantAdapter, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
+  const value = useMemo<AppCtx | null>(() => (ws ? { api: { ...api, ws }, page, go, modal: setModal, awaitingReview: awaiting, where, folderSel, setFolderSel, decisionSel, setDecisionSel, ai, assist, assistState, assistantDemo: !!fakeAi, assistantAdapter, openEntry, scope, setScope, priorityMode, setPriorityMode, signOut: onSignOut ?? null } : null), [api, ws, page, go, awaiting, where, setModal, folderSel, setFolderSel, decisionSel, ai, assist, assistState, fakeAi, assistantAdapter, scope, setScope, priorityMode, setPriorityMode, onSignOut]);
 
   if (api.loadError) return <main className="auth-page"><div className="card auth-card"><h1>Could not load your workspace</h1><p className="form-error" role="alert">{api.loadError}</p><button className="primary-button" onClick={() => location.reload()}>Try again</button></div></main>;
   if (!ws || !value) return <p className="auth-note" role="status">Loading your workspace…</p>;
@@ -109,7 +104,7 @@ export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assis
           <button className="brand" onClick={() => go('focus')} aria-label="Exe home"><span className="brand-symbol" aria-hidden="true"><i></i><i></i></span><span>Exe</span></button>
                     <nav className="sidebar-menu">{TABS.map(t => (
             <button key={t.page} className={`nav-link ${navPage === t.page ? 'active' : ''}`} aria-current={navPage === t.page ? 'page' : undefined} onClick={() => go(t.page)} data-nav={t.page}>
-              <Icon name={t.icon} /><span>{t.page === 'focus' ? 'Status' : t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} items for the AI Assistant`}>{badge(t.page)}</span>}</button>))}
+              <Icon name={t.icon} /><span>{t.label}</span>{badge(t.page) > 0 && <span className="nav-count" aria-label={`${badge(t.page)} items for the AI Assistant`}>{badge(t.page)}</span>}</button>))}
             <button className="nav-link" aria-haspopup="dialog" onClick={() => setModal({ kind: 'folders' })} data-nav="folders"><Icon name="folder" /><span>Folders</span><span className="nav-scope">{scopeName}</span></button></nav>
           <div className="sidebar-bottom">
             <button className="nav-link sidebar-search" onClick={() => setModal({ kind: 'search' })}><Icon name="search" /><span>Search</span></button>

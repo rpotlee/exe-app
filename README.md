@@ -6,7 +6,7 @@ Write everything on your mind as a plain to-do list. Exe (optionally, with your 
 
 ## How it works
 
-- **Inbox:** a raw, checkable to-do list. Works with no AI.
+- **List:** a raw, checkable to-do list. Works with no AI.
 - **AI Review:** suggestions to organize captures; nothing changes until you approve.
 - **Map / Decisions / Focus:** folders, outcomes, steps, blockers and decisions; at most three active priorities, ranked by explainable rules.
 - AI is optional and bring-your-own-key (Anthropic, OpenAI, Google Gemini, or Groq). Keys are stored encrypted on the server and never reach the browser again.

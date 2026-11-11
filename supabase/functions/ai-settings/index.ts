@@ -14,6 +14,11 @@ Deno.serve(async (req: Request) => {
   if (error || !data.user) return json({ error: 'Sign in first.' }, 401);
   const uid = data.user.id;
   let body: Record<string, unknown>; try { body = await req.json(); } catch { return json({ error: 'Bad request.' }, 400); }
+  if (body.action === 'analysis-model') {
+    if (body.model !== null && !validModel(body.model)) return json({ error: 'Enter a valid model name, or leave it blank to use your main model.' }, 400);
+    const saved = await admin.from('user_ai_settings').update({ analysis_model: body.model }).eq('owner_id', uid).select('owner_id').maybeSingle();
+    return saved.error || !saved.data ? json({ error: 'Could not save the analysis model.' }, 503) : json({ ok: true });
+  }
   if (body.action === 'remove') { await admin.from('user_ai_settings').delete().eq('owner_id', uid); return json({ ok: true }); }
   if (body.action !== 'save') return json({ error: 'Unknown action.' }, 400);
   if (!isProvider(body.provider)) return json({ error: 'Choose Anthropic, OpenAI, Gemini or Groq.' }, 400);
@@ -22,7 +27,7 @@ Deno.serve(async (req: Request) => {
   const key = body.apiKey;
   const { error: e } = await admin.from('user_ai_settings').upsert({
     owner_id: uid, provider: body.provider, model: body.model, key_ciphertext: b64ToHex(await encryptKey(secret, key)), key_last4: key.slice(-4),
-    enabled: false, disclosure_accepted_at: null,                    // a new key or provider needs a fresh disclosure
+    enabled: false, disclosure_accepted_at: null, analysis_model: null, // a new key or provider needs a fresh disclosure and routing choice
   }, { onConflict: 'owner_id' });
   if (e) return json({ error: 'Could not save the key.' }, 500);
   return json({ ok: true, provider: body.provider, model: body.model, last4: key.slice(-4) });

@@ -38,3 +38,10 @@ export function screen(text: string, kind: string): Screen {
   if (ROUTINE.test(t) || words <= 3) return { verdict: 'skip' };
   return { verdict: 'ai', hint: 'none' };                                           // ambiguous: one cheap look in a batch
 }
+
+/** A quiet, deterministic invitation in List. It never generates or promises work was done. */
+export function opportunityLabel(text: string, kind: string): string | null {
+  const result = screen(text, kind);
+  const hint = result.verdict === 'skip' ? 'none' : result.verdict === 'offer' ? result.kind : result.hint;
+  return ({ draft: 'Prepare draft', quick_answer: 'Get answer', research_offer: 'Find where to look', breakdown_offer: 'Plan steps', preparation: 'Prepare call', none: null } as const)[hint];
+}

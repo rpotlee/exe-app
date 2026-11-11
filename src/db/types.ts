@@ -15,6 +15,16 @@ export interface Database {
           reserved_tokens: number;
           provider_remaining_tokens: number | null;
           provider_reset_at: string;
+          day_started_at: string;
+          day_tokens: number;
+          day_micro_usd: number;
+          lease_micro_usd: number | null;
+          lease_rate_source: string | null;
+          lease_provider: string | null;
+          lease_model: string | null;
+          lease_class: string | null;
+          lease_started_at: string | null;
+          last_interactive_at: string;
         };
         Insert: {
           owner_id: string;
@@ -26,6 +36,16 @@ export interface Database {
           reserved_tokens?: number;
           provider_remaining_tokens?: number | null;
           provider_reset_at?: string;
+          day_started_at?: string;
+          day_tokens?: number;
+          day_micro_usd?: number;
+          lease_micro_usd?: number | null;
+          lease_rate_source?: string | null;
+          lease_provider?: string | null;
+          lease_model?: string | null;
+          lease_class?: string | null;
+          lease_started_at?: string | null;
+          last_interactive_at?: string;
         };
         Update: {
           owner_id?: string;
@@ -37,6 +57,274 @@ export interface Database {
           reserved_tokens?: number;
           provider_remaining_tokens?: number | null;
           provider_reset_at?: string;
+          day_started_at?: string;
+          day_tokens?: number;
+          day_micro_usd?: number;
+          lease_micro_usd?: number | null;
+          lease_rate_source?: string | null;
+          lease_provider?: string | null;
+          lease_model?: string | null;
+          lease_class?: string | null;
+          lease_started_at?: string | null;
+          last_interactive_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_dependency_proposals: {
+        Row: {
+          id: string;
+          owner_id: string;
+          intelligence_id: string;
+          ordinal: number;
+          before_capture_id: string;
+          after_capture_id: string;
+          why: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          intelligence_id: string;
+          ordinal: number;
+          before_capture_id: string;
+          after_capture_id: string;
+          why?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          intelligence_id?: string;
+          ordinal?: number;
+          before_capture_id?: string;
+          after_capture_id?: string;
+          why?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_global_admission: {
+        Row: {
+          id: boolean;
+          window_started_at: string;
+          window_tokens: number;
+          window_requests: number;
+          day_started_at: string;
+          day_tokens: number;
+          day_micro_usd: number;
+        };
+        Insert: {
+          id?: boolean;
+          window_started_at?: string;
+          window_tokens?: number;
+          window_requests?: number;
+          day_started_at?: string;
+          day_tokens?: number;
+          day_micro_usd?: number;
+        };
+        Update: {
+          id?: boolean;
+          window_started_at?: string;
+          window_tokens?: number;
+          window_requests?: number;
+          day_started_at?: string;
+          day_tokens?: number;
+          day_micro_usd?: number;
+        };
+        Relationships: [];
+      };
+      ai_group_proposals: {
+        Row: {
+          id: string;
+          owner_id: string;
+          intelligence_id: string;
+          ordinal: number;
+          name: string;
+          why: string;
+          capture_ids: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          intelligence_id: string;
+          ordinal: number;
+          name: string;
+          why?: string;
+          capture_ids: string[];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          intelligence_id?: string;
+          ordinal?: number;
+          name?: string;
+          why?: string;
+          capture_ids?: string[];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_intelligence: {
+        Row: {
+          id: string;
+          owner_id: string;
+          job_id: string | null;
+          dedupe_key: string;
+          provider: string;
+          model: string;
+          source_revisions: Json;
+          result: Json;
+          dismissed_group_keys: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          job_id?: string | null;
+          dedupe_key: string;
+          provider: string;
+          model: string;
+          source_revisions: Json;
+          result: Json;
+          dismissed_group_keys?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          job_id?: string | null;
+          dedupe_key?: string;
+          provider?: string;
+          model?: string;
+          source_revisions?: Json;
+          result?: Json;
+          dismissed_group_keys?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_jobs: {
+        Row: {
+          id: string;
+          owner_id: string;
+          kind: string;
+          dedupe_key: string;
+          capture_ids: string[];
+          state: string;
+          attempts: number;
+          lease_id: string | null;
+          lease_until: string | null;
+          available_at: string;
+          last_error_code: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          kind: string;
+          dedupe_key: string;
+          capture_ids: string[];
+          state?: string;
+          attempts?: number;
+          lease_id?: string | null;
+          lease_until?: string | null;
+          available_at?: string;
+          last_error_code?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          kind?: string;
+          dedupe_key?: string;
+          capture_ids?: string[];
+          state?: string;
+          attempts?: number;
+          lease_id?: string | null;
+          lease_until?: string | null;
+          available_at?: string;
+          last_error_code?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_limits: {
+        Row: {
+          id: boolean;
+          owner_tokens_per_day: number;
+          owner_tokens_per_minute: number;
+          owner_min_spacing_seconds: number;
+          system_tokens_per_day: number;
+          system_tokens_per_minute: number;
+          system_requests_per_minute: number;
+          owner_micro_usd_per_day: number;
+          system_micro_usd_per_day: number;
+          fallback_micro_usd_per_million: number;
+          max_background_attempts: number;
+          background_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          owner_tokens_per_day?: number;
+          owner_tokens_per_minute?: number;
+          owner_min_spacing_seconds?: number;
+          system_tokens_per_day?: number;
+          system_tokens_per_minute?: number;
+          system_requests_per_minute?: number;
+          owner_micro_usd_per_day?: number;
+          system_micro_usd_per_day?: number;
+          fallback_micro_usd_per_million?: number;
+          max_background_attempts?: number;
+          background_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: boolean;
+          owner_tokens_per_day?: number;
+          owner_tokens_per_minute?: number;
+          owner_min_spacing_seconds?: number;
+          system_tokens_per_day?: number;
+          system_tokens_per_minute?: number;
+          system_requests_per_minute?: number;
+          owner_micro_usd_per_day?: number;
+          system_micro_usd_per_day?: number;
+          fallback_micro_usd_per_million?: number;
+          max_background_attempts?: number;
+          background_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_model_rates: {
+        Row: {
+          provider: string;
+          model: string;
+          input_micro_usd_per_million: number;
+          output_micro_usd_per_million: number;
+        };
+        Insert: {
+          provider: string;
+          model: string;
+          input_micro_usd_per_million: number;
+          output_micro_usd_per_million: number;
+        };
+        Update: {
+          provider?: string;
+          model?: string;
+          input_micro_usd_per_million?: number;
+          output_micro_usd_per_million?: number;
         };
         Relationships: [];
       };
@@ -109,6 +397,90 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+        };
+        Relationships: [];
+      };
+      ai_provider_limits: {
+        Row: {
+          provider: string;
+          tokens_per_minute: number;
+          requests_per_minute: number;
+          min_spacing_seconds: number;
+          window_started_at: string;
+          reserved_tokens: number;
+          window_requests: number;
+          next_allowed_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          provider: string;
+          tokens_per_minute?: number;
+          requests_per_minute?: number;
+          min_spacing_seconds?: number;
+          window_started_at?: string;
+          reserved_tokens?: number;
+          window_requests?: number;
+          next_allowed_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          provider?: string;
+          tokens_per_minute?: number;
+          requests_per_minute?: number;
+          min_spacing_seconds?: number;
+          window_started_at?: string;
+          reserved_tokens?: number;
+          window_requests?: number;
+          next_allowed_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_usage: {
+        Row: {
+          id: string;
+          owner_id: string;
+          provider: string;
+          model: string;
+          request_class: string;
+          status: string;
+          reserved_tokens: number;
+          used_tokens: number | null;
+          estimated_micro_usd: number | null;
+          rate_source: string;
+          latency_ms: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          provider: string;
+          model: string;
+          request_class: string;
+          status: string;
+          reserved_tokens: number;
+          used_tokens?: number | null;
+          estimated_micro_usd?: number | null;
+          rate_source: string;
+          latency_ms?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          owner_id?: string;
+          provider?: string;
+          model?: string;
+          request_class?: string;
+          status?: string;
+          reserved_tokens?: number;
+          used_tokens?: number | null;
+          estimated_micro_usd?: number | null;
+          rate_source?: string;
+          latency_ms?: number | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -694,6 +1066,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           revision: number;
+          analysis_model: string | null;
         };
         Insert: {
           owner_id?: string;
@@ -706,6 +1079,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          analysis_model?: string | null;
         };
         Update: {
           owner_id?: string;
@@ -718,6 +1092,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           revision?: number;
+          analysis_model?: string | null;
         };
         Relationships: [];
       };
@@ -791,8 +1166,17 @@ export type TablesUpdate<T extends keyof Database['public']['Tables']> = Databas
 
 /** Real column names per table, for code that must refuse anything unexpected (imports). */
 export const COLUMNS = {
-  ai_admission: ['owner_id', 'lease_id', 'lease_until', 'next_allowed_at', 'cooldown_until', 'window_started_at', 'reserved_tokens', 'provider_remaining_tokens', 'provider_reset_at'],
+  ai_admission: ['owner_id', 'lease_id', 'lease_until', 'next_allowed_at', 'cooldown_until', 'window_started_at', 'reserved_tokens', 'provider_remaining_tokens', 'provider_reset_at', 'day_started_at', 'day_tokens', 'day_micro_usd', 'lease_micro_usd', 'lease_rate_source', 'lease_provider', 'lease_model', 'lease_class', 'lease_started_at', 'last_interactive_at'],
+  ai_dependency_proposals: ['id', 'owner_id', 'intelligence_id', 'ordinal', 'before_capture_id', 'after_capture_id', 'why', 'created_at'],
+  ai_global_admission: ['id', 'window_started_at', 'window_tokens', 'window_requests', 'day_started_at', 'day_tokens', 'day_micro_usd'],
+  ai_group_proposals: ['id', 'owner_id', 'intelligence_id', 'ordinal', 'name', 'why', 'capture_ids', 'created_at'],
+  ai_intelligence: ['id', 'owner_id', 'job_id', 'dedupe_key', 'provider', 'model', 'source_revisions', 'result', 'dismissed_group_keys', 'created_at', 'updated_at'],
+  ai_jobs: ['id', 'owner_id', 'kind', 'dedupe_key', 'capture_ids', 'state', 'attempts', 'lease_id', 'lease_until', 'available_at', 'last_error_code', 'created_at', 'updated_at'],
+  ai_limits: ['id', 'owner_tokens_per_day', 'owner_tokens_per_minute', 'owner_min_spacing_seconds', 'system_tokens_per_day', 'system_tokens_per_minute', 'system_requests_per_minute', 'owner_micro_usd_per_day', 'system_micro_usd_per_day', 'fallback_micro_usd_per_million', 'max_background_attempts', 'background_enabled', 'created_at', 'updated_at'],
+  ai_model_rates: ['provider', 'model', 'input_micro_usd_per_million', 'output_micro_usd_per_million'],
   ai_proposals: ['id', 'owner_id', 'capture_id', 'source_version', 'schema_version', 'fingerprint', 'suggested_type', 'suggested_folder_id', 'suggested_outcome_id', 'relationship_proposals', 'duplicate_candidate_ids', 'research_suggestion', 'explanation', 'uncertainties', 'provider', 'model', 'status', 'decided_at', 'created_at', 'updated_at', 'revision'],
+  ai_provider_limits: ['provider', 'tokens_per_minute', 'requests_per_minute', 'min_spacing_seconds', 'window_started_at', 'reserved_tokens', 'window_requests', 'next_allowed_at', 'created_at', 'updated_at'],
+  ai_usage: ['id', 'owner_id', 'provider', 'model', 'request_class', 'status', 'reserved_tokens', 'used_tokens', 'estimated_micro_usd', 'rate_source', 'latency_ms', 'created_at'],
   assistant_sessions: ['id', 'owner_id', 'capture_id', 'capture_revision', 'state', 'created_at', 'updated_at', 'revision'],
   audit_events: ['id', 'owner_id', 'at', 'actor', 'action', 'entity_type', 'entity_id', 'proposal_id', 'before', 'after', 'undo_of'],
   captures: ['id', 'owner_id', 'text', 'edited_text', 'source', 'folder_id', 'batch_id', 'batch_text', 'completed_at', 'archived_at', 'status', 'organized_as', 'review_state', 'review_at', 'rejected_fingerprints', 'task_id', 'merged_into', 'created_at', 'updated_at', 'revision', 'kind', 'display_title', 'user_priority', 'remind_at', 'remind_done_at'],
@@ -806,7 +1190,7 @@ export const COLUMNS = {
   outcomes: ['id', 'owner_id', 'folder_id', 'name', 'description', 'pinned', 'deadline', 'effort', 'done_at', 'last_worked_at', 'created_at', 'updated_at', 'revision', 'sources'],
   relationships: ['id', 'owner_id', 'from_type', 'from_id', 'to_type', 'to_id', 'kind', 'description', 'confirmed', 'source', 'created_at', 'updated_at', 'revision'],
   tasks: ['id', 'owner_id', 'outcome_id', 'name', 'notes', 'done_at', 'archived_at', 'deadline', 'effort', 'position', 'sources', 'created_at', 'updated_at', 'revision', 'folder_id'],
-  user_ai_settings: ['owner_id', 'provider', 'model', 'key_ciphertext', 'key_last4', 'enabled', 'disclosure_accepted_at', 'created_at', 'updated_at', 'revision'],
+  user_ai_settings: ['owner_id', 'provider', 'model', 'key_ciphertext', 'key_last4', 'enabled', 'disclosure_accepted_at', 'created_at', 'updated_at', 'revision', 'analysis_model'],
   user_settings: ['owner_id', 'workspace_name', 'current_focus_outcome_id', 'priority_dismissed', 'research_opt_in', 'created_at', 'updated_at', 'revision'],
 } as const;
 export type TableName = keyof typeof COLUMNS;

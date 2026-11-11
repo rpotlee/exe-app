@@ -26,6 +26,12 @@ export const REGISTRY: Record<string, Omit<Action, 'id' | 'intent' | 'priority'>
   checklist: { label: 'Build checklist', short: 'Checklist', kind: 'ai_generate' },
   find_options: { label: 'Find options', kind: 'ai_generate' },
 };
+/** Only saved, server-issued generation/refinement intents can reach the provider. No workspace or external mutation is registered. */
+export function authorizedGenerationAction(state: State, id: unknown): string | null {
+  if (typeof id !== 'string' || !state.actions.some(a => a.id === id)) return null;
+  const kind = REGISTRY[id]?.kind;
+  return kind === 'ai_generate' || kind === 'refine' ? id : null;
+}
 const TITLES: Record<ArtifactType, string> = { message_draft: 'Draft', call_notes: 'Call notes', answer: 'Answer', checklist: 'Checklist', sources: 'Where to look' };
 
 export const SYSTEM = [

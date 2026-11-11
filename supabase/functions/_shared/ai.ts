@@ -142,6 +142,14 @@ export function buildAssistPrompt(items: { id: string; text: string }[]): string
 export interface AssistItem { captureId: string; kind: 'email' | 'research' | 'question'; next?: string; email?: { to: string; subject: string; body: string }; research?: { topic: string; sources: { title: string; domain: string; query: string }[] }; answer?: { text: string; sourceTitle: string; sourceDomain: string } }
 export interface PrioritySuggestion { captureId: string; level: 'high' | 'medium' | 'low'; why: string }
 export interface Assist { items: AssistItem[]; priorities: PrioritySuggestion[]; groups: { name: string; ids: string[]; why: string }[]; dependencies: { before: string; after: string; why: string }[] }
+/** Distinguish a valid empty analysis from malformed provider output before caching a negative result. */
+export function validAssistEnvelope(text: string): boolean {
+  try {
+    const t = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''), a = t.indexOf('{'), b = t.lastIndexOf('}');
+    const j = JSON.parse(a >= 0 && b > a ? t.slice(a, b + 1) : t) as Record<string, unknown>;
+    return !!j && typeof j === 'object' && ['items','priorities','groups','dependencies'].every(k => Array.isArray(j[k]));
+  } catch { return false; }
+}
 const DOMAIN = /^(?=.{4,100}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/;
 const cleanDomain = (v: unknown): string | null => { if (typeof v !== 'string') return null; const d = v.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0] ?? ''; return DOMAIN.test(d) ? d : null; };
 const txt = (v: unknown, n: number): string => (typeof v === 'string' ? clip(v.replace(/\r/g, '').trim(), n) : '');

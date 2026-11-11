@@ -30,7 +30,7 @@ const SECTIONS: { key: 'high' | 'medium' | 'low' | 'none'; label: string }[] = [
 export function TaskScreen({ groupId }: { groupId?: string }) {
   const { api, scope, assistState, priorityMode, go, modal } = useApp();
   const ws = api.ws, labels = priorityMode !== 'off';
-  const hints = useMemo(() => ({ priorities: assistState.prios, groups: assistState.groups.map(g => ({ name: g.name, ids: g.ids })) }), [assistState.prios, assistState.groups]);
+  const hints = useMemo(() => ({ priorities: assistState.prios, groups: assistState.groups.map(g => ({ name: g.name, ids: g.ids, updatedAt: g.updatedAt })) }), [assistState.prios, assistState.groups]);
   const groups = useMemo(() => missionGroups(ws, scope, hints, priorityMode), [ws, scope, hints, priorityMode]);
   const g = groupId ? groups.find(x => x.id === groupId) : undefined;
   const tasks: MissionTask[] = useMemo(() => (groupId ? (g?.tasks ?? []) : groups.flatMap(x => x.tasks).sort((a, b) => Number(a.done) - Number(b.done) || (RANK[a.level ?? ''] ?? 3) - (RANK[b.level ?? ''] ?? 3))), [groups, g, groupId]);
@@ -40,11 +40,14 @@ export function TaskScreen({ groupId }: { groupId?: string }) {
   return (
     <div className="t-page">
       <MobileTopline />
-      <button type="button" className="back-link" onClick={() => go('focus')}><Icon name="chevron-left" /> Status</button>
+      <button type="button" className="back-link" onClick={() => go('focus')}><Icon name="chevron-left" /> Groups</button>
       <div className="mission-heading"><h1>{title}</h1><p className="mission-sub">{groupId && !g ? 'This group no longer exists.' : <>{c.total} open {c.total === 1 ? 'task' : 'tasks'}{labels && c.total > 0 && <PriorityCounts {...c} />}</>}</p></div>
       {g && <div className="t-actions">
         {g.kind === 'suggested' && <button className="primary-button" onClick={() => api.run((w, cx) => groupCaptures(w, cx, { ids: g.captureIds, name: g.name, deps: assistState.deps.filter(d => g.captureIds.includes(d.before) && g.captureIds.includes(d.after)) }))}>Group these</button>}
+        {g.kind === 'outcome' && <><button className="quiet-button" onClick={() => modal({ kind: 'outcomeEdit', id: g.outcomeId! })}>Edit group</button><button className="primary-button" onClick={() => modal({ kind: 'taskNew', outcomeId: g.outcomeId })}>Add task</button></>}
+        {g.kind === 'rest' && <button className="primary-button" onClick={() => modal({ kind: 'taskNew', outcomeId: null })}>Add task</button>}
       </div>}
+      {g?.kind === 'suggested' && assistState.deps.filter(d => g.captureIds.includes(d.before) && g.captureIds.includes(d.after)).map(d => <p className="small-note" key={`${d.before}:${d.after}`}>May depend on: “{assistState.texts[d.after]}” after “{assistState.texts[d.before]}”{d.why ? ` — ${d.why}` : ''}</p>)}
       <AssistBanner a={assistState} onSettings={() => modal({ kind: 'settings' })} hasAi />
       {labels ? SECTIONS.map(sec => { const rows = tasks.filter(t => !t.done && (t.level ?? 'none') === sec.key); return rows.length ? (
         <section key={sec.key} className="t-sec" aria-label={sec.label}><h2><span className={`dotc prio-${sec.key}`} aria-hidden="true" />{sec.label}<span className="t-n">{rows.length}</span></h2>

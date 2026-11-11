@@ -61,7 +61,7 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
   const live0 = adapter?.demo ? loadDemo(id, text) : fromAssist(assistState.items[id], id, text, api.ctx.owner);
   const [state, setState] = useState<AssistantState>(() => live0 ?? { demo: !!adapter?.demo, question: null, artifact: null, versions: [], actions: [], turns: [] });
   const [busy, setBusy] = useState(false), [err, setErr] = useState(''), [retry, setRetry] = useState<(() => void) | null>(null), [stale, setStale] = useState(false);
-  const locked = useRef(false), restoreVersion = useRef(0), [prepared, setPrepared] = useState(!!adapter?.demo), [retryAt, setRetryAt] = useState<number | null>(null);
+  const locked = useRef(false), restoreVersion = useRef(0), [prepared, setPrepared] = useState(!!(live0?.artifact || live0?.question || live0?.actions.length || live0?.turns.length)), [retryAt, setRetryAt] = useState<number | null>(null);
   const wait = useAiCooldown(retryAt);
   const [draft, setDraft] = useState(() => { try { return sessionStorage.getItem(`exe-assistant-draft:${id}`) ?? ''; } catch { return ''; } });
   const [copied, setCopied] = useState(false), [vv, setVv] = useState<{ h: number; t: number } | null>(null), [live, setLive] = useState('');
@@ -106,7 +106,7 @@ export function EntryAssistant({ id, onClose }: { id: string; onClose: () => voi
           {state.question && <section className="ax-question" aria-label="One question"><p>{state.question.text}</p>
             <div className={`ax-choices n${state.question.choices.length}`} role="group">{state.question.choices.map(c => <button key={c.id} className="ax-choice" disabled={busy || wait > 0 || stale} onClick={() => adapter && exec(() => adapter.choose(id, text, c.id))}>{c.label}</button>)}</div></section>}
           {state.artifact && <ArtifactView a={state.artifact} onCopy={() => run({ id: 'copy', intent: 'copy', label: 'Copy', kind: 'safe_local', priority: 1 })} copied={copied} />}
-          {!busy && adapter && (!prepared || stale) && <div><button className="ax-btn primary" disabled={wait > 0} onClick={() => exec(() => adapter.prepare(id, text), 'Help prepared.')}>{stale ? 'Update help' : 'Prepare help'}</button><p className="ax-note">Uses AI only when you ask. You can also type a question below.</p></div>}
+          {!busy && adapter && (!prepared || stale) && <div><button className="ax-btn primary" disabled={wait > 0} onClick={() => exec(() => adapter.prepare(id, text), 'Help prepared.')}>{stale ? 'Update help' : 'Prepare help'}</button><p className="ax-note">{adapter.demo ? 'Demo uses local rules. You can also type below.' : 'Uses AI only when you ask. You can also type a question below.'}</p></div>}
           <ActionRow actions={busy || wait > 0 || stale ? state.actions.filter(a => a.kind === 'safe_local') : state.actions} run={run} />
           {busy && <p className="ax-quiet" role="status">Preparing…</p>}
           {err && <p className="ax-error" role="alert">{err} {retry && <button className="ax-link" disabled={busy || wait > 0} onClick={retry}>{wait ? `Try again in ${wait}s` : 'Try again'}</button>}</p>}

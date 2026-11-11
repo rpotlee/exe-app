@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 // @ts-expect-error plain JS content module
 import { pages } from './pages.mjs';
 
-const LABELS = ['Create an account', 'Create account', 'Sign in', 'Add a task', 'Show 200 more', 'Folder', 'Archive', 'View archived', 'Restore', 'New folder', 'Create folder', 'Delete folder', 'View all tasks', 'Priority labels', 'Reminder', 'Remind me at', 'Tomorrow morning', 'Dismiss', 'Copy',
+const LABELS = ['Create an account', 'Create account', 'Sign in', 'Add a task', 'Show 200 more', 'Folder', 'Archive', 'View archived', 'Restore', 'New folder', 'Create folder', 'Delete folder', 'New group', 'Priority labels', 'Reminder', 'Remind me at', 'Tomorrow morning', 'Dismiss', 'Copy',
   'Save key', 'I understand, turn on AI', 'Test connection', 'Remove key', 'Replace key', 'Save name', 'Download JSON backup', 'Open history', 'Add to what I have', 'Replace everything with this backup', 'Download a copy of my current workspace',
   'Download my unsent changes', 'Use the latest version', 'Sign out', 'Saved on this device, not synced', 'This changed on another device', 'Needs your attention', 'Activity Log', 'Activity', 'More'];
 

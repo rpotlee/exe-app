@@ -20,6 +20,12 @@ export function evaluate(text: string): AssistantState {
   const s = emptyState(true), t = text.trim(), name = nameOf(t), topic = topicOf(t);
   const fact = FACTS.find(([re]) => re.test(t));
   if (fact) { s.artifact = art('answer', 'Answer', fact[1]); return s; }                                   // answer first; no forced buttons on a trivial answer
+  const confirmation = /^email\b.+\bto confirm\s+(.+)$/i.exec(t);
+  if (confirmation) {
+    const detail = confirmation[1]!.replace(/[.?!]+$/, '');
+    s.artifact = art('message_draft', 'Email draft', `Hello,\n\nCould you please confirm ${detail}? If there are details I should know before proceeding, please include them.\n\nThank you,\n[Your name]`, { subject: `Confirm ${detail}` });
+    s.actions = draftActions(); return s;
+  }
   if (/^(draft|write)\b.*\bemail\b/i.test(t) || /^email\b/i.test(t)) { s.artifact = emailDraft(name, topic); s.actions = draftActions(); return s; }
   if (/^text\b/i.test(t)) { s.artifact = textDraft(name, topic); s.actions = draftActions(); return s; }
   if (/\bcall\b/i.test(t)) { s.actions = [act('call_notes', 'Prepare call notes', 'ai_generate', 1, 'Call notes'), act('remind', 'Remind me', 'mutation', 2, 'Remind', 'Reminders arrive in a later update')]; return s; }   // the channel is already chosen: no email

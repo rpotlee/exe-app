@@ -21,7 +21,7 @@ export const taskIn = (ws: Workspace, s: Scope, t: Task): boolean => has(s, task
 
 export const kindOf = (c: Capture): CaptureKind => (KINDS.includes(c.kind as CaptureKind) ? (c.kind as CaptureKind) : 'todo');
 
-/** The Executables list for a scope and type filter: newest first, with a stable tie-break on id. Archived entries are separate. */
+/** The List entries for a scope and type filter: newest first, with a stable tie-break on id. Archived entries are separate. */
 export function executables(ws: Workspace, s: Scope, filter: KindFilter, opts: { archived?: boolean } = {}): Capture[] {
   // entries saved together share a timestamp, so ties keep the order they were saved in (the later one is newer)
   return ws.captures.map((c, i) => ({ c, i }))

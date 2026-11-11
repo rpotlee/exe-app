@@ -48,7 +48,7 @@ export function Dialogs({ m }: { m: ModalState }) {
     case 'priority': return <PriorityConfirm />;
     case 'folder': return <FolderForm id={m.id} />;
     case 'folderDelete': return <FolderDelete id={m.id} />;
-    case 'outcomeNew': return <OutcomeNew folderId={m.folderId} />;
+    case 'outcomeNew': return <OutcomeNew folderId={m.folderId} asGroup={m.asGroup} />;
     case 'outcomeEdit': return <OutcomeEdit id={m.id} />;
     case 'taskEdit': return <TaskEdit id={m.id} />;
     case 'taskNew': return <TaskNew outcomeId={m.outcomeId} />;
@@ -239,16 +239,16 @@ function FolderDelete({ id }: { id: string }) {
   );
 }
 
-function OutcomeNew({ folderId }: { folderId: string | null }) {
+function OutcomeNew({ folderId, asGroup = false }: { folderId: string | null; asGroup?: boolean }) {
   const { api, modal } = useApp();
   const name = folderId ? api.ws.folders.find(f => f.id === folderId)?.name ?? 'Not filed' : 'Not filed';
   return (
-    <Modal title="Add outcome" onClose={() => modal(null)}>
-      <p className="helper">A result you want to achieve, for example “Book the venue”. It starts in Later; you choose what becomes active.</p>
+    <Modal title={asGroup ? 'New group' : 'Add outcome'} onClose={() => modal(null)}>
+      <p className="helper">{asGroup ? 'Give this group a name. You can add tasks after creating it.' : 'A result you want to achieve, for example “Book the venue”. It starts in Later; you choose what becomes active.'}</p>
       <form onSubmit={e => { e.preventDefault(); const d = new FormData(e.currentTarget); if (api.run((w, c) => C.addOutcome(w, c, { folderId, name: val(d, 'name'), description: val(d, 'description') }))) modal(null); }}>
-        <label className="form-field"><span className="small-note">Outcome</span><input className="text-input" name="name" required maxLength={200} placeholder="What do you want to achieve?" /></label>
-        <label className="form-field"><span className="small-note">Definition of done (optional)</span><textarea className="text-input" name="description" maxLength={600} placeholder="How will you know it is finished?" /></label>
-        <div className="capture-foot"><span className="small-note">Filed in {name}.</span><button className="primary-button" type="submit">Add outcome</button></div>
+        <label className="form-field"><span className="small-note">{asGroup ? 'Group name' : 'Outcome'}</span><input className="text-input" name="name" required maxLength={200} placeholder={asGroup ? 'Name your group' : 'What do you want to achieve?'} /></label>
+        <label className="form-field"><span className="small-note">{asGroup ? 'Description (optional)' : 'Definition of done (optional)'}</span><textarea className="text-input" name="description" maxLength={600} placeholder={asGroup ? 'What belongs in this group?' : 'How will you know it is finished?'} /></label>
+        <div className="capture-foot"><span className="small-note">Filed in {name}.</span><button className="primary-button" type="submit">{asGroup ? 'Create group' : 'Add outcome'}</button></div>
       </form>
     </Modal>
   );
@@ -530,8 +530,9 @@ const countsOfWs = (w: { folders: unknown[]; outcomes: unknown[]; tasks: unknown
 function AiSection() {
   const { ai } = useApp();
   const [cfg, setCfg] = useState<AiSettings | null | undefined>(undefined), [msg, setMsg] = useState(''), [busy, setBusy] = useState(false);
-  const [provider, setProvider] = useState<Provider>('anthropic'), [model, setModel] = useState(''), [key, setKey] = useState('');
-  const load = () => { ai?.settings().then(setCfg).catch(e => { setCfg(null); setMsg((e as Error).message); }); };
+  const [usage, setUsage] = useState<{ requests: number; tokens: number; estimatedUsd: number; fallbackRateUsed: boolean; truncated: boolean } | null>(null);
+  const [provider, setProvider] = useState<Provider>('anthropic'), [model, setModel] = useState(''), [key, setKey] = useState(''), [analysisModel, setAnalysisModel] = useState('');
+  const load = () => { ai?.settings().then(s => { setCfg(s); setAnalysisModel(s?.analysis_model ?? ''); }).catch(e => { setCfg(null); setMsg((e as Error).message); }); ai?.usageToday().then(setUsage).catch(() => setUsage(null)); };
   useState(() => { load(); return 0; });
   if (!ai) return <><div className="divider"></div><div className="recommendation"><span className="review-tag">AI (YOUR OWN KEY)</span><p>AI suggestions need an account, because your key is stored encrypted on the server. Sign in to set it up. Everything else works without AI.</p></div></>;
   const act = async (fn: () => Promise<unknown>, ok: string) => { setBusy(true); setMsg(''); try { await fn(); setMsg(ok); load(); } catch (e) { setMsg((e as Error).message); } finally { setBusy(false); } };
@@ -542,6 +543,11 @@ function AiSection() {
         <p>Exe has no AI bill. You connect your own provider and pay them directly. The app works fully without AI.</p>
         {cfg ? (<>
           <p className="small-note"><strong>{PROVIDER_NAMES[cfg.provider]}</strong> · model <strong>{cfg.model}</strong> · key ending <strong>{cfg.key_last4}</strong> · {cfg.enabled ? 'turned on' : 'turned off'}</p>
+          {usage && <p className="small-note">Today: {usage.requests}{usage.truncated ? '+' : ''} AI {usage.requests === 1 ? 'request' : 'requests'} · {usage.tokens.toLocaleString()} tokens · about ${usage.estimatedUsd.toFixed(4)} estimated{usage.fallbackRateUsed ? ' using a fallback rate for unpriced models' : ''}. Your provider’s bill may differ.</p>}
+          <form className="stack" onSubmit={e => { e.preventDefault(); void act(() => ai.setAnalysisModel(analysisModel.trim() || null), 'Analysis model saved. New List analysis uses this model.'); }}>
+            <label className="form-field"><span className="small-note">Optional model for List analysis</span><input className="text-input" value={analysisModel} onChange={e => setAnalysisModel(e.target.value)} maxLength={99} placeholder={`Use ${cfg.model}`} autoComplete="off" /></label>
+            <div className="button-row"><button className="mini-button" type="submit" disabled={busy || (analysisModel.trim() || null) === cfg.analysis_model}>Save analysis model</button><span className="small-note">Uses the same provider and key. Choose a model your provider supports.</span></div>
+          </form>
           {!cfg.enabled && <div className="followup"><strong>Before you turn AI on</strong><p className="small-note">When you ask for suggestions, the <strong>text of the captures you choose</strong> (or the outcome and step names you ask about), plus the names of your folders and outcomes, is sent to <strong>{PROVIDER_NAMES[cfg.provider]}</strong> using your key. Exe never sends anything on its own. Your provider's terms apply to what they receive.</p>
             <div className="button-row"><button className="primary-button" disabled={busy} onClick={() => act(() => ai.accept(), 'AI is on. Nothing is sent until you press "Get AI suggestions" in AI Review.')}>I understand, turn on AI</button></div></div>}
           <div className="button-row"><button className="mini-button" disabled={busy} onClick={() => act(async () => { const r = await ai.test(); if (!r.ok) throw new Error('The provider answered, but not as expected. Check the model name.'); }, 'Connection works.')}>Test connection</button>

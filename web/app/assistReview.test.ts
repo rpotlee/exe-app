@@ -8,6 +8,16 @@ const storage = () => { const map = new Map<string,string>(); return { getItem: 
 function setup(n = 300) { const assist = vi.fn<AssistClient['assist']>().mockResolvedValue(answer), saved = storage(); const ai = { settings: async () => config, assist }; const review = new AssistReview(ai, saved); review.configure('owner',config); review.update(entries(n)); return { review, assist, saved, ai }; }
 afterEach(() => vi.useRealTimers());
 describe('explicit AI review', () => {
+  it('restores current server intelligence, rejects stale revisions, and keeps dismissed groups dismissed', () => {
+    const { review, assist } = setup(4);
+    const source = entries(4).map(e => ({ ...e, revision: 1 })); review.update(source);
+    const group = { name: 'Venue', ids: ['c0','c1'], why: 'Same event' };
+    review.hydrate([{ id:'record', provider:'groq', model:'chosen-model', source_revisions:{c0:1,c1:1}, result:{...answer,groups:[group],priorities:[{captureId:'c0',level:'high',why:'Explicit deadline'}]}, dismissed_group_keys:[], created_at:'2026-11-10' }]);
+    expect(review.view().groups).toEqual([{ ...group, updatedAt: '2026-11-10' }]); expect(review.view().pendingCount).toBe(2); expect(assist).not.toHaveBeenCalled();
+    review.dismiss(['c0','c1']); expect(review.view().groups).toEqual([]);
+    review.update(source.map(e => e.id==='c0' ? {...e,revision:2,text:'Changed venue'} : e));
+    expect(review.view().groups).toEqual([]); expect(review.view().prios.c0).toBeUndefined();
+  });
   it('opening, restoring, importing 300 entries and waiting never generates', async () => {
     vi.useFakeTimers(); const { review, assist } = setup();
     await vi.advanceTimersByTimeAsync(120_000); expect(review.view().pendingCount).toBe(300); expect(assist).not.toHaveBeenCalled();

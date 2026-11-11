@@ -1,10 +1,12 @@
-import type { Assist, AssistItem } from './ai';
+import type { Assist, AssistItem, IntelligenceRecord } from './ai';
 
 export interface AssistClient {
-  settings(): Promise<{ enabled: boolean; disclosure_accepted_at: string | null; provider?: string; model?: string } | null>;
+  settings(): Promise<{ enabled: boolean; disclosure_accepted_at: string | null; provider?: string; model?: string; analysis_model?: string | null } | null>;
   assist(ids: string[], texts: Record<string, string>): Promise<Assist>;
+  savedIntelligence?(): Promise<IntelligenceRecord[]>;
+  dismissGroup?(recordId: string, groupKey: string): Promise<{ ok: boolean }>;
 }
-export interface ReviewEntry { id: string; text: string; kind: string }
+export interface ReviewEntry { id: string; text: string; kind: string; revision?: number }
 interface Saved { seen: Record<string, string>; items: Record<string, AssistItem>; prios: Record<string, { level: 'high' | 'medium' | 'low'; why: string }>; groups: Assist['groups']; deps: Assist['dependencies']; dismissed: string[] }
 const empty = (): Saved => ({ seen: {}, items: {}, prios: {}, groups: [], deps: [], dismissed: [] });
 const record = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
@@ -35,6 +37,9 @@ export class AssistReview {
   private retryAt = 0;
   private version = 0;
   private epoch = 0;
+  private serverRecords: IntelligenceRecord[] = [];
+  private provider = '';
+  private model = '';
   constructor(private ai: AssistClient | null, private storage?: Pick<Storage, 'getItem' | 'setItem'>) {}
   subscribe = (fn: () => void) => { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; };
   getVersion = () => this.version;
@@ -43,6 +48,8 @@ export class AssistReview {
     this.epoch++;
     this.error = ''; this.retryAt = 0;
     this.ready = !!config?.enabled && !!config.disclosure_accepted_at;
+    this.provider = config?.provider ?? ''; this.model = config?.model ?? '';
+    this.serverRecords = [];
     this.key = `exe-assist-v2:${JSON.stringify([owner, config?.provider ?? 'demo', config?.model ?? 'demo'])}`;
     this.saved = empty();
     try { const raw = this.storage?.getItem(this.key); if (raw) this.saved = restore(raw); } catch { this.saved = empty(); }
@@ -51,7 +58,28 @@ export class AssistReview {
   deactivate() { this.epoch++; this.ready = false; }
   update(entries: ReviewEntry[]) {
     if (JSON.stringify(entries) === JSON.stringify(this.entries)) return;
-    this.entries = entries; this.emit();
+    this.entries = entries; this.applyServer(); this.emit();
+  }
+  /** Restore validated server proposals only for the exact capture revisions that produced them. */
+  hydrate(records: IntelligenceRecord[]) { this.serverRecords = records; this.applyServer(); this.emit(); }
+  private applyServer() {
+    const current = new Map(this.entries.map(e => [e.id, e]));
+    for (const r of this.serverRecords) {
+      if (r.provider !== this.provider || r.model !== this.model || !record(r.source_revisions) || !record(r.result)) continue;
+      const sources = Object.entries(r.source_revisions);
+      if (!sources.length || !sources.every(([id, rev]) => current.get(id)?.revision === rev)) continue;
+      const ids = new Set(sources.map(([id]) => id));
+      const priorities = Array.isArray(r.result.priorities) ? r.result.priorities : [];
+      const groups = Array.isArray(r.result.groups) ? r.result.groups : [];
+      const deps = Array.isArray(r.result.dependencies) ? r.result.dependencies : [];
+      for (const id of ids) { const e = current.get(id)!; this.saved.seen[id] = identity(e); delete this.saved.prios[id]; }
+      for (const p of priorities) if (record(p) && ids.has(String(p.captureId)) && ['high','medium','low'].includes(String(p.level))) this.saved.prios[String(p.captureId)] = { level: p.level as 'high'|'medium'|'low', why: String(p.why ?? '').slice(0,80) };
+      this.saved.groups = [...this.saved.groups.filter(g => !g.ids.some(id => ids.has(id))), ...groups.filter(g => record(g) && Array.isArray(g.ids) && g.ids.length >= 2 && g.ids.every(id => ids.has(id)) && typeof g.name === 'string').map(g => ({ ...g, updatedAt: r.created_at }))];
+      this.saved.deps = [...this.saved.deps.filter(d => !ids.has(d.before) && !ids.has(d.after)), ...deps.filter(d => record(d) && ids.has(d.before) && ids.has(d.after))];
+      const dismissed = Array.isArray(r.dismissed_group_keys) ? r.dismissed_group_keys.filter(x => typeof x === 'string') : [];
+      this.saved.dismissed = [...new Set([...this.saved.dismissed, ...dismissed])];
+    }
+    this.save();
   }
   private pending() { return this.entries.filter(e => this.saved.seen[e.id] !== identity(e)); }
   private batch() {
@@ -75,7 +103,11 @@ export class AssistReview {
     };
   }
   private save() { try { this.storage?.setItem(this.key, JSON.stringify(this.saved)); } catch { /* optional device cache */ } }
-  dismiss = (ids: string[]) => { this.saved.dismissed.push(ids.slice().sort().join()); this.save(); this.emit(); };
+  dismiss = (ids: string[]) => {
+    const key = ids.slice().sort().join(); this.saved.dismissed.push(key); this.save(); this.emit();
+    const record = this.serverRecords.find(r => r.result.groups?.some(g => g.ids.slice().sort().join() === key));
+    if (record && this.ai?.dismissGroup) void this.ai.dismissGroup(record.id, key).catch(() => { this.error = 'Could not sync this dismissed suggestion.'; this.emit(); });
+  };
   run = async (): Promise<Assist | null> => {
     if (!this.ai || !this.ready || this.busy || Date.now() < this.retryAt) return null;
     const batch = this.batch(); if (!batch.length) return null;

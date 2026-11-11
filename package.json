@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:db": "node --test supabase/tests/schema.test.mjs supabase/tests/types.test.mjs",
+    "test:db": "node --test supabase/tests/schema.test.mjs supabase/tests/types.test.mjs supabase/tests/ai-execution.test.mjs",
     "gen:types": "node scripts/gen-types.mjs",
     "test:unit": "vitest run",
     "typecheck": "tsc --noEmit",

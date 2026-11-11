@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { actionsFor, applyEnvelope, assistantFingerprint, buildPrompt, emptyState, guard, parseEnvelope, seenRequest, SYSTEM, type Envelope } from './assistant.ts';
+import { actionsFor, applyEnvelope, assistantFingerprint, authorizedGenerationAction, buildPrompt, emptyState, guard, parseEnvelope, seenRequest, SYSTEM, type Envelope } from './assistant.ts';
 
 const env = (o: Partial<Envelope>): Envelope => ({ mode: 'none', summary: '', artifact: null, question: null, actions: [], ...o });
 const draft = (o: Partial<NonNullable<Envelope['artifact']>> = {}) => ({ type: 'message_draft' as const, channel: 'sms', subject: '', body: 'Hi Rachel, did you get invoice 103?', items: [], sources: [], ...o });
@@ -23,6 +23,11 @@ describe('guard: the entry outranks the model', () => {
 });
 
 describe('applyEnvelope: state, versions and idempotency', () => {
+  it('rejects unissued and external/mutation actions at the server boundary', () => {
+    const state=applyEnvelope(emptyState(),env({mode:'artifact',artifact:draft(),actions:['copy','shorter','send_email','complete_task']}),{id:'r1'});
+    expect(authorizedGenerationAction(state,'shorter')).toBe('shorter');
+    for (const id of ['copy','send_email','complete_task','delete','book','purchase']) expect(authorizedGenerationAction(state,id)).toBeNull();
+  });
   it('a refinement replaces the active artifact, keeps the old one, and offers only sensible actions', () => {
     const s1 = applyEnvelope(emptyState(), env({ mode: 'artifact', summary: 'Drafted', artifact: draft(), actions: ['copy', 'shorter', 'draft_email', 'bogus', 'more_formal', 'friendlier'] }), { id: 'r1' });
     expect(s1.artifact?.revision).toBe(1); expect(s1.actions.map(a => a.id)).toEqual(['copy', 'shorter', 'more_formal']);            // max three, registry only, no draft_email (a draft exists)
