@@ -55,6 +55,8 @@ export function describeAudit(ws: Workspace, e: AuditEvent): string {
     case 'folder-delete': return `You deleted the folder “${String(b.name ?? '')}”. ${Number(b.moved ?? 0)} ${Number(b.moved ?? 0) === 1 ? 'item was' : 'items were'} kept and moved.`;
     case 'approval-undo': return `You undid an approval (${String(b.type ?? 'item')}). The original capture is back in AI Review.`;
     case 'idea-promoted': return `You promoted the idea “${name(e.entity_id)}” to an outcome.`;
+    case 'group-move': return `You moved ${name(e.entity_id)} to ${a.group ? (ws.outcomes.find(o => o.id === a.group)?.name ?? String(a.group)) : 'Ungrouped'}.`;
+    case 'ai-group-applied': return `AI matched ${name(e.entity_id)} to ${a.group ? (ws.outcomes.find(o => o.id === a.group)?.name ?? String(a.group)) : 'a group'}.`;
     default: return e.action;
   }
 }

@@ -1,7 +1,7 @@
 // Asks the user's own AI provider for SUGGESTIONS about their pending captures. Nothing is written to the workspace:
 // the result is validated against a strict schema and returned as proposals the person must approve.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { buildHelpPrompt, HELP_MANUAL_SYSTEM, HELP_SYSTEM, HELP_TOKENS_AUTO, HELP_TOKENS_MANUAL, MAX_HELP, parseHelp, usageSplit, type HelpWant, ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, validAssistEnvelope, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider } from '../_shared/ai.ts';
+import { buildHelpPrompt, HELP_MANUAL_SYSTEM, HELP_SYSTEM, HELP_TOKENS_AUTO, HELP_TOKENS_MANUAL, MAX_HELP, parseHelp, usageSplit, type HelpWant, ASSIST_SYSTEM, ASSIST_TOKENS, buildAssistPrompt, MAX_ASSIST, parseAssist, validAssistEnvelope, buildPrompt, buildRequest, buildStepsPrompt, extractText, MAX_CAPTURES, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, type Provider, GROUP_MATCH_SYSTEM, GROUP_MATCH_TOKENS, buildGroupMatchPrompt, parseGroupMatches, validGroupMatchEnvelope } from '../_shared/ai.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
 import { AiRuntimeError, aiErrorResponse, withAiProvider } from '../_shared/ai-runtime.ts';
@@ -35,6 +35,56 @@ Deno.serve(async (req: Request) => {
   const test = body.test === true;
   if (!test && (!s.enabled || !s.disclosure_accepted_at)) return json({ error: 'Turn on AI in Settings and accept the notice first.' }, 403);
   let apiKey: string; try { apiKey = await decryptKey(secret, hexToB64(String(s.key_ciphertext))); } catch { return json({ error: 'Your saved key could not be read. Save it again.' }, 500); }
+
+  if (body.mode === 'group-match') {
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const raw = body.sources;
+    if (!Array.isArray(raw) || !raw.length || raw.length > 4 || !raw.every(x => x && typeof x === 'object' && (x.kind === 'capture' || x.kind === 'task') && typeof x.id === 'string' && uuid.test(x.id))) return json({ error: 'Choose up to four ungrouped tasks.' }, 400);
+    const sources = raw as { kind: 'capture' | 'task'; id: string }[];
+    if (new Set(sources.map(x => `${x.kind}:${x.id}`)).size !== sources.length) return json({ error: 'Duplicate tasks.' }, 400);
+    const selected = body.outcomeIds;
+    if (!Array.isArray(selected) || !selected.length || selected.length > 40 || !selected.every(x => typeof x === 'string' && uuid.test(x)) || new Set(selected).size !== selected.length) return json({ error: 'Choose existing groups to compare.' }, 400);
+    const captureIds = sources.filter(x => x.kind === 'capture').map(x => x.id), taskIds = sources.filter(x => x.kind === 'task').map(x => x.id);
+    const [caps, tasks, outcomes] = await Promise.all([
+      captureIds.length ? admin.from('captures').select('id,text,edited_text,revision,kind,status,archived_at,completed_at').eq('owner_id', uid).in('id', captureIds) : Promise.resolve({ data: [], error: null }),
+      taskIds.length ? admin.from('tasks').select('id,name,revision,outcome_id,group_manual,archived_at').eq('owner_id', uid).in('id', taskIds) : Promise.resolve({ data: [], error: null }),
+      admin.from('outcomes').select('id,name,revision,done_at').eq('owner_id', uid).in('id', selected),
+    ]);
+    if (caps.error || tasks.error || outcomes.error) return json({ error: 'Could not read current tasks and groups.' }, 503);
+    const capMap = new Map((caps.data ?? []).map(x => [x.id, x])), taskMap = new Map((tasks.data ?? []).map(x => [x.id, x]));
+    if (sources.some(x => x.kind === 'capture' ? !capMap.get(x.id) || capMap.get(x.id)!.kind !== 'todo' || capMap.get(x.id)!.status !== 'pending' || !!capMap.get(x.id)!.archived_at : !taskMap.get(x.id) || !!taskMap.get(x.id)!.outcome_id || !!taskMap.get(x.id)!.group_manual || !!taskMap.get(x.id)!.archived_at)) return json({ error: 'An entry changed. Refresh Groups and try again.', code: 'AI_STALE' }, 409);
+    const groups = (outcomes.data ?? []).filter(x => !x.done_at);
+    if (groups.length !== selected.length) return json({ error: 'A group changed. Refresh Groups and try again.', code: 'AI_STALE' }, 409);
+    const rows = sources.map(x => ({ id: `${x.kind}:${x.id}`, revision: (x.kind === 'capture' ? capMap.get(x.id)! : taskMap.get(x.id)!).revision as number, text: x.kind === 'capture' ? (capMap.get(x.id)!.edited_text ?? capMap.get(x.id)!.text) : taskMap.get(x.id)!.name }));
+    const groupMap = new Map(groups.map(x => [x.id, x]));
+    const model = s.analysis_model ?? s.model;
+    const key = await intelligenceKey(`group-match:${s.provider}`, model, [...rows, ...groups.map(x => ({ id: `outcome:${x.id}`, revision: x.revision, text: x.name }))]);
+    const cached = await admin.from('ai_intelligence').select('result').eq('owner_id', uid).eq('dedupe_key', key).maybeSingle();
+    if (cached.error) return json({ error: 'Saved AI matches are unavailable.' }, 503);
+    if (cached.data) return json({ ...(cached.data.result as Record<string, unknown>), reused: true });
+    const prompt = buildGroupMatchPrompt(rows, groups), spec = buildRequest(s.provider as Provider, model, apiKey, GROUP_MATCH_SYSTEM, prompt, GROUP_MATCH_TOKENS);
+    try {
+      return await withAiProvider(admin, uid, spec, GROUP_MATCH_SYSTEM, prompt, GROUP_MATCH_TOKENS, async providerData => {
+        const output = extractText(s.provider as Provider, providerData);
+        if (!validGroupMatchEnvelope(output)) throw new AiRuntimeError('The provider did not return usable group matches.', 502, 'AI_INVALID_RESPONSE');
+        const parsed = parseGroupMatches(output, new Set(rows.map(x => x.id)), new Set(groups.map(x => x.id)));
+        const byId = new Map(parsed.map(x => [x.id, x]));
+        const matches = sources.map((x, i) => { const suggestion = byId.get(rows[i]!.id), target = suggestion?.outcomeId ? groupMap.get(suggestion.outcomeId) : null; return { kind: x.kind, id: x.id, outcomeId: target?.id ?? null, sourceRevision: rows[i]!.revision, outcomeRevision: target?.revision ?? null, why: suggestion?.why ?? '' }; });
+        const [freshCaps, freshTasks, freshOutcomes] = await Promise.all([
+          captureIds.length ? admin.from('captures').select('id,revision,kind,status,archived_at').eq('owner_id', uid).in('id', captureIds) : Promise.resolve({ data: [], error: null }),
+          taskIds.length ? admin.from('tasks').select('id,revision,outcome_id,group_manual,archived_at').eq('owner_id', uid).in('id', taskIds) : Promise.resolve({ data: [], error: null }),
+          admin.from('outcomes').select('id,revision,done_at').eq('owner_id', uid).in('id', selected),
+        ]);
+        if (freshCaps.error || freshTasks.error || freshOutcomes.error) throw new AiRuntimeError('Could not verify current tasks and groups.', 503, 'AI_PERSISTENCE');
+        const fc = new Map((freshCaps.data ?? []).map(x => [x.id, x])), ft = new Map((freshTasks.data ?? []).map(x => [x.id, x])), fo = new Map((freshOutcomes.data ?? []).map(x => [x.id, x]));
+        if (sources.some((x, i) => x.kind === 'capture' ? fc.get(x.id)?.revision !== rows[i]!.revision || fc.get(x.id)?.kind !== 'todo' || fc.get(x.id)?.status !== 'pending' || !!fc.get(x.id)?.archived_at : ft.get(x.id)?.revision !== rows[i]!.revision || !!ft.get(x.id)?.outcome_id || !!ft.get(x.id)?.group_manual || !!ft.get(x.id)?.archived_at) || groups.some(x => fo.get(x.id)?.revision !== x.revision || !!fo.get(x.id)?.done_at)) throw new AiRuntimeError('Entries changed during matching. Try again for the current version.', 409, 'AI_STALE');
+        const result = { kind: 'group-match', matches, groups: [], dependencies: [], priorities: [], items: [], provider: s.provider, model };
+        const saved = await admin.from('ai_intelligence').insert({ owner_id: uid, dedupe_key: key, provider: s.provider, model, source_revisions: sourceRevisions(rows), result });
+        if (saved.error && saved.error.code !== '23505') throw new AiRuntimeError('Could not save group matches.', 503, 'AI_PERSISTENCE');
+        return json(result);
+      }, fetch, undefined, 'interactive', model);
+    } catch (e) { return aiErrorResponse(e); }
+  }
 
   const stepsMode = body.mode === 'steps', assistMode = body.mode === 'assist', helpMode = body.mode === 'help';
   const manualHelp = helpMode && body.manual === true, want = (['draft', 'answer', 'prep', 'steps', 'research'] as const).find(w => w === body.want) as HelpWant | undefined;

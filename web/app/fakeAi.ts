@@ -1,4 +1,4 @@
-import type { Assist, AssistItem } from './ai';
+import type { Assist, AssistItem, GroupMatchSource, GroupMatchCandidate, GroupMatchResponse } from './ai';
 
 /** Local development only (`?local=1&fakeai=1`): canned help from simple keyword rules so the screen can be tried and tested with no key and no network.
  *  It is never used when signed in. */
@@ -19,6 +19,13 @@ export function makeFakeAi() {
       return { items, usage: { input: 50 * ids.length, output: 20 * ids.length } };
     },
     async settings() { return { provider: 'anthropic' as const, model: 'fake', key_last4: '0000', enabled: true, disclosure_accepted_at: '2027-01-01T00:00:00Z' }; },
+    async matchGroups(sources: GroupMatchSource[], outcomes: GroupMatchCandidate[]): Promise<GroupMatchResponse> {
+      return { kind: 'group-match', matches: sources.map(source => {
+        const words = source.text.toLowerCase().split(/[^a-z0-9]+/).filter(x => x.length > 3);
+        const target = outcomes.find(o => o.name.toLowerCase().split(/[^a-z0-9]+/).some(w => w.length > 3 && words.includes(w)));
+        return { kind: source.kind, id: source.id, outcomeId: target?.id ?? null, sourceRevision: source.revision, outcomeRevision: target?.revision ?? null, why: target ? 'Shared topic' : '' };
+      }) };
+    },
     async assist(ids: string[], texts: Record<string, string>): Promise<Assist & { provider: 'anthropic'; model: string }> {
       const items: AssistItem[] = [];
       for (const id of ids) {

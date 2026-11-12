@@ -5,7 +5,7 @@ import { countsOf, groupSummary, missionGroups, type AiHints } from './mission';
 
 const base = { owner_id: 'u', updated_at: 't', revision: 1 };
 const cap = (id: string, extra: Partial<Capture> = {}): Capture => ({ ...base, id, text: id, edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind: 'todo', display_title: null, user_priority: null, remind_at: null, remind_done_at: null, created_at: '2027-01-01T00:00:00Z', ...extra });
-const step = (id: string, pos: number, sources: string[], done = false) => ({ ...base, id, created_at: 't', outcome_id: 'o1', name: id, notes: '', folder_id: null, done_at: done ? 'x' : null, archived_at: null, deadline: null, effort: null, position: pos, sources });
+const step = (id: string, pos: number, sources: string[], done = false) => ({ ...base, id, created_at: 't', outcome_id: 'o1', name: id, notes: '', folder_id: null, done_at: done ? 'x' : null, archived_at: null, deadline: null, effort: null, position: pos, sources, group_manual: false });
 const ws: Workspace = { ...emptyWorkspace(),
   outcomes: [{ ...base, id: 'o1', created_at: 't', folder_id: null, name: 'Move', description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [] }],
   focus: [{ ...base, id: 'f', created_at: 't', outcome_id: 'o1', lane: 'now', position: 0 }],

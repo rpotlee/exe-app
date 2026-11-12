@@ -46,7 +46,7 @@ const loadScope = (): Scope => { try { const j = JSON.parse(localStorage.getItem
 
 export function Shell({ store, where, onSignOut, ai = null, fakeAi = null, assistantApi = null }: { store: Store; where: string; onSignOut?: () => void; ai?: AiApi | null; fakeAi?: AssistClient | null; assistantApi?: Adapter | null }) {
   const assistantAdapter = fakeAi ? demoAdapter : assistantApi;
-  const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids), savedIntelligence: () => ai.savedIntelligence(), dismissGroup: (id, key) => ai.dismissGroup(id, key) } : null), [ai, fakeAi]);
+  const assist = useMemo<AssistClient | null>(() => fakeAi ?? (ai ? { settings: () => ai.settings(), assist: ids => ai.assist(ids), matchGroups: (sources, outcomes) => ai.matchGroups(sources, outcomes), savedIntelligence: () => ai.savedIntelligence(), dismissGroup: (id, key) => ai.dismissGroup(id, key) } : null), [ai, fakeAi]);
   const api = useWorkspace(store);
   const logAi = useCallback((events: AiEventInput[]) => { api.run((w, c) => C.logAiEvents(w, c, events)); }, [api]);
   const [entryOpen, openEntry] = useState<string | null>(null);

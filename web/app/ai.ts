@@ -12,6 +12,9 @@ export interface PrioritySuggestion { captureId: string; level: 'high' | 'medium
 export interface Assist { items: AssistItem[]; priorities?: PrioritySuggestion[]; groups: { name: string; ids: string[]; why: string; updatedAt?: string }[]; dependencies: { before: string; after: string; why: string }[] }
 export interface IntelligenceRecord { id: string; provider: string; model: string; source_revisions: Record<string, number>; result: Assist; dismissed_group_keys: string[]; created_at: string }
 export interface AiUsageToday { requests: number; tokens: number; estimatedUsd: number; fallbackRateUsed: boolean; truncated: boolean }
+export interface GroupMatchSource { kind: 'capture' | 'task'; id: string; text: string; revision: number }
+export interface GroupMatchCandidate { id: string; name: string; revision: number }
+export interface GroupMatchResponse { kind: 'group-match'; matches: { kind: 'capture' | 'task'; id: string; outcomeId: string | null; sourceRevision: number; outcomeRevision: number | null; why: string }[]; reused?: boolean }
 export type AiApi = ReturnType<typeof makeAi>;
 
 /** Talks to the two server functions. The browser never sees the key after it is saved; it only sees the last 4 characters. */
@@ -35,6 +38,7 @@ export function makeAi(db: Db, uid: string) {
     test: () => call<{ ok: boolean }>('ai-review', { test: true }),
     suggest: (captureIds: string[]) => call<Suggestions>('ai-review', { captureIds }),
     assist: (captureIds: string[]) => call<Assist & { provider: Provider; model: string }>('ai-review', { mode: 'assist', intent: 'analyze', captureIds }),
+    matchGroups: (sources: GroupMatchSource[], outcomes: GroupMatchCandidate[]) => call<GroupMatchResponse>('ai-review', { mode: 'group-match', sources: sources.map(({ kind, id }) => ({ kind, id })), outcomeIds: outcomes.map(({ id }) => id) }),
     async savedIntelligence(): Promise<IntelligenceRecord[]> {
       const { data, error } = await db.from('ai_intelligence').select('id, provider, model, source_revisions, result, dismissed_group_keys, created_at, ai_group_proposals(name,why,capture_ids,ordinal), ai_dependency_proposals(before_capture_id,after_capture_id,why,ordinal)').order('created_at', { ascending: false }).limit(500);
       if (error) throw new Error('Could not restore saved AI suggestions.');
@@ -44,7 +48,7 @@ export function makeAi(db: Db, uid: string) {
         ai_group_proposals: { name: string; why: string; capture_ids: string[]; ordinal: number }[];
         ai_dependency_proposals: { before_capture_id: string; after_capture_id: string; why: string; ordinal: number }[];
       };
-      return ((data ?? []) as unknown as SavedGraph[]).reverse().map(row => ({
+      return ((data ?? []) as unknown as SavedGraph[]).filter(row => (row.result as unknown as { kind?: string }).kind !== 'group-match').reverse().map(row => ({
         ...row,
         result: {
           ...(row.result as unknown as Assist),

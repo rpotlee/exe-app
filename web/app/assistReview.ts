@@ -1,8 +1,9 @@
-import type { Assist, AssistItem, IntelligenceRecord } from './ai';
+import type { Assist, AssistItem, IntelligenceRecord, GroupMatchSource, GroupMatchCandidate, GroupMatchResponse } from './ai';
 
 export interface AssistClient {
   settings(): Promise<{ enabled: boolean; disclosure_accepted_at: string | null; provider?: string; model?: string; analysis_model?: string | null } | null>;
   assist(ids: string[], texts: Record<string, string>): Promise<Assist>;
+  matchGroups?(sources: GroupMatchSource[], outcomes: GroupMatchCandidate[]): Promise<GroupMatchResponse>;
   savedIntelligence?(): Promise<IntelligenceRecord[]>;
   dismissGroup?(recordId: string, groupKey: string): Promise<{ ok: boolean }>;
 }

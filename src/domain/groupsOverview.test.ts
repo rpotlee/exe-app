@@ -8,7 +8,7 @@ const task = (id: string, done: boolean): MissionTask => ({ key: `t${id}`, id, k
 const group = (id: string, tasks: MissionTask[]): MissionGroup => ({ id, name: id, kind: 'outcome', outcomeId: id, lane: null, captureIds: [], tasks, updatedAt: null });
 const meta = { owner_id: 'owner', created_at: '2026-11-10T00:00:00Z', updated_at: '2026-11-10T00:00:00Z', revision: 1 };
 const cap = (id: string, at: string, extra: Partial<Capture> = {}): Capture => ({ ...meta, id, text: id, edited_text: null, source: '', folder_id: null, batch_id: null, batch_text: null, completed_at: null, archived_at: null, status: 'pending', organized_as: null, review_state: null, review_at: null, rejected_fingerprints: [], task_id: null, merged_into: null, kind: 'todo', display_title: null, user_priority: null, remind_at: at, remind_done_at: null, ...extra });
-const step = (id: string, deadline: string, sources: string[] = []): Task => ({ ...meta, id, outcome_id: null, name: id, notes: '', folder_id: null, done_at: null, archived_at: null, deadline, effort: null, position: 0, sources });
+const step = (id: string, deadline: string, sources: string[] = []): Task => ({ ...meta, id, outcome_id: null, name: id, notes: '', folder_id: null, done_at: null, archived_at: null, deadline, effort: null, position: 0, sources, group_manual: false });
 const outcome = (id: string, deadline: string): Outcome => ({ ...meta, id, folder_id: null, name: id, description: '', pinned: false, deadline, effort: null, done_at: null, last_worked_at: null, sources: [] });
 
 describe('Groups overview calculations', () => {

@@ -12,7 +12,7 @@ const RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
 /** One task: a round checkbox, its text (tap to open the assistant for it), a small colored mark when the AI has interacted with it, and its priority dot. */
 function TaskRow({ t, labels, toggle }: { t: MissionTask; labels: boolean; toggle: (t: MissionTask, on: boolean) => void }) {
-  const { openEntry } = useApp();
+  const { openEntry, modal } = useApp();
   const st = useEntryState(t.captureId ?? '', t.text), line = t.captureId ? statusLine(st) : null, open = () => t.captureId && openEntry(t.captureId);
   return (
     <li className={`t-row ${t.done ? 'is-complete' : ''}`}>
@@ -20,6 +20,7 @@ function TaskRow({ t, labels, toggle }: { t: MissionTask; labels: boolean; toggl
       {t.captureId ? <button type="button" className="t-text" onClick={open} aria-label={`Open ${t.text}`}>{t.text}</button> : <span className="t-text">{t.text}</span>}
       {line && <button type="button" className={`ai-mark ${st?.question ? 'ask' : ''}`} onClick={open} aria-label={`AI: ${line}. Open details`} title={line}><Icon name="sparkles" /></button>}
       {labels && t.captureId && <PriorityDot captureId={t.captureId} level={t.level} fromAi={t.fromAi} why={t.why} text={t.text} />}
+      <button type="button" className="t-move" onClick={() => modal({ kind: 'moveGroup', entryKey: t.key })} aria-label={`Move ${t.text} to another group`} title="Move to group"><Icon name="layers" size={18} /></button>
     </li>
   );
 }

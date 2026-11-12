@@ -44,7 +44,7 @@ export function fromPrototype(d: Record<string, unknown>, now: string): { ws: Wo
   const perOutcome = new Map<string, number>();
   ws.tasks = arr(d.tasks).filter(t => str(t.id) && str(t.name).trim()).map(t => {
     const oid = typeof t.outcome === 'string' && oIds.has(t.outcome) ? t.outcome : null, pos = perOutcome.get(oid ?? '') ?? 0; perOutcome.set(oid ?? '', pos + 1);
-    return { ...meta(str(t.id), now), outcome_id: oid, name: str(t.name, 200).trim(), notes: '', folder_id: null, done_at: t.done ? (iso(t.doneAt) ?? now) : null, archived_at: iso(t.archivedAt), deadline: null, effort: null, position: pos, sources: [] };
+    return { ...meta(str(t.id), now), outcome_id: oid, name: str(t.name, 200).trim(), notes: '', folder_id: null, done_at: t.done ? (iso(t.doneAt) ?? now) : null, archived_at: iso(t.archivedAt), deadline: null, effort: null, position: pos, sources: [], group_manual: false };
   });
   const tIds = new Set(ws.tasks.map(t => t.id)), cIds = new Set(arr(d.captures).map(c => str(c.id)));
   ws.captures = arr(d.captures).filter(c => str(c.id) && str(c.text).trim()).map(c => {
@@ -136,7 +136,7 @@ export function importWrites(current: Workspace, ctx: Ctx, incoming: Workspace, 
     if (f.lane === 'now' && nowKept + ++nowSeen > MAX_NOW) { f.lane = 'next'; summary.push('Some active priorities were moved to Next to keep the limit of three.'); }
     push('focus_assignments', f);
   }
-  for (const r of incoming.tasks as unknown as Row[]) { const t = clean('tasks', r); t.outcome_id = id(r.outcome_id); t.sources = sources(r.sources); push('tasks', t); }
+  for (const r of incoming.tasks as unknown as Row[]) { const t = clean('tasks', r); t.outcome_id = id(r.outcome_id); t.sources = sources(r.sources); t.group_manual = r.group_manual === true; push('tasks', t); }
   const caps = incoming.captures as unknown as Row[];
   for (const r of [...caps.filter(c => !c.merged_into), ...caps.filter(c => c.merged_into)]) { const c = clean('captures', r); c.folder_id = id(r.folder_id); c.task_id = id(r.task_id); c.merged_into = id(r.merged_into); c.batch_id = r.batch_id ? mint('batch:' + String(r.batch_id)) : null; push('captures', c); }
   for (const r of incoming.decisions as unknown as Row[]) { const d = clean('decisions', r); d.folder_id = id(r.folder_id); d.sources = sources(r.sources); push('decisions', d); }

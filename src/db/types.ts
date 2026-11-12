@@ -1017,6 +1017,7 @@ export interface Database {
           updated_at: string;
           revision: number;
           folder_id: string | null;
+          group_manual: boolean | null;
         };
         Insert: {
           id?: string;
@@ -1034,6 +1035,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
           folder_id?: string | null;
+          group_manual?: boolean | null;
         };
         Update: {
           id?: string;
@@ -1051,6 +1053,7 @@ export interface Database {
           updated_at?: string;
           revision?: number;
           folder_id?: string | null;
+          group_manual?: boolean | null;
         };
         Relationships: [];
       };
@@ -1189,7 +1192,7 @@ export const COLUMNS = {
   idempotency_keys: ['owner_id', 'key', 'request_hash', 'response', 'created_at'],
   outcomes: ['id', 'owner_id', 'folder_id', 'name', 'description', 'pinned', 'deadline', 'effort', 'done_at', 'last_worked_at', 'created_at', 'updated_at', 'revision', 'sources'],
   relationships: ['id', 'owner_id', 'from_type', 'from_id', 'to_type', 'to_id', 'kind', 'description', 'confirmed', 'source', 'created_at', 'updated_at', 'revision'],
-  tasks: ['id', 'owner_id', 'outcome_id', 'name', 'notes', 'done_at', 'archived_at', 'deadline', 'effort', 'position', 'sources', 'created_at', 'updated_at', 'revision', 'folder_id'],
+  tasks: ['id', 'owner_id', 'outcome_id', 'name', 'notes', 'done_at', 'archived_at', 'deadline', 'effort', 'position', 'sources', 'created_at', 'updated_at', 'revision', 'folder_id', 'group_manual'],
   user_ai_settings: ['owner_id', 'provider', 'model', 'key_ciphertext', 'key_last4', 'enabled', 'disclosure_accepted_at', 'created_at', 'updated_at', 'revision', 'analysis_model'],
   user_settings: ['owner_id', 'workspace_name', 'current_focus_outcome_id', 'priority_dismissed', 'research_opt_in', 'created_at', 'updated_at', 'revision'],
 } as const;

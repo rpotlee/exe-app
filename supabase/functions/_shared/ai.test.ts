@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { buildPrompt, buildRequest, buildStepsPrompt, buildAssistPrompt, parseAssist, validAssistEnvelope, ASSIST_SYSTEM, extractText, isProvider, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, validKey, validModel } from './ai.ts';
+import { buildPrompt, buildRequest, buildStepsPrompt, buildAssistPrompt, parseAssist, validAssistEnvelope, ASSIST_SYSTEM, extractText, isProvider, parseProposals, parseSteps, STEPS_SYSTEM, SYSTEM, validKey, validModel, buildGroupMatchPrompt, GROUP_MATCH_SYSTEM, parseGroupMatches, validGroupMatchEnvelope } from './ai.ts';
+
+describe('group matching output', () => {
+  it('keeps prompts bounded and rejects invented targets and duplicate sources', () => {
+    const sources = Array.from({ length: 4 }, (_, i) => ({ id: `task:${i}`, text: '😀'.repeat(1000) }));
+    const groups = Array.from({ length: 40 }, (_, i) => ({ id: `group:${i}`, name: '漢'.repeat(100) }));
+    const prompt = buildGroupMatchPrompt(sources, groups);
+    expect(new TextEncoder().encode(GROUP_MATCH_SYSTEM + '\n' + prompt).length).toBeLessThanOrEqual(8000);
+    const response = JSON.stringify({ matches: [{ id: 'task:0', outcomeId: 'group:0', why: 'Related' }, { id: 'task:0', outcomeId: 'group:1' }, { id: 'task:1', outcomeId: 'invented' }, { id: 'invented', outcomeId: 'group:1' }] });
+    expect(validGroupMatchEnvelope(response)).toBe(true);
+    expect(parseGroupMatches(response, new Set(sources.map(x => x.id)), new Set(groups.map(x => x.id)))).toEqual([{ id: 'task:0', outcomeId: 'group:0', why: 'Related' }, { id: 'task:1', outcomeId: null, why: '' }]);
+    expect(validGroupMatchEnvelope('{"wrong":[]}')).toBe(false);
+  });
+});
 import { decryptKey, encryptKey } from './crypto.ts';
 
 const allowed = { captureIds: new Set(['c1', 'c2']), folderIds: new Set(['f1']), outcomeIds: new Set(['o1']) };

@@ -7,7 +7,7 @@ const cap = (id: string, kind: string, folder: string | null, t: string, extra: 
 const ws: Workspace = { ...emptyWorkspace(), folders: [{ ...base, id: 'f1', name: 'Work', description: '', icon: 'folder', position: 0 }, { ...base, id: 'f2', name: 'Home', description: '', icon: 'folder', position: 1 }],
   captures: [cap('a', 'todo', null, '2027-01-01T01:00:00Z'), cap('b', 'note', 'f1', '2027-01-01T02:00:00Z'), cap('c', 'reminder', 'f1', '2027-01-01T03:00:00Z'), cap('d', 'todo', 'f2', '2027-01-01T04:00:00Z'), cap('e', 'todo', 'f1', '2027-01-01T05:00:00Z', { archived_at: '2027-02-01T00:00:00Z' }), cap('legacy', '', null, '2027-01-01T00:30:00Z')],
   outcomes: [{ ...base, id: 'o', folder_id: 'f1', name: 'O', description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [] }],
-  tasks: [{ ...base, id: 't1', outcome_id: 'o', name: 'in outcome', notes: '', folder_id: 'f2', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [] }, { ...base, id: 't2', outcome_id: null, name: 'loose', notes: '', folder_id: 'f2', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [] }] };
+  tasks: [{ ...base, id: 't1', outcome_id: 'o', name: 'in outcome', notes: '', folder_id: 'f2', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], group_manual: false }, { ...base, id: 't2', outcome_id: null, name: 'loose', notes: '', folder_id: 'f2', done_at: null, archived_at: null, deadline: null, effort: null, position: 0, sources: [], group_manual: false }] };
 
 describe('scope', () => {
   it('All shows every live entry exactly once; a folder shows only its own; Unfiled is the null folder', () => {

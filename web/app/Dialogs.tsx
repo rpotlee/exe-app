@@ -52,6 +52,7 @@ export function Dialogs({ m }: { m: ModalState }) {
     case 'outcomeEdit': return <OutcomeEdit id={m.id} />;
     case 'taskEdit': return <TaskEdit id={m.id} />;
     case 'taskNew': return <TaskNew outcomeId={m.outcomeId} />;
+    case 'moveGroup': return <MoveGroup entryKey={m.entryKey} />;
     case 'relationship': return <RelationshipNew />;
     case 'captureEdit': return <CaptureEdit id={m.id} />;
     case 'folders': return <FolderDrawer />;
@@ -237,6 +238,35 @@ function FolderDelete({ id }: { id: string }) {
       </form>
     </Modal>
   );
+}
+
+function MoveGroup({ entryKey }: { entryKey: string }) {
+  const { api, modal } = useApp();
+  const ws = api.ws;
+  const capture = entryKey.startsWith('c') ? ws.captures.find(c => c.id === entryKey.slice(1) && c.status === 'pending' && !c.archived_at) : null;
+  const task = entryKey.startsWith('t') ? ws.tasks.find(t => t.id === entryKey.slice(1) && !t.archived_at) : null;
+  const [destination, setDestination] = useState('');
+  const [name, setName] = useState('');
+  if (!capture && !task) return <Modal title="Move task" onClose={() => modal(null)}><p className="helper">This entry is no longer available.</p></Modal>;
+  const current = task?.outcome_id ?? null;
+  const options = ws.outcomes.filter(o => !o.done_at && o.id !== current).sort((a, b) => a.name.localeCompare(b.name));
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const target: C.GroupDestination = destination === 'new' ? { newName: name } : { outcomeId: destination || null };
+    if (api.run((w, ctx) => C.moveGroupEntry(w, ctx, entryKey, target))) modal(null);
+  };
+  return <Modal title="Move task" onClose={() => modal(null)}>
+    <p className="helper">{capture?.edited_text ?? capture?.text ?? task?.name}</p>
+    <form onSubmit={submit}>
+      <label className="form-field"><span className="small-note">Move to</span><select className="select" value={destination} onChange={e => setDestination(e.target.value)} required={!!capture}>
+        <option value="" disabled={!!capture}>{capture ? 'Choose a group' : 'Ungrouped'}</option>
+        {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+        <option value="new">New group…</option>
+      </select></label>
+      {destination === 'new' && <label className="form-field"><span className="small-note">New group name</span><input className="text-input" value={name} onChange={e => setName(e.target.value)} required maxLength={200} placeholder="Name your group" /></label>}
+      <div className="capture-foot"><span className="small-note">Your choice overrides AI grouping.</span><button className="primary-button" type="submit">Move task</button></div>
+    </form>
+  </Modal>;
 }
 
 function OutcomeNew({ folderId, asGroup = false }: { folderId: string | null; asGroup?: boolean }) {

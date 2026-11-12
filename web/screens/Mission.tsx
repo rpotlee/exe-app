@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { scrollToTop } from '../app/scroll';
 import { groupSummary, missionGroups, type MissionGroup } from '../../src/domain/mission';
 import { progressOf, scheduleSummary, type ScheduledItem } from '../../src/domain/groupsOverview';
 import { useApp } from '../app/context';
 import { MobileTopline } from '../app/Heading';
 import { Icon } from '../ui/Icon';
+import { applyGroupMatches } from '../../src/domain/commands';
+import { outcomeIn } from '../../src/domain/scope';
+import type { GroupMatchSource } from '../app/ai';
 
 const ICONS = ['rocket', 'code', 'briefcase', 'layers'];
 const date = (value: string | null) => value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleDateString() : 'no updates yet';
@@ -22,17 +25,58 @@ function DueList({ title, items }: { title: string; items: ScheduledItem[] }) {
 
 /** Approved Outcomes and saved AI proposals use the same existing group projection. */
 export function Mission() {
-  const { api, scope, assistState, priorityMode, modal } = useApp();
+  const { api, scope, assist, assistState, priorityMode, modal } = useApp();
   const ws = api.ws;
   const hints = useMemo(() => ({ priorities: assistState.prios, groups: assistState.groups.map(g => ({ name: g.name, ids: g.ids, updatedAt: g.updatedAt })) }), [assistState.prios, assistState.groups]);
   const groups = useMemo(() => missionGroups(ws, scope, hints, priorityMode), [ws, scope, hints, priorityMode]);
   const progress = useMemo(() => progressOf(groups), [groups]);
+  const matchableCount = groups.filter(g => g.kind === 'rest' || g.kind === 'suggested').flatMap(g => g.tasks).filter(t => t.kind === 'capture' || !ws.tasks.find(x => x.id === t.id)?.group_manual).length;
   const [now, setNow] = useState(() => Date.now());
   const [dueOpen, setDueOpen] = useState<'missed' | 'upcoming' | null>(null);
+  const [match, setMatch] = useState<{ running: boolean; processed: number; total: number; moved: number; error: string }>({ running: false, processed: 0, total: 0, moved: 0, error: '' });
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(timer); }, []);
   const schedule = useMemo(() => scheduleSummary(ws, scope, now), [ws, scope, now]);
   const openGroup = (id: string) => { location.hash = `#/group/${encodeURIComponent(id)}`; scrollToTop(); };
   const newGroup = () => modal({ kind: 'outcomeNew', folderId: scope.kind === 'folder' ? scope.id : null, asGroup: true });
+  const matchUngrouped = async () => {
+    if (match.running || !assist?.matchGroups) return;
+    if (!assistState.ready) { modal({ kind: 'settings' }); return; }
+    const current = api.get();
+    const visible = missionGroups(current, scope, hints, priorityMode);
+    const entries = visible.filter(g => g.kind === 'rest' || g.kind === 'suggested').flatMap(g => g.tasks);
+    const sources: GroupMatchSource[] = entries.map(t => {
+      const row = t.kind === 'capture' ? current.captures.find(c => c.id === t.id) : current.tasks.find(x => x.id === t.id);
+      return row && !(t.kind === 'task' && 'group_manual' in row && row.group_manual) ? { kind: t.kind, id: t.id, text: t.text, revision: row.revision } : null;
+    }).filter((x): x is GroupMatchSource => !!x);
+    const candidates = current.outcomes.filter(o => !o.done_at && outcomeIn(scope, o)).map(o => ({ id: o.id, name: o.name, revision: o.revision }));
+    if (!candidates.length) { setMatch({ running: false, processed: 0, total: sources.length, moved: 0, error: 'Create a group first, then match tasks.' }); return; }
+    if (candidates.length > 40) { setMatch({ running: false, processed: 0, total: sources.length, moved: 0, error: 'Matching supports up to 40 groups at once. Move tasks manually or narrow the folder.' }); return; }
+    let processed = 0, moved = 0;
+    setMatch({ running: true, processed, total: sources.length, moved, error: '' });
+    try {
+      for (let i = 0; i < sources.length; i += 4) {
+        if (!alive.current) return;
+        const batch = sources.slice(i, i + 4).filter(s => s.kind === 'capture' ? api.get().captures.some(c => c.id === s.id && c.status === 'pending' && !c.archived_at) : api.get().tasks.some(t => t.id === s.id && !t.outcome_id && !t.group_manual && !t.archived_at));
+        if (batch.length) {
+          const result = await assist.matchGroups(batch, candidates);
+          if (!alive.current) return;
+          const allowed = new Set(batch.map(s => `${s.kind}:${s.id}`));
+          const matches = (Array.isArray(result.matches) ? result.matches : []).filter(m => allowed.has(`${m.kind}:${m.id}`) && typeof m.sourceRevision === 'number' && (!m.outcomeId || typeof m.outcomeRevision === 'number')).slice(0, 4);
+          if (matches.some(m => m.outcomeId)) {
+            const before = api.get();
+            api.run((w, ctx) => applyGroupMatches(w, ctx, matches));
+            const after = api.get();
+            moved += matches.filter(m => m.outcomeId && (m.kind === 'capture' ? before.captures.find(c => c.id === m.id)?.status === 'pending' && after.captures.find(c => c.id === m.id)?.status !== 'pending' : !before.tasks.find(t => t.id === m.id)?.outcome_id && after.tasks.find(t => t.id === m.id)?.outcome_id === m.outcomeId)).length;
+          }
+        }
+        processed += sources.slice(i, i + 4).length;
+        setMatch({ running: true, processed, total: sources.length, moved, error: '' });
+      }
+      setMatch({ running: false, processed, total: sources.length, moved, error: '' });
+    } catch (e) { if (alive.current) setMatch({ running: false, processed, total: sources.length, moved, error: e instanceof Error ? e.message : 'AI matching is unavailable. Try again later.' }); }
+  };
   return <div className="groups-overview">
     <MobileTopline />
     <div className="groups-intro">
@@ -59,7 +103,8 @@ export function Mission() {
     {dueOpen && <DueList title={dueOpen === 'missed' ? 'Missed' : 'Upcoming'} items={schedule[dueOpen]} />}
 
     <section className="groups-collection" aria-label="Your groups">
-      <h2>Your groups</h2>
+      <div className="groups-collection-head"><h2>Your groups</h2><button type="button" className="groups-match" onClick={matchUngrouped} disabled={match.running || matchableCount === 0}><Icon name="sparkles" size={16} />{match.running ? 'Matching…' : 'Match Ungrouped'}</button></div>
+      {(match.running || match.processed > 0 || match.error) && <p className="groups-match-status" role="status">{match.error || `${match.processed} of ${match.total} checked · ${match.moved} moved${match.running ? '…' : ''}`}</p>}
       <div className="groups-cards">{groups.map((g, index) => { const s = groupSummary(g), t = tone(g, index); return (
         <button key={g.id} className="groups-card" onClick={() => openGroup(g.id)} title={`Updated ${date(s.updatedAt)}`}>
           <span className={`groups-card-icon ${t.className}`}><Icon name={t.icon} size={27} /></span>
