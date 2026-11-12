@@ -55,7 +55,8 @@ def run():
             page.get_by_role("button", name=re.compile(r"^Ungrouped ")).click()
             groups_row = page.locator(".t-row", has_text="Groups contract task")
             groups_checkbox = groups_row.get_by_role("checkbox")
-            groups_checkbox.set_checked(True)
+            # Completion moves the row into the collapsed Done section during the click.
+            groups_checkbox.click()
             page.locator(".t-done summary").click()
             expect(groups_checkbox).to_be_checked()
             assert "is-complete" in (groups_row.get_attribute("class") or "")
