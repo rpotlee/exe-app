@@ -2,7 +2,7 @@
 // The shared database admission lease covers generation through session persistence.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { buildRequest, extractText, type Provider } from '../_shared/ai.ts';
-import { actionsFor, applyEnvelope, assistantFingerprint, buildPrompt, emptyState, guard, MAX_TEXT, MAX_VERSIONS, parseEnvelope, REGISTRY, seenRequest, SYSTEM, type Envelope, type Op, type State } from '../_shared/assistant.ts';
+import { actionsFor, applyEnvelope, assistantFingerprint, authorizedGenerationAction, buildPrompt, emptyState, guard, MAX_TEXT, MAX_VERSIONS, parseEnvelope, REGISTRY, seenRequest, SYSTEM, type Envelope, type Op, type State } from '../_shared/assistant.ts';
 import { AiRuntimeError, aiErrorResponse, withAiProvider } from '../_shared/ai-runtime.ts';
 import { decryptKey } from '../_shared/crypto.ts';
 import { cors, hexToB64, json } from '../_shared/http.ts';
@@ -49,7 +49,7 @@ Deno.serve(async (req: Request) => {
   let message: string | undefined, choice: string | undefined, intent: string | undefined;
   if (op === 'send') { message = typeof body.text === 'string' ? body.text.trim().slice(0, MAX_TEXT) : ''; if (!message) return json({ error: 'Write something first.' }, 400); }
   if (op === 'choose') { const c = context.question?.choices.find(x => x.id === body.choiceId); if (!c) return json({ error: 'That question is no longer open.' }, 409); choice = c.label; }
-  if (op === 'act') { const a = context.actions.find(x => x.id === body.actionId); if (!a || !REGISTRY[a.id] || a.id === 'copy') return json({ error: 'That action is not available.' }, 409); intent = a.id; }
+  if (op === 'act') { intent = authorizedGenerationAction(context, body.actionId) ?? undefined; if (!intent) return json({ error: 'That action is not available.' }, 409); }
   let apiKey: string;
   try { apiKey = await decryptKey(secret, hexToB64(String(s.key_ciphertext))); } catch { return json({ error: 'Your saved key could not be read. Save it again.' }, 500); }
   const prompt = buildPrompt({ entry, kind: cap.kind, op, message, choice, intent, artifact: context.artifact, question: context.question, turns: context.turns });

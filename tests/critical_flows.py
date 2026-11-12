@@ -1,10 +1,11 @@
 """High-value cross-screen behavior checks for the React app.
 
 Run with a Vite server on port 5173. These checks create tasks through the real
-UI, then exercise the same completion contract in List and Status, in both
+UI, then exercise the same completion contract in List and Groups, in both
 themes.
 """
 import os
+import re
 from playwright.sync_api import sync_playwright, expect
 
 BASE = os.environ.get("APP_URL", "http://127.0.0.1:5173/?local=1")
@@ -33,9 +34,9 @@ def run():
             page.wait_for_timeout(500)
 
             list_row = add_task(page, "List contract task")
-            status_setup_row = add_task(page, "Status contract task")
+            groups_setup_row = add_task(page, "Groups contract task")
             list_checkbox = list_row.get_by_role("checkbox")
-            status_setup_row.get_by_role("checkbox").set_checked(False)
+            groups_setup_row.get_by_role("checkbox").set_checked(False)
 
             # Clicking content is not completion.
             before_label = list_checkbox.get_attribute("aria-label")
@@ -49,18 +50,21 @@ def run():
             assert "is-complete" in (list_row.get_attribute("class") or "")
             expect(list_row).to_be_visible()
 
-            # Status has the same contract, including deferred regrouping.
-            page.goto(f"{BASE}&theme={theme}#/status")
-            status_row = page.locator(".check-row", has_text="Status contract task")
-            status_checkbox = status_row.get_by_role("checkbox")
-            status_checkbox.set_checked(False)
-            status_checkbox.set_checked(True)
-            expect(status_checkbox).to_be_checked()
-            assert "is-complete" in (status_row.get_attribute("class") or "")
-            expect(status_row).to_be_visible()
+            # The same task remains checkable in the permanent Ungrouped group.
+            page.goto(f"{BASE}&theme={theme}#/groups")
+            page.get_by_role("button", name=re.compile(r"^Ungrouped ")).click()
+            groups_row = page.locator(".t-row", has_text="Groups contract task")
+            groups_checkbox = groups_row.get_by_role("checkbox")
+            # Completion moves the row into the collapsed Done section during the click.
+            groups_checkbox.click()
+            page.locator(".t-done summary").click()
+            expect(groups_checkbox).to_be_checked()
+            assert "is-complete" in (groups_row.get_attribute("class") or "")
+            expect(groups_row).to_be_visible()
             page.reload()
-            expect(page.get_by_role("checkbox", name="Reopen Status contract task")).to_have_count(0)
-            print(f"PASS {theme}: List and Status completion contract")
+            page.locator(".t-done summary").click()
+            expect(page.get_by_role("checkbox", name="Reopen Groups contract task")).to_be_checked()
+            print(f"PASS {theme}: List and Groups completion contract")
             context.close()
         browser.close()
 

@@ -24,6 +24,8 @@ describe('AI request admission', () => {
     const result = await withAiProvider(admin, 'owner', spec, 'system', 'question', 100, async () => { expect(admin.rpc).toHaveBeenCalledTimes(1); persisted = true; return 'saved'; }, fetcher);
     expect(persisted).toBe(true); expect(result).toBe('saved');
     expect(admin.rpc.mock.calls[1]?.[1]).toMatchObject({ p_used: 90, p_remaining_tokens: 400, p_reset_seconds: 63, p_retry_seconds: 0 });
+    expect(admin.rpc.mock.calls[1]?.[1]).toMatchObject({ p_status: 'ok' });
+    expect(typeof admin.rpc.mock.calls[1]?.[1].p_latency_ms).toBe('number');
     expect(admin.rpc.mock.calls[1]?.[1].p_lease).toBe(admin.rpc.mock.calls[0]?.[1].p_lease);
   });
   it('propagates a sanitized 429 and persists cooldown without exposing the upstream body', async () => {
@@ -35,6 +37,7 @@ describe('AI request admission', () => {
     expect(response.status).toBe(429); expect(response.headers.get('Retry-After')).toBe('12');
     expect(await response.text()).not.toMatch(/secret key|echoed/);
     expect(admin.rpc.mock.calls[1]?.[1]).toMatchObject({ p_retry_seconds: 12, p_remaining_tokens: 0 });
+    expect(admin.rpc.mock.calls[1]?.[1]).toMatchObject({ p_status: 'error' });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it('keeps reservations on ambiguous network failures but refunds a preflight conflict', async () => {

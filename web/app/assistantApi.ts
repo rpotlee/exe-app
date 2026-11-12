@@ -27,8 +27,8 @@ export function cacheState(id: string, s: AssistantState, text?: string, uid?: s
 const DKEY = (id: string) => `exe-assistant-demo:${id}`;
 export const demoAdapter: Adapter = {
   demo: true,
-  async load(id, text) { try { const raw = localStorage.getItem(DKEY(id)); if (raw) { const j = JSON.parse(raw) as { text: string; state: AssistantState }; if (j.text === text) return { state: j.state, stale: false }; } } catch { /* fresh */ } return { state: evaluate(text), stale: false }; },
-  async prepare(id, text) { return (await demoAdapter.load(id, text)).state; },
+  async load(id, text) { try { const raw = localStorage.getItem(DKEY(id)); if (raw) { const j = JSON.parse(raw) as { text: string; state: AssistantState }; if (j.text === text) return { state: j.state, stale: false, prepared: true }; } } catch { /* fresh */ } return { state: emptyState(true), stale: false, prepared: false }; },
+  async prepare(id, text) { const state = evaluate(text); demoSave(id, text, state); return state; },
   async send(id, text, typed) { const n = send(await demoState(id, text), text, typed); demoSave(id, text, n); return n; },
   async choose(id, text, choiceId) { const n = choose(await demoState(id, text), text, choiceId); demoSave(id, text, n); return n; },
   async act(id, text, actionId) { const n = doAction(await demoState(id, text), text, actionId); demoSave(id, text, n); return n; },

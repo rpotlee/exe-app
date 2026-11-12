@@ -6,7 +6,8 @@ import { activeIds, applySuggestion, type Suggestion } from './engine';
 import { currentFocusId, MAX_NOW, type Lane, type RelationshipKind, type Workspace } from './model';
 import { byPosition, stepsOf } from './progress';
 import { type Proposal } from './review';
-import { baseRow, type Ctx, type Row, type Table, type Write } from './writes';
+import { taskFolder } from './scope';
+import { applyWrites, baseRow, type Ctx, type Row, type Table, type Write } from './writes';
 
 export type Result = { ok: true; writes: Write[]; note?: string } | { ok: false; error: string; needsSwap?: boolean };
 const fail = (error: string, extra: { needsSwap?: boolean } = {}): Result => ({ ok: false, error, ...extra });
@@ -145,7 +146,7 @@ export function reopenOutcome(ws: Workspace, ctx: Ctx, id: string): Result {
 export function addTask(ws: Workspace, ctx: Ctx, outcomeId: string | null, name: string): Result {
   const n = trimmed(name); if (!n) return fail('Write the step first.');
   const mates = ws.tasks.filter(t => t.outcome_id === outcomeId), position = mates.reduce((m, t) => Math.max(m, t.position + 1), 0);
-  return done([ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name: n, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources: [] })], 'Step added.');
+  return done([ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name: n, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources: [], group_manual: false })], 'Step added.');
 }
 /** Checking a step records only the step (and when its outcome was last worked on). It never finishes the outcome. */
 export function setTaskDone(ws: Workspace, ctx: Ctx, id: string, isDone: boolean): Result {
@@ -298,7 +299,7 @@ function approveWrites(ws: Workspace, ctx: Ctx, c: { id: string; folder_id: stri
     }
     taskId = itemId = ctx.id();
     const position = ws.tasks.filter(t => t.outcome_id === outcomeId).reduce((m, t) => Math.max(m, t.position + 1), 0);
-    writes.push(ins('tasks', { ...baseRow(ctx), id: itemId, outcome_id: outcomeId ?? null, name: trimmed(a.title), notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources }));
+    writes.push(ins('tasks', { ...baseRow(ctx), id: itemId, outcome_id: outcomeId ?? null, name: trimmed(a.title), notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position, sources, group_manual: false }));
   } else if (a.type === 'Outcome') {
     itemId = ctx.id();
     writes.push(ins('outcomes', { ...baseRow(ctx), id: itemId, folder_id: a.folderId, name: trimmed(a.title).slice(0, 200), description: 'Created from an approved capture.', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources }));
@@ -372,7 +373,7 @@ export function addTasks(ws: Workspace, ctx: Ctx, outcomeId: string | null, name
   const fresh = clean.filter((n, i) => !taken.has(n.toLowerCase()) && clean.findIndex(x => x.toLowerCase() === n.toLowerCase()) === i);
   if (!fresh.length) return fail('Those steps are already there.');
   const start = ws.tasks.filter(t => t.outcome_id === outcomeId).reduce((m, t) => Math.max(m, t.position + 1), 0);
-  return done(fresh.map((name, i) => ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: start + i, sources: [] })),
+  return done(fresh.map((name, i) => ins('tasks', { ...baseRow(ctx), outcome_id: outcomeId, name, notes: '', done_at: null, archived_at: null, deadline: null, effort: null, position: start + i, sources: [], group_manual: false })),
     fresh.length === 1 ? 'Step added.' : `${fresh.length} steps added.`);
 }
 
@@ -464,6 +465,58 @@ export function groupCaptures(ws: Workspace, ctx: Ctx, input: { ids: string[]; n
   }
   writes.push(auditAs(ctx, 'user', 'user-group-ai', null, null, null, { name, n: caps.length, ids: caps.map(c => c.id) }));
   return done(writes, `Grouped ${caps.length} tasks into “${name}”. Their originals are kept in your List.`);
+}
+
+export type GroupDestination = { outcomeId: string | null; newName?: never } | { newName: string; outcomeId?: never };
+export interface GroupMatch { kind: 'capture' | 'task'; id: string; outcomeId: string | null; sourceRevision: number; outcomeRevision: number | null }
+
+/** Move an existing entry through the established Task/Outcome model. A raw capture keeps its original List row. */
+export function moveGroupEntry(ws: Workspace, ctx: Ctx, key: string, target: GroupDestination, actor: 'user' | 'ai' = 'user'): Result {
+  const newName = 'newName' in target ? trimmed(target.newName ?? '').slice(0, 200) : '';
+  if ('newName' in target && !newName) return fail('Name the new group.');
+  const targetId = 'outcomeId' in target ? target.outcomeId ?? null : null;
+  const outcome = targetId ? ws.outcomes.find(o => o.id === targetId && !o.done_at) : null;
+  if (targetId && !outcome) return fail('That group is no longer available.');
+  const kind = key[0], id = key.slice(1);
+  if (kind === 'c') {
+    const c = capture(ws, id);
+    if (!c || c.kind !== 'todo' || c.status !== 'pending' || c.archived_at) return fail('That List entry is no longer ungrouped.');
+    if (!targetId && !newName) return fail('This List entry is already ungrouped.');
+    const result = approveCapture(ws, ctx, id, { type: 'Task', folderId: newName ? c.folder_id : (outcome?.folder_id ?? c.folder_id), outcomeId: targetId, ...(newName ? { newOutcomeName: newName } : {}), title: c.edited_text ?? c.text });
+    if (!result.ok) return result;
+    for (const w of result.writes) if (w.table === 'tasks' && w.op === 'insert') { w.row.group_manual = actor === 'user'; if (c.completed_at) w.row.done_at = c.completed_at; }
+    return done([...result.writes, auditAs(ctx, actor, actor === 'ai' ? 'ai-group-applied' : 'group-move', 'capture', id, { group: null }, { group: targetId ?? newName })], `Moved to ${outcome?.name ?? newName}.`);
+  }
+  if (kind !== 't') return fail('That task was not found.');
+  const t = ws.tasks.find(x => x.id === id && !x.archived_at);
+  if (!t) return fail('That task was not found.');
+  if (targetId === t.outcome_id && !newName) return fail('That task is already in this group.');
+  if (newName) {
+    const oid = ctx.id(), row = { ...baseRow(ctx), id: oid, folder_id: taskFolder(ws, t), name: newName, description: '', pinned: false, deadline: null, effort: null, done_at: null, last_worked_at: null, sources: [] };
+    return done([ins('outcomes', row), ins('focus_assignments', { ...baseRow(ctx), outcome_id: oid, lane: 'later', position: ws.focus.length }), upd('tasks', t, { outcome_id: oid, position: 0, group_manual: actor === 'user' }),
+      auditAs(ctx, actor, actor === 'ai' ? 'ai-group-applied' : 'group-move', 'task', id, { group: t.outcome_id }, { group: oid })], `Moved to ${newName}.`);
+  }
+  const edited = editTask(ws, id, { name: t.name, outcomeId: targetId });
+  if (!edited.ok) return edited;
+  for (const w of edited.writes) if (w.table === 'tasks' && w.op === 'update') w.row.group_manual = actor === 'user';
+  return done([...edited.writes, auditAs(ctx, actor, actor === 'ai' ? 'ai-group-applied' : 'group-move', 'task', id, { group: t.outcome_id }, { group: targetId })], targetId ? `Moved to ${outcome?.name}.` : 'Moved to Ungrouped.');
+}
+
+/** One bounded AI result. Revision checks preserve any concurrent edit or manual group correction. */
+export function applyGroupMatches(ws: Workspace, ctx: Ctx, matches: GroupMatch[]): Result {
+  if (matches.length > 4) return fail('Too many matches in one batch.');
+  let current = ws; const writes: Write[] = []; let applied = 0;
+  for (const match of matches) {
+    if (!match.outcomeId) continue;
+    const source = match.kind === 'capture' ? current.captures.find(c => c.id === match.id && c.kind === 'todo' && c.status === 'pending' && !c.archived_at)
+      : current.tasks.find(t => t.id === match.id && !t.outcome_id && !t.group_manual && !t.archived_at);
+    const outcome = current.outcomes.find(o => o.id === match.outcomeId && !o.done_at);
+    if (!source || source.revision !== match.sourceRevision || !outcome || outcome.revision !== match.outcomeRevision) continue;
+    const result = moveGroupEntry(current, ctx, `${match.kind === 'capture' ? 'c' : 't'}${match.id}`, { outcomeId: match.outcomeId }, 'ai');
+    if (!result.ok) continue;
+    writes.push(...result.writes); current = applyWrites(current, result.writes); applied++;
+  }
+  return done(writes, applied ? `Matched ${applied} ${applied === 1 ? 'task' : 'tasks'} to groups.` : 'No current matches to apply.');
 }
 
 // ------------------------------------------------------------------ kind, priority and moves (revamp phase 1)

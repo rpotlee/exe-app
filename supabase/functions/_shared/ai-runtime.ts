@@ -37,14 +37,16 @@ export function usageTokens(data: unknown): number | null {
 }
 
 /** Hold the lease through validation and session persistence, not merely through the HTTP request. */
-export async function withAiProvider<T>(admin: RpcClient, owner: string, spec: ReqSpec, system: string, user: string, outputTokens: number, consume: (data: unknown) => Promise<T> | T, fetcher: typeof fetch = fetch, beforeFetch?: () => Promise<void>): Promise<T> {
+export async function withAiProvider<T>(admin: RpcClient, owner: string, spec: ReqSpec, system: string, user: string, outputTokens: number, consume: (data: unknown) => Promise<T> | T, fetcher: typeof fetch = fetch, beforeFetch?: () => Promise<void>, requestClass: 'interactive' | 'background' = 'interactive', routeModel: string | null = null): Promise<T> {
   if (new TextEncoder().encode(system + '\n' + user).length > MAX_INPUT_BYTES) throw new AiRuntimeError('This request is too large. Select fewer entries or shorten the text.', 400, 'AI_INPUT_TOO_LARGE');
   const reserved = reservationTokens(system, user, outputTokens), lease = crypto.randomUUID();
-  const claim = await admin.rpc('exe_ai_acquire', { p_owner: owner, p_lease: lease, p_tokens: reserved });
+  const claim = await admin.rpc('exe_ai_acquire', { p_owner: owner, p_lease: lease, p_tokens: reserved, p_class: requestClass, ...(routeModel ? { p_model: routeModel } : {}) });
   if (claim.error || !claim.data || typeof claim.data !== 'object') throw new AiRuntimeError('AI request protection is not available yet. Your saved work is safe.', 503, 'AI_GATE_UNAVAILABLE');
-  const gate = claim.data as { granted?: boolean; retryAfterSeconds?: number };
-  if (!gate.granted) throw new AiRuntimeError('AI is paused briefly to stay within your provider limits. Try again after the countdown.', 429, 'AI_COOLDOWN', boundedSeconds(Number(gate.retryAfterSeconds) || 60));
+  const gate = claim.data as { granted?: boolean; retryAfterSeconds?: number; code?: string };
+  if (!gate.granted) throw new AiRuntimeError(gate.code === 'DAILY_BUDGET' ? 'The daily AI budget is used. Your saved work is safe; try again tomorrow.' : gate.code === 'BACKGROUND_DISABLED' ? 'Background AI is turned off.' : 'AI is paused briefly to stay within your provider limits. Try again after the countdown.', 429, gate.code === 'DAILY_BUDGET' ? 'AI_DAILY_BUDGET' : gate.code === 'BACKGROUND_DISABLED' ? 'AI_BACKGROUND_DISABLED' : 'AI_COOLDOWN', boundedSeconds(Number(gate.retryAfterSeconds) || 60));
   let used: number | null = 0, cooldown = 0, remaining: number | null = null, reset = 60;
+  let status: 'ok' | 'error' | 'unknown' = 'unknown';
+  const started = Date.now();
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25_000);
   try {
     if (beforeFetch) await beforeFetch();
@@ -57,17 +59,22 @@ export async function withAiProvider<T>(admin: RpcClient, owner: string, spec: R
     if (!response.ok) {
       if (response.status === 429) {
         cooldown = retrySeconds(response.headers.get('retry-after'), reset);
+        status = 'error';
         throw new AiRuntimeError('Your provider has reached a rate or spending limit. AI is paused; your saved work is safe.', 429, 'AI_COOLDOWN', cooldown);
       }
+      status = 'error';
       throw new AiRuntimeError(response.status === 401 || response.status === 403 ? 'Your provider rejected the key. Check it and save it again.' : response.status === 404 ? 'Your provider does not know that model name. Check it in Settings.' : 'Your AI provider could not complete this request.', 502, 'AI_PROVIDER_ERROR');
     }
     let data: unknown;
     try { data = await response.json(); } catch { throw new AiRuntimeError('Your provider did not return a usable answer.', 502, 'AI_INVALID_RESPONSE'); }
     used = usageTokens(data);
-    return await consume(data);
+    status = 'error'; // a schema or persistence failure is known, even if the provider returned HTTP 200
+    const result = await consume(data);
+    status = 'ok';
+    return result;
   } finally {
     clearTimeout(timer);
     // Keep reservations on ambiguous failures/timeouts. The expiring, fenced lease remains safe if cleanup fails.
-    try { await admin.rpc('exe_ai_release', { p_owner: owner, p_lease: lease, p_reserved: reserved, p_used: used, p_retry_seconds: cooldown, p_remaining_tokens: remaining, p_reset_seconds: reset }); } catch { /* expiry recovers after an unavailable database */ }
+    try { await admin.rpc('exe_ai_release', { p_owner: owner, p_lease: lease, p_reserved: reserved, p_used: used, p_retry_seconds: cooldown, p_remaining_tokens: remaining, p_reset_seconds: reset, p_status: status, p_latency_ms: Math.min(120000, Date.now() - started) }); } catch { /* expiry recovers after an unavailable database */ }
   }
 }

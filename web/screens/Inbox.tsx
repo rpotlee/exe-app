@@ -6,7 +6,7 @@ import { labelFor } from '../../src/domain/mission';
 import { useApp } from '../app/context';
 import { PageHeading } from '../app/Heading';
 import { Icon } from '../ui/Icon';
-import { AskExe, HelpChip, HelpPanel } from '../ui/HelpPanel';
+import { opportunityLabel } from '../../src/domain/assistScreen';
 
 const localInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const niceWhen = (iso: string) => new Date(iso).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -17,15 +17,16 @@ const compactWhen = (iso: string) => {
 };
 const niceDate = (iso: string) => { try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch { return ''; } };
 const KIND_LABEL: Record<KindFilter, string> = { everything: 'All', todo: 'Tasks', note: 'Notes', reminder: 'Reminders' };
+const OPPORTUNITIES_ENABLED = import.meta.env.VITE_PROACTIVE_AI_OPPORTUNITIES !== 'false';
 
 /** List: everything captured, as Tasks, Notes and Reminders, for All or one folder. It works with no AI at all.
  *  A type filter is only a view. Checking a task changes nothing else. */
 export function List() {
-  const { api, modal, scope, assistState, priorityMode } = useApp();
+  const { api, modal, scope, assistState, priorityMode, openEntry, assistantDemo } = useApp();
   const ws = api.ws;
   const scopeName = scope.kind === 'folder' ? (ws.folders.find(f => f.id === scope.id)?.name ?? 'All') : 'All';
   const [kind, setKind] = useState<KindFilter>(() => (sessionStorage.getItem('exe-kind-filter') as KindFilter | null) ?? 'everything');
-  const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set()), [helpOpen, setHelpOpen] = useState<string | null>(null);
+  const [archived, setArchived] = useState(false), [open, setOpen] = useState<Set<string>>(new Set());
   // Keep a task in its current list until this screen is revisited. Completion
   // is still persisted immediately, but regrouping is intentionally deferred.
   const [completedHere, setCompletedHere] = useState<Set<string>>(new Set());
@@ -41,11 +42,11 @@ export function List() {
   const toggle = (id: string) => setOpen(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const submit = (e: React.FormEvent) => { e.preventDefault(); const box = (e.currentTarget as HTMLFormElement).querySelector('textarea'); if (addKind === 'reminder' && !when) return; if (api.run((w, c) => addCaptures(w, c, draft, 'List', { kind: addKind, folderId: scope.kind === 'folder' ? scope.id : null, remindAt: addKind === 'reminder' ? new Date(when).toISOString() : null }))) { setDraft(''); setWhen(''); setArchived(false); if (box) box.style.height = ''; } };
 
-  const row = (c: typeof all[number]) => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c); return (
+  const row = (c: typeof all[number]) => { const text = c.edited_text ?? c.text, isOpen = open.has(c.id), k = kindOf(c), opportunity = opportunityLabel(text, k); return (
             <li key={c.id} className={`raw-row kind-${k} ${c.completed_at ? 'is-complete' : ''}`}>
               {k === 'todo' ? <label className="raw-check"><input type="checkbox" checked={!!c.completed_at} aria-label={`${c.completed_at ? 'Reopen' : 'Complete'} ${text}`} onChange={e => { const checked = e.target.checked; if (api.run((w, cx) => setCaptureDone(w, cx, c.id, checked))) setCompletedHere(s => { const n = new Set(s); if (checked) n.add(c.id); else n.delete(c.id); return n; }); }} /><span className="raw-text" onClick={e => e.preventDefault()}>{text}</span>{priorityMode !== 'off' && (() => { const lb = labelFor(c, { priorities: assistState.prios, groups: [] }, priorityMode); return (lb.level || priorityMode === 'ai') ? <PriorityDot captureId={c.id} level={lb.level} fromAi={lb.fromAi} why={lb.why} text={text} /> : null; })()}</label>
                 : <div className="raw-check kind-body"><Icon name={k === 'note' ? 'file-text' : 'bell'} mobileName={k === 'note' ? 'mobile-note' : 'mobile-bell'} className="kind-icon" /><span className={`raw-text ${k === 'note' ? 'note-preview' : ''}`}>{text}</span>{c.remind_at && <span className={`pill ${!c.remind_done_at && Date.parse(c.remind_at) <= Date.now() ? 'pill-due' : ''}`}>{c.remind_done_at ? 'Dismissed' : <time dateTime={c.remind_at} title={niceWhen(c.remind_at)}><span className="reminder-date-wide">{niceWhen(c.remind_at)}</span><span className="reminder-date-compact">{compactWhen(c.remind_at)}</span></time>}</span>}{k === 'reminder' && !c.remind_at && <span className="pill">No time set</span>}</div>}
-              {!c.completed_at && !c.archived_at && <HelpChip id={c.id} open={helpOpen === c.id} onToggle={() => setHelpOpen(o => (o === c.id ? null : c.id))} />}
+              {OPPORTUNITIES_ENABLED && !c.completed_at && !c.archived_at && opportunity && (assistantDemo || assistState.ready) && <button type="button" className="help-chip" aria-label={`${opportunity} for ${text}`} onClick={() => openEntry(c.id)}><Icon name="sparkles" />{opportunity}</button>}
               <button className="raw-more" aria-label={`More actions for ${text}`} aria-expanded={isOpen} aria-controls={`capture-details-${c.id}`} onClick={() => toggle(c.id)}><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
               <div className="raw-detail-panel" id={`capture-details-${c.id}`} hidden={!isOpen}>
                 <p className="raw-meta">{niceDate(c.created_at)} · {k === 'todo' ? 'Task' : k === 'note' ? 'Note' : 'Reminder'} · {c.folder_id ? `Folder: ${ws.folders.find(f => f.id === c.folder_id)?.name ?? 'Unfiled'}` : 'Unfiled'}{c.completed_at ? ` · Done ${niceDate(c.completed_at)}` : ''}</p>
@@ -56,10 +57,9 @@ export function List() {
                   {k !== 'note' && <label className="file-field"><span className="small-note">Remind me</span><select className="select" aria-label={`Remind me: ${text}`} value="" onChange={e => { const v = e.target.value; if (v === 'clear') api.run((w, cx) => setReminder(w, cx, c.id, null)); else if (v) api.run((w, cx) => setReminder(w, cx, c.id, v)); }}><option value="">{c.remind_at ? niceWhen(c.remind_at) : 'Not set'}</option>{reminderChoices(new Date()).map(ch => <option key={ch.label} value={ch.at.toISOString()}>{ch.label}</option>)}{c.remind_at && <option value="clear">Remove reminder</option>}</select></label>}
                   {k === 'todo' && <label className="file-field"><span className="small-note">Priority</span><select className="select" aria-label={`Priority: ${text}`} value={c.user_priority ?? ''} onChange={e => api.run((w, cx) => setCapturePriority(w, cx, c.id, (e.target.value || null) as 'high' | 'medium' | 'low' | null))}><option value="">None</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>}
                 </div>
-                <div className="raw-actions">{!c.completed_at && !c.archived_at && <AskExe id={c.id} onAsked={() => setHelpOpen(c.id)} />}<button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
+                <div className="raw-actions">{!c.completed_at && !c.archived_at && <button type="button" className="mini-button" onClick={() => openEntry(c.id)}>Ask Exe</button>}<button className="mini-button" onClick={() => modal({ kind: 'captureEdit', id: c.id })}>Edit</button>
                   <button className="mini-button" onClick={() => api.run((w, cx) => archiveCapture(w, cx, c.id, !c.archived_at))}>{c.archived_at ? 'Restore' : 'Archive'}</button></div>
               </div>
-              {helpOpen === c.id && <HelpPanel id={c.id} text={text} />}
             </li>); };
 
   return (

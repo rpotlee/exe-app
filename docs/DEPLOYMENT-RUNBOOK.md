@@ -1,5 +1,7 @@
 # Exe production deployment runbook
 
+> Historical release notes. For the current Proactive AI rollout, use [PROACTIVE-AI-ROLLOUT.md](PROACTIVE-AI-ROLLOUT.md) and `CURRENT_STATE.md`; hosting and migration state below may be outdated.
+
 Project ref: `ifwzslpfxgwfgtyduyuo`. Site: Netlify (auto-deploys from `main`). **Nothing below has been done yet.** Each step marked 🔑 needs the owner's explicit go-ahead; Claude stops before them.
 
 ## What is being released

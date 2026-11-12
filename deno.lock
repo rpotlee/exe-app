@@ -1,0 +1,28 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@supabase/supabase-js@2": "2.119.0"
+  },
+  "jsr": {
+    "@supabase/supabase-js@2.119.0": {
+      "integrity": "1bb0b15e3953d973ddea394ad12a0759752965bf319367b18465572d10968707"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@electric-sql/pglite@~0.5.15",
+        "npm:@supabase/supabase-js@^2.119.0",
+        "npm:@types/node@^26.6.6",
+        "npm:@types/react-dom@^19.3.0",
+        "npm:@types/react@^19.3.0",
+        "npm:@vitejs/plugin-react@^6.2.1",
+        "npm:react-dom@^19.3.1",
+        "npm:react@^19.3.1",
+        "npm:typescript@^7.0.2",
+        "npm:vite@^8.3.6",
+        "npm:vitest@^5.1.0"
+      ]
+    }
+  }
+}

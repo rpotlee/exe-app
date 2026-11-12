@@ -4,7 +4,7 @@
 import type { AuditEvent, Workspace } from './model';
 
 export interface AiEventInput { action: string; entityType?: string | null; entityId?: string | null; after?: Record<string, unknown> }
-export const AI_ACTIONS = ['user-priority-ai', 'user-group-ai', 'ai-failed', 'ai-priorities', 'ai-help', 'ai-group', 'ai-depends'] as const;   // order only breaks ties between events logged in the same instant
+export const AI_ACTIONS = ['user-priority-ai', 'user-group-ai', 'ai-failed', 'ai-priorities', 'ai-help', 'ai-group', 'ai-depends', 'ai-analysis'] as const;   // order only breaks ties between events logged in the same instant
 export type Tone = 'high' | 'medium' | 'low' | 'fail' | 'name';
 export type Part = string | { t: string; tone: Tone };
 export interface Line { id: string; at: string; parts: Part[]; text: string; by: 'ai' | 'you' }
@@ -29,6 +29,7 @@ export function describe(ws: Workspace, e: AuditEvent): Line | null {
     }
     case 'ai-group': return mk([`Suggested grouping ${Array.isArray(a.ids) ? a.ids.length : 'some'} tasks as `, grp(a.name)]);
     case 'ai-depends': return mk(['Noticed ', cap(a.after, 30), ' may depend on ', cap(a.before, 30)]);
+    case 'ai-analysis': return mk([`Reviewed ${Number(a.entries) || 0} List ${Number(a.entries) === 1 ? 'entry' : 'entries'} and saved ${Number(a.groups) || 0} possible ${Number(a.groups) === 1 ? 'group' : 'groups'}.`]);
     case 'ai-failed': return mk([{ t: 'Couldn’t prepare help', tone: 'fail' }, a.message ? `: ${snip(String(a.message), 90)}` : '']);
     case 'user-group-ai': return mk([`Grouped ${a.n} tasks as `, grp(a.name), ' from the AI’s suggestion'], 'you');
     case 'user-priority-ai': { const parts: Part[] = ['Set ', cap(e.entity_id), ' to ', lv(a.level), ' priority']; if (b.ai) parts.push(' (the AI suggested ', lv(b.ai), ')'); return mk(parts, 'you'); }

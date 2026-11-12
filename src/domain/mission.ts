@@ -1,11 +1,11 @@
 // Priority labels (revamp spec §6.4, owner direction DEC-016): the person's own label, or the AI's suggestion shown as such. The person's always wins,
 // and labels can be turned off entirely.
 import type { Capture, Task, Workspace } from './model';
-import { captureIn, kindOf, outcomeIn, type Scope } from './scope';
+import { captureIn, kindOf, outcomeIn, taskIn, type Scope } from './scope';
 
 export type Level = 'high' | 'medium' | 'low';
 export type PriorityMode = 'ai' | 'mine' | 'off';
-export interface AiHints { priorities: Record<string, { level: Level; why: string }>; groups: { name: string; ids: string[] }[] }
+export interface AiHints { priorities: Record<string, { level: Level; why: string }>; groups: { name: string; ids: string[]; updatedAt?: string }[] }
 
 
 export function labelFor(c: Capture | undefined, hints: AiHints, mode: PriorityMode): { level: Level | null; fromAi: boolean; why: string } {
@@ -16,7 +16,7 @@ export function labelFor(c: Capture | undefined, hints: AiHints, mode: PriorityM
 }
 
 export interface MissionTask { key: string; kind: 'capture' | 'task'; id: string; captureId: string | null; text: string; done: boolean; level: Level | null; fromAi: boolean; why: string }
-export interface MissionGroup { id: string; name: string; kind: 'outcome' | 'suggested' | 'rest'; outcomeId: string | null; lane: string | null; captureIds: string[]; tasks: MissionTask[] }
+export interface MissionGroup { id: string; name: string; kind: 'outcome' | 'suggested' | 'rest'; outcomeId: string | null; lane: string | null; captureIds: string[]; tasks: MissionTask[]; updatedAt: string | null }
 export interface Counts { total: number; high: number; medium: number; low: number; none: number }
 
 const RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
@@ -28,6 +28,10 @@ export function countsOf(tasks: MissionTask[]): Counts {
   const open = tasks.filter(t => !t.done), n = (l: Level | null) => open.filter(t => t.level === l).length;
   return { total: open.length, high: n('high'), medium: n('medium'), low: n('low'), none: n(null) };
 }
+export function groupSummary(g: MissionGroup): { completion: number; remaining: number; updatedAt: string | null } {
+  const remaining = g.tasks.filter(t => !t.done).length;
+  return { completion: g.tasks.length ? Math.round((g.tasks.length - remaining) * 100 / g.tasks.length) : 0, remaining, updatedAt: g.updatedAt };
+}
 
 /** Everything open, as groups: your outcomes (by lane), AI-suggested groups (provisional until you act), then one group for whatever is not grouped yet. */
 export function missionGroups(ws: Workspace, scope: Scope, hints: AiHints, mode: PriorityMode): MissionGroup[] {
@@ -36,19 +40,24 @@ export function missionGroups(ws: Workspace, scope: Scope, hints: AiHints, mode:
   for (const o of ws.outcomes.filter(x => !x.done_at && outcomeIn(scope, x))) {
     const steps = ws.tasks.filter((t: Task) => t.outcome_id === o.id && !t.archived_at).sort((a, b) => a.position - b.position);
     const tasks = steps.map((t): MissionTask => { const src = t.sources.map(id => caps.get(id)).find(Boolean); return { key: 't' + t.id, kind: 'task', id: t.id, captureId: src?.id ?? null, text: t.name, done: !!t.done_at, ...labelFor(src, hints, mode) }; }).sort(order);
-    groups.push({ id: 'o' + o.id, name: o.name, kind: 'outcome', outcomeId: o.id, lane: ws.focus.find(f => f.outcome_id === o.id)?.lane ?? null, captureIds: [], tasks });
+    groups.push({ id: 'o' + o.id, name: o.name, kind: 'outcome', outcomeId: o.id, lane: ws.focus.find(f => f.outcome_id === o.id)?.lane ?? null, captureIds: [], tasks, updatedAt: [o.updated_at,...steps.map(t => t.updated_at)].sort().at(-1) ?? null });
   }
   groups.sort((a, b) => (LANE_RANK[a.lane ?? ''] ?? 3) - (LANE_RANK[b.lane ?? ''] ?? 3) || a.name.localeCompare(b.name));
-  const free = ws.captures.filter(c => kindOf(c) === 'todo' && !c.archived_at && c.status === 'pending' && captureIn(scope, c));      // not turned into steps yet
+  const represented = new Set(ws.tasks.filter(t => !t.archived_at).flatMap(t => t.sources));
+  const free = ws.captures.filter(c => kindOf(c) === 'todo' && !c.archived_at && c.status === 'pending' && !represented.has(c.id) && captureIn(scope, c));
   const freeIds = new Set(free.map(c => c.id)), claimed = new Set<string>(), suggested: MissionGroup[] = [];
   const mk = (c: Capture): MissionTask => ({ key: 'c' + c.id, kind: 'capture', id: c.id, captureId: c.id, text: c.edited_text ?? c.text, done: !!c.completed_at, ...labelFor(c, hints, mode) });
   for (const g of hints.groups) {
     const ids = g.ids.filter(i => freeIds.has(i) && !claimed.has(i)); if (ids.length < 2) continue;
     ids.forEach(i => claimed.add(i));
-    suggested.push({ id: 's' + ids.slice().sort().join('+'), name: g.name, kind: 'suggested', outcomeId: null, lane: null, captureIds: ids, tasks: ids.map(i => mk(caps.get(i) as Capture)).sort(order) });
+    suggested.push({ id: 's' + ids.slice().sort().join('+'), name: g.name, kind: 'suggested', outcomeId: null, lane: null, captureIds: ids, tasks: ids.map(i => mk(caps.get(i) as Capture)).sort(order), updatedAt: [g.updatedAt ?? '',...ids.map(i => caps.get(i)?.updated_at ?? '')].sort().at(-1) || null });
   }
-  const rest = free.filter(c => !claimed.has(c.id)).slice().reverse().map(mk).sort(order);        // newest first
+  const loose = ws.tasks.filter(t => !t.outcome_id && !t.archived_at && taskIn(ws, scope, t)).map((t): MissionTask => {
+    const src = t.sources.map(id => caps.get(id)).find(Boolean);
+    return { key: 't' + t.id, kind: 'task', id: t.id, captureId: src?.id ?? null, text: t.name, done: !!t.done_at, ...labelFor(src, hints, mode) };
+  });
+  const rest = [...free.filter(c => !claimed.has(c.id)).slice().reverse().map(mk), ...loose].sort(order);
   const out = [...groups, ...suggested];
-  if (rest.length) out.push({ id: 'rest', name: 'Not grouped yet', kind: 'rest', outcomeId: null, lane: null, captureIds: rest.map(t => t.id), tasks: rest });
+  out.push({ id: 'rest', name: 'Ungrouped', kind: 'rest', outcomeId: null, lane: null, captureIds: rest.filter(t => t.kind === 'capture').map(t => t.id), tasks: rest, updatedAt: rest.map(t => t.kind === 'capture' ? caps.get(t.id)?.updated_at ?? '' : ws.tasks.find(x => x.id === t.id)?.updated_at ?? '').sort().at(-1) || null });
   return out;
 }

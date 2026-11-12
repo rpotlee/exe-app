@@ -1,13 +1,12 @@
 import type { AssistItem } from './ai';
 import { emptyState, type AssistantState, type Artifact } from '../../src/domain/assistant';
-import { evaluate } from './demoAssistant';
 import { cachedState } from './assistantApi';
 
 const key = (id: string) => `exe-assistant-demo:${id}`;
 /** Demo assistant state for an entry: what was saved on this device, else what the demo rules say about the text. Device-only, labeled Demo. */
 export function loadDemo(id: string, text: string): AssistantState {
   try { const raw = localStorage.getItem(key(id)); if (raw) { const j = JSON.parse(raw) as { text: string; state: AssistantState }; if (j.text === text) return j.state; } } catch { /* start fresh */ }
-  return evaluate(text);
+  return emptyState(true);
 }
 export function saveDemo(id: string, text: string, state: AssistantState): void { try { localStorage.setItem(key(id), JSON.stringify({ text, state })); } catch { /* device storage is best effort */ } }
 

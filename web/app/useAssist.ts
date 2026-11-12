@@ -15,23 +15,33 @@ export function useAssist(ai: AssistClient | null, ws: Workspace, log?: (events:
     if (!ai) { review.configure(owner, null); return; }
     const refresh = () => {
       const request = ++generation; review.deactivate();
-      ai.settings().then(s => { if (active && request === generation) review.configure(owner, s); }).catch(() => { if (active && request === generation) review.configure(owner, null); });
+      ai.settings().then(async s => {
+        if (!active || request !== generation) return;
+        review.configure(owner, s ? { ...s, model: s.analysis_model ?? s.model } : null);
+        if (s?.enabled && ai.savedIntelligence) {
+          try { const saved = await ai.savedIntelligence(); if (active && request === generation) review.hydrate(saved); }
+          catch { /* An older server may not have the additive table yet. Local suggestions remain available. */ }
+        }
+      }).catch(() => { if (active && request === generation) review.configure(owner, null); });
     };
     const off = onAiSettingsChanged(owner, refresh); refresh();
     return () => { active = false; off(); review.deactivate(); };
   }, [ai, owner, review]);
   useEffect(() => {
-    review.update(ws.captures.filter(c => !c.archived_at && !c.completed_at && (c.edited_text ?? c.text).trim().length >= 6)
-      .map(c => ({ id: c.id, text: c.edited_text ?? c.text, kind: c.kind ?? 'todo' })));
+    review.update(ws.captures.filter(c => c.kind === 'todo' && c.status === 'pending' && !c.archived_at && !c.completed_at && (c.edited_text ?? c.text).trim().length >= 6)
+      .map(c => ({ id: c.id, text: c.edited_text ?? c.text, kind: c.kind ?? 'todo', revision: c.revision })));
   }, [review, ws.captures]);
   const again = useCallback(async () => {
     const r = await review.run(); if (!r) return;
+    if (ai?.savedIntelligence) {
+      try { review.hydrate(await ai.savedIntelligence()); } catch { /* the local result remains available */ }
+    }
     const events: AiEventInput[] = r.items.map(it => ({ action: 'ai-help', entityType: 'capture', entityId: it.captureId, after: { kind: it.kind } }));
     const ps = r.priorities ?? [];
     if (ps.length) events.push({ action: 'ai-priorities', after: { total: ps.length, high: ps.filter(p => p.level === 'high').length, medium: ps.filter(p => p.level === 'medium').length, low: ps.filter(p => p.level === 'low').length } });
     for (const g of r.groups) events.push({ action: 'ai-group', after: { name: g.name, ids: g.ids } });
     for (const d of r.dependencies) events.push({ action: 'ai-depends', after: { before: d.before, after: d.after } });
     if (events.length) logger.current?.(events);
-  }, [review]);
+  }, [review, ai]);
   return { ...review.view(), dismiss: review.dismiss, again };
 }

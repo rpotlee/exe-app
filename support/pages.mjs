@@ -13,12 +13,12 @@ export const pages = [
 <div class="cards">
   <a class="card-link" href="getting-started.html"><strong>Getting started</strong><span>Your first 10 minutes, step by step.</span></a>
   <a class="card-link" href="list.html"><strong>The List</strong><span>Tasks, notes and reminders, with no AI needed.</span></a>
-  <a class="card-link" href="status-and-tasks.html"><strong>Status and All tasks</strong><span>What to work on, grouped.</span></a>
+  <a class="card-link" href="status-and-tasks.html"><strong>Groups and All tasks</strong><span>Related work and dependencies.</span></a>
   <a class="card-link" href="faq.html"><strong>Questions and fixes</strong><span>Plain answers, and what to do when something looks wrong.</span></a>
 </div>
 <h2>The five tabs</h2>
 <ul class="topic-list">
-  <li><strong>Status</strong>: your top tasks and your groups.</li>
+  <li><strong>Groups</strong>: related tasks and their progress.</li>
   <li><strong>List</strong>: everything you save. Quick, checkable, always works.</li>
   <li><strong>Activity</strong> (<strong>Activity Log</strong> on a computer): a timeline of what the AI did and what you decided.</li>
 </ul>
@@ -27,7 +27,7 @@ export const pages = [
   <li><a href="getting-started.html">Getting started</a></li>
   <li><a href="list.html">The List: tasks, notes and reminders</a></li>
   <li><a href="reminders.html">Reminders</a></li>
-  <li><a href="status-and-tasks.html">Status, All tasks and groups</a></li>
+  <li><a href="status-and-tasks.html">Groups and All tasks</a></li>
   <li><a href="assistant.html">The AI assistant for a task</a></li>
   <li><a href="activity-log.html">Activity Log</a></li>
   <li><a href="folders.html">Folders</a></li>
@@ -53,7 +53,7 @@ ${steps([
 <h2>3. Use your List</h2>
 <p>Open <strong>List</strong>. Tick the round box to finish a task. Use the three dots on a row to change its type, move it to a folder, set a priority, edit or archive it. Details are in <a href="list.html">The List</a>.</p>
 <h2>4. See what to work on</h2>
-<p>Open <strong>Status</strong>. The <strong>All tasks</strong> card shows your top tasks, high priority first. Press <strong>View all tasks</strong> to see everything. Below it, <strong>Groups</strong> collects related tasks. See <a href="status-and-tasks.html">Status, All tasks and groups</a>.</p>
+<p>Open <strong>Groups</strong> to see related tasks and their progress. Use <strong>New group</strong> to create one yourself. See <a href="status-and-tasks.html">Groups and All tasks</a>.</p>
 <h2>5. Optional: turn on AI</h2>
 <p>Exe works fully without AI. If you want suggestions and drafts, follow <a href="ai-setup.html">Turning on AI with your own key</a>.</p>` },
 
@@ -89,16 +89,16 @@ ${steps([
 <p>A banner appears with <strong>1 hour</strong> and <strong>Tomorrow</strong> to snooze it, and <strong>Dismiss</strong> to clear it. Dismissing only clears the reminder; the entry stays in your List.</p>
 ${warn('Reminders show only while Exe is open. Exe does not send notifications, texts, emails or calendar invitations. If you have the page open or come back to it, a due reminder appears within about 30 seconds.')}` },
 
-{ slug: 'status-and-tasks', title: 'Status, All tasks and groups', nav: 'Status', summary: 'See what to work on, grouped.', body: `
-<p class="lead">Status is your home screen.</p>
-<h2>All tasks</h2>
-<p>The large card shows your top tasks (3 on a phone, 5 on a computer), high priority first. Press <strong>View all tasks</strong> to open the full screen: tasks sorted into High, Medium, Low and No priority, with a <strong>Done</strong> section you can open.</p>
+{ slug: 'status-and-tasks', title: 'Groups and All tasks', nav: 'Groups', summary: 'See related work and what remains.', body: `
+<p class="lead">Groups brings related List entries together.</p>
+<h2>Progress and timing</h2>
+<p>The overall ring counts each visible task or to-do once. Each group card shows its own completed percentage and remaining tasks. <strong>Missed</strong> includes unfinished work with a passed deadline or active reminder; <strong>Upcoming</strong> covers the next seven days. Tap a tile to see its items.</p>
 <h2>The AI mark</h2>
 <p>A small sparkle on a task means the AI has looked at it. Filled means it has a question for you. Press it to open details and the assistant. Tapping the task text just shows its details.</p>
 <h2>Groups</h2>
-<p>Under the card, <strong>Groups</strong> collects related tasks. Each group shows how many tasks it has and how many are High, Medium and Low. Tasks that are not in a group wait in <strong>Not grouped yet</strong>. Open a group to see its tasks and the AI help for each.</p>
+<p>Each card shows its name, completion percentage, and remaining entries. <strong>Ungrouped</strong> is always present. Open a group to see its tasks and any suggested dependencies. Use <strong>New group</strong> to create a group and add tasks yourself.</p>
 <p>The AI can suggest a group name for tasks that belong together. It only becomes a group when you accept it.</p>
-${note('Everything on these screens is real. If you have no tasks, Status says so instead of showing examples.')}` },
+${note('AI suggestions never replace groups you created or corrected.')}` },
 
 { slug: 'assistant', title: 'The AI assistant for a task', nav: 'AI assistant', summary: 'Ask for a draft, an answer or a next step.', body: `
 <p class="lead">Open a task’s details to restore its saved help. Opening Exe, importing entries, browsing and opening task details do not generate AI work. To ask for new help, press <strong>Prepare help</strong> or type a question. It needs AI turned on (<a href="ai-setup.html">AI setup</a>).</p>
@@ -131,7 +131,7 @@ ${warn('AI can be wrong. Check facts, names, dates and amounts before you use a 
 { slug: 'folders', title: 'Folders', nav: 'Folders', summary: 'Keep areas of your life separate.', body: `
 <p class="lead">Folders are separate workspaces. <strong>All</strong> shows everything together.</p>
 ${steps(['Press the folder name at the top (computer) or open the folders control on your phone.', 'Choose <strong>All</strong> or a folder, or press <strong>New folder</strong>, name it, and press <strong>Create folder</strong>.'])}
-<p>While a folder is chosen, the List, Status and Activity show only that folder, and new entries go into it. In All, new entries are unfiled. You can move an entry from its three dots. <strong>Delete folder</strong> keeps everything inside it (it becomes unfiled).</p>` },
+<p>While a folder is chosen, the List, Groups and Activity show only that folder, and new entries go into it. In All, new entries are unfiled. You can move an entry from its three dots. <strong>Delete folder</strong> keeps everything inside it (it becomes unfiled).</p>` },
 
 { slug: 'ai-setup', title: 'Turning on AI with your own key', nav: 'AI setup', summary: 'Optional, private, and under your control.', body: `
 <p class="lead">Exe works fully without AI. For suggestions and drafts, you connect your own account with an AI company and pay them directly. Exe has no AI bill and never sends anything on its own.</p>
@@ -208,7 +208,7 @@ ${steps([
 
 { slug: 'faq', title: 'Questions, fixes and glossary', nav: 'FAQ', summary: 'Plain answers and what to do when something looks wrong.', body: `
 <h2>Questions</h2>
-<h3>Why does Status say “Nothing to work on yet”?</h3><p>A new Exe starts empty. Add a task with the blue + button.</p>
+<h3>Why is Ungrouped empty?</h3><p>A new Exe starts empty. Add a task with the blue + button.</p>
 <h3>Can the AI change my work?</h3><p>No. It suggests; you decide. It never deletes, completes, sends or reprioritizes on its own.</p>
 <h3>Why is a priority dot a ring?</h3><p>A ring is the AI’s suggestion. Set a priority yourself and it becomes a filled dot. Yours always wins.</p>
 <h3>Does AI cost money?</h3><p>Exe does not charge for AI. If you add your own key, your AI company bills you for what you use.</p>
@@ -238,7 +238,7 @@ ${steps([
 <dl class="glossary">
 <dt>Capture</dt><dd>Anything you saved, exactly as you wrote it. Never removed by Exe or AI.</dd>
 <dt>Task, Note, Reminder</dt><dd>The three types of entry in the List.</dd>
-<dt>Group</dt><dd>Related tasks collected together on Status.</dd>
+<dt>Group</dt><dd>Related tasks collected together on Groups.</dd>
 <dt>Priority</dt><dd>High, Medium or Low, shown as a colored dot.</dd>
 <dt>Suggestion</dt><dd>Something the AI proposes. It does nothing until you accept it.</dd>
 <dt>Activity Log</dt><dd>The timeline of what the AI did and what you chose.</dd>
